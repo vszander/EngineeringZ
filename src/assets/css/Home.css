@@ -1,0 +1,13 @@
+.img-button {
+    width: 100px;
+    height: 100px;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  table {
+    width: 100%;
+  }
+  
+  td {
+    padding: 10px;
+  }

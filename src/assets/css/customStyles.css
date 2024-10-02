@@ -1,0 +1,75 @@
+/* Body background */
+body {
+    background-color: #d7d8c6; /* Cream White */
+    color: #2f2f2f; /* Dark Font Color */
+  }
+  
+  /* Bootstrap Table */
+  .table {
+    background-color: #d7d8c6; /* Cream White */
+    color: #2f2f2f; /* Dark Font Color */
+  }
+  
+  .table th {
+    background-color: #148d97; /* Primary Blue */
+    color: #fff; /* White text for contrast */
+  }
+  
+  .table thead th {
+    border-bottom: 2px solid #155157; /* Darker Blue for header border */
+  }
+  
+  .table tbody tr:nth-child(even) {
+    background-color: #5dc9a5; /* Lighter Green */
+  }
+  
+  .table tbody tr:nth-child(odd) {
+    background-color: #0c9c89; /* Light Green */
+  }
+  
+  .table tbody td {
+    border-bottom: 1px solid #8e5f38; /* Earth Brown for table row borders */
+  }
+  
+  /* React Buttons */
+  .btn-warn {
+    background-color: #f2844e; /* Orange */
+    color: #fff; /* White text */
+    border: none;
+  }
+  
+  .btn-error {
+    background-color: #8e5f38; /* Earth Brown */
+    color: #fff; /* White text */
+    border: none;
+  }
+  
+  .btn-primary {
+    background-color: #148d97; /* Primary Blue */
+    color: #fff; /* White text */
+    border: none;
+  }
+  
+  .btn-success {
+    background-color: #0c9c89; /* Light Green */
+    color: #fff; /* White text */
+    border: none;
+  }
+  
+  .btn-light {
+    background-color: #5dc9a5; /* Lighter Green */
+    color: #2f2f2f; /* Dark Font Color */
+    border: none;
+  }
+  
+  /* Button Hover Effects */
+  .btn-warn:hover, .btn-error:hover, .btn-primary:hover, .btn-success:hover, .btn-light:hover {
+    filter: brightness(90%);
+  }
+  
+  /* Button Active Effects */
+  .btn-warn:active, .btn-error:active, .btn-primary:active, .btn-success:active, .btn-light:active {
+    filter: brightness(80%);
+    transform: scale(0.98);
+  }
+  
