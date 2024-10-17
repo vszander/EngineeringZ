@@ -1,12 +1,35 @@
-//import React from 'react';
+import Navbar from '../components/Navbar'
+import { Link } from 'react-router-dom';
 
 function HamRadio() {
   return (
-    <div className="container">
-      <h1>HamRadio Page</h1>
-      <p>This page contains information about HamRadio.</p>
+    <div className="container"><Navbar />
+      <h1>Ham Radio</h1>
+      <p>
+      <table width="100%">
+        <tbody><tr>
+          <td width="10%"><img src='/images/hamradio/ft818.jpg' width='160' height='184'/>
+          </td><td> <p>
+          Mr. Zander is an innovative, customer-facing systems engineer with a widely varied background in system-of-systems integration and design.  He brings over twenty years of direct experience of requirements definition and software design in various industries ranging from U.S. Federal Government, Industrial / Manufacturing, and Embedded / Internet of Things (IoT). </p>
+         </td>
+      </tr>
+      <tr><td ></td>
+      <td ><img src='/images/hamradio/TriCounty.png' width='100' height='100'/><img src='/images/hamradio/ARES.png' width='100' height='100'/><img src='/images/hamradio/skywarn_logo.png' width='100' height='100'/>
+      <img src='/images/hamradio/SOTA-Logo.svg.png' width='100' height='100'/>
+      <img src='/images/hamradio/pota-logo.png' width='100' height='100'/>
+      
+      </td>
+</tr>      
+
+      </tbody>
+      </table>
+      <p>
+      A proven leader in ambige
+      <Link to='/aboutme'>  click here </Link>.</p>
+      <p> <iframe align="top" frameborder="0" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/KQ4EWW/" width="640"></iframe></p>
+
+      </p>
     </div>
   );
 }
-
 export default HamRadio;

@@ -24,13 +24,29 @@ body {
   }
   
   .table tbody tr:nth-child(odd) {
-    background-color: #0c9c89; /* Light Green */
+   /*  background-color: #0c9c89; Light Green */
+   background-color: #d7d8c6; /* Cream White */
   }
   
   .table tbody td {
     border-bottom: 1px solid #8e5f38; /* Earth Brown for table row borders */
   }
   
+
+  /*  paragraph  div styles  */
+  .text-paragraph {
+    max-width: 1000px;
+    min-width: 100px;
+    margin: 10px auto; /* Center the div and add margin */
+    padding: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #2f2f2f; /* Dark Font Color (from your stylesheet) */
+    /*  background-color: #fff;  Optional: white background */
+    border: 1px solid #155157; /* Optional: Darker Blue border for style */
+    border-radius: 5px; /* Add a slight rounding to the corners */
+  }
+
   /* React Buttons */
   .btn-warn {
     background-color: #f2844e; /* Orange */

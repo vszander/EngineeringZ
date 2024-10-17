@@ -8,7 +8,7 @@ function Home() {
   const buttons = [
     { name: 'Holiday Lights', link: '/lights', image: '/images/xlights/button2.png' },
     { name: '3D', link: '/3d', image: '/images/3D/3D1.png' },
-    { name: 'Smart Home', link: '/smarthome', image: '/images/smarthome/SmartHome.png' },
+    { name: 'Smart Home', link: '/smarthome', image: '/images/smarthome/SmartHome1.png' },
     { name: 'Ham Radio', link: '/hamradio', image: '/images/hamradio/HamRadioButton.png' },
     { name: 'Gazebo', link: '/gazebo', image: '/images/gazebo/Gazebo_button.png' }
   ];

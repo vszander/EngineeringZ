@@ -13,7 +13,7 @@ Use these steps:
 ensure  node.js is installed
 From the  cloudflare developer site:  https://developers.cloudflare.com/pages/framework-guides/deploy-a-react-site/
 npm create cloudflare@latest -- engineeringz --framework=react
-   choose   npm create cloudflare@latest -- engineeringz --framework=react 
+   choose   npm create cloudflare@latest -- engineeringz --framework=react
       I chose:   JavaScript (  not TypeScript )  + WSX (or whatever the add-on was)
       Choose  'deploy No'  ( if you want to use GitHub instead of direct file upload)
 
