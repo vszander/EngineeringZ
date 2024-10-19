@@ -11,6 +11,7 @@ import HamRadioAbout from './pages/HamRadio/aboutmeham'
 import OurServices from './pages/Services'
 import ContactUs from './pages/ContactUs'
 import AboutUs from './pages/AboutUs'
+import PowerZ from './pages/powerz'
 
 import { BrowserRouter, Routes, Route  } from 'react-router-dom'
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/smarthome" element={<SmartHome />} />
               <Route path="/lights" element={<Lights />} />
+              <Route path="/powerz" element={<PowerZ />} />
               <Route path="/gazebo" element={<Gazebo />} />
               <Route path="/hamradio" element={<HamRadio />} />
               <Route path="/aboutme" element={<HamRadioAbout />} />

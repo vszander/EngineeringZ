@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 function HamRadio() {
   return (
     <div className="container"><Navbar />
-      <h1>Ham Radio</h1>
+      <h1>Ham Radio - Online Store</h1>
       <p>
       <table width="100%">
         <tbody><tr>
           <td width="10%"><img src='/images/hamradio/ft818.jpg' width='160' height='184'/>
           </td><td> <p>
-          Mr. Zander is an innovative, customer-facing systems engineer with a widely varied background in system-of-systems integration and design.  He brings over twenty years of direct experience of requirements definition and software design in various industries ranging from U.S. Federal Government, Industrial / Manufacturing, and Embedded / Internet of Things (IoT). </p>
+          Dropdown for  </p>
          </td>
       </tr>
       <tr><td ></td>
@@ -24,9 +24,9 @@ function HamRadio() {
       </tbody>
       </table>
       <p>
-      A proven leader in ambige
-      <Link to='/aboutme'>  click here </Link>.</p>
-      <p> <iframe align="top" frameborder="0" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/KQ4EWW/" width="640"></iframe></p>
+      My Personal interest and 'About me' page is 
+      <Link to='/aboutme'>  here </Link>.</p>
+     
 
       </p>
     </div>
