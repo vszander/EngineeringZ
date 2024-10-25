@@ -21,7 +21,7 @@ export default function Navbar() {
               <Link className="nav-link" to="/contact">Contact   </Link>
           
               <Link className="nav-link" to="/about">About   </Link>
-          
+              <a className="nav-link" href="https://backend.engineering-z.com/accounts/cover-login/">Sign In</a>          
         </div>
         </td>
         </tr>
