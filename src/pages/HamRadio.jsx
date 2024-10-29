@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 function HamRadio() {
   return (
-    <div className="container"><Navbar />
+    <div className="container" scrolling="yes"><Navbar />
       <h1>Ham Radio - Online Store</h1>
       <p>
       <table width="100%">
@@ -29,7 +29,7 @@ function HamRadio() {
      
 
       </p>
-      <p> <iframe align="top" frameborder="0" scrolling="yes" src="https://backend.engineering-z.com/storefront/card/" width="100%"></iframe></p>
+      <p> <iframe align="top" frameborder="0" scrolling="yes" src="https://backend.engineering-z.com/storefront/card/" width="100%" height="400"></iframe></p>
 
     </div>
   );
