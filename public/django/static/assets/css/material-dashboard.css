@@ -28,14 +28,18 @@
   --bs-gray-700: #495057;
   --bs-gray-800: #343a40;
   --bs-gray-900: #212529;
-  --bs-primary: #e91e63;
+  --bs-primary: #0aa08b;
+  --bs-primary-gradient: linear-gradient(180deg, #0aa08b, #5dc9a5);
   --bs-secondary: #7b809a;
-  --bs-success: #4CAF50;
-  --bs-info: #1A73E8;
+  --bs-success: #8b5935;
+  --bs-success-gradient: linear-gradient(180deg, #8b5935, #d7a977);
+  --bs-info: #18959a;
+  --bs-info-gradient: linear-gradient(180deg, #18959a, #5dc9a5);
   --bs-warning: #fb8c00;
   --bs-danger: #F44335;
   --bs-light: #f0f2f5;
-  --bs-dark: #344767;
+  --bs-dark: #050f2a;
+  --bs-dark-gradient: linear-gradient(180deg, #050f2a, #155157);
   --bs-white: #fff;
   --bs-primary-rgb: 233, 30, 99;
   --bs-secondary-rgb: 123, 128, 154;
@@ -3224,7 +3228,7 @@ textarea.form-control-lg {
   --bs-nav-tabs-border-color: #dee2e6;
   --bs-nav-tabs-border-radius: 0.375rem;
   --bs-nav-tabs-link-hover-border-color: #f0f2f5 #f0f2f5 #dee2e6;
-  --bs-nav-tabs-link-active-color: #495057;
+  --bs-nav-tabs-link-active-color: #ef7f48;
   --bs-nav-tabs-link-active-bg: #fff;
   --bs-nav-tabs-link-active-border-color: #dee2e6 #dee2e6 #fff;
   border-bottom: var(--bs-nav-tabs-border-width) solid var(--bs-nav-tabs-border-color); }
@@ -7680,16 +7684,16 @@ textarea.form-control-lg {
   --bs-text-opacity: 1; }
 
 .bg-primary {
-  background-color: #e91e63 !important; }
+  background-color: #0aa08b !important; }
 
 .bg-secondary {
   background-color: #7b809a !important; }
 
 .bg-success {
-  background-color: #4CAF50 !important; }
+  background-color: #8b5935 !important; }
 
 .bg-info {
-  background-color: #1A73E8 !important; }
+  background-color: #18959a !important; }
 
 .bg-warning {
   background-color: #fb8c00 !important; }
@@ -7701,7 +7705,7 @@ textarea.form-control-lg {
   background-color: #f0f2f5 !important; }
 
 .bg-dark {
-  background-color: #344767 !important; }
+  background-color: #050f2a !important; }
 
 .bg-white {
   background-color: #fff !important; }
@@ -7719,7 +7723,7 @@ textarea.form-control-lg {
   background-color: #f0f2f5 !important; }
 
 .bg-gray-300 {
-  background-color: #dee2e6 !important; }
+  background-color: #d8d9c6 !important; }
 
 .bg-gray-400 {
   background-color: #ced4da !important; }
@@ -14391,17 +14395,18 @@ label,
 .footer .footer-logo {
   max-width: 2rem; }
 
+  /* This seems to be where most of the colors are defined.  Zander */
 .bg-gradient-primary {
-  background-image: linear-gradient(195deg, #EC407A 0%, #D81B60 100%); }
+  background-image: linear-gradient(195deg, #0aa08b 0%, #5dc9a5 100%); }
 
 .bg-gradient-secondary {
   background-image: linear-gradient(195deg, #747b8a 0%, #495361 100%); }
 
 .bg-gradient-success {
-  background-image: linear-gradient(195deg, #66BB6A 0%, #43A047 100%); }
+  background-image: linear-gradient(195deg, #8b5935 0%, #d7a977 100%); }
 
 .bg-gradient-info {
-  background-image: linear-gradient(195deg, #49a3f1 0%, #1A73E8 100%); }
+  background-image: linear-gradient(195deg, #18959a 0%, #5dc9a5 100%); }
 
 .bg-gradient-warning {
   background-image: linear-gradient(195deg, #FFA726 0%, #FB8C00 100%); }
@@ -14413,7 +14418,7 @@ label,
   background-image: linear-gradient(195deg, #EBEFF4 0%, #CED4DA 100%); }
 
 .bg-gradient-dark {
-  background-image: linear-gradient(195deg, #42424a 0%, #191919 100%); }
+  background-image: linear-gradient(195deg, #050f2a 0%, #155157 100%); }
 
 .bg-gradient-faded-primary {
   background-image: radial-gradient(370px circle at 80% 50%, rgba(233, 30, 99, 0.6) 0, #c1134e 100%); }
