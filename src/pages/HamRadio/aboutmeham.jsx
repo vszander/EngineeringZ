@@ -29,7 +29,7 @@ function HamRadioAbout() {
       </table>
       <p><a href="http://s11.flagcounter.com/more/giA"><img src="https://s11.flagcounter.com/count2/giA/bg_FFFFFF/txt_000000/border_CCCCCC/columns_2/maxflags_10/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"/></a></p>
       <p> <iframe align="top" frameborder="0" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/KQ4EWW/" width="640"></iframe></p>
-      <p> <iframe align="top" frameborder="0" height="850" scrolling="yes" src="https://pskreporter.info/pskmap.html?preset&callsign=KQ4EWW&txrx=tx&blankifnone=1&showsnr=1&hidetime=1&mapCenter=38.,-96,5" width="1340"></iframe></p>
+      <p> <iframe align="top" frameborder="0" height="850" scrolling="yes" src="https://pskreporter.info/pskmap.html?preset&callsign=KQ4EWW&txrx=tx&hideunrec=1&blankifnone=1&showsnr=1&showlines=1&hidetime=1&mapCenter=38.,-96,5" width="1340"></iframe></p>
       
       <p></p>
      
