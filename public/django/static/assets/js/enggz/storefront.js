@@ -4,7 +4,8 @@
 function sale_item_request() {
 
     // Define the URL of the Django endpoint
-const url = 'http://localhost:8000/storefront/sale_item_request/';  // Replace with the actual endpoint
+//const url = 'http://localhost:8000/storefront/sale_item_request/';  // Replace with the actual endpoint
+const url = 'https://backend.engineering-z.com/storefront/sale_item_request/';  // Replace with the actual endpoint
 
 alert("Im there!");
 
