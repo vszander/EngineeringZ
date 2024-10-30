@@ -7,7 +7,7 @@ function sale_item_request() {
 //const url = 'http://localhost:8000/storefront/sale_item_request/';  // Replace with the actual endpoint
 const url = 'https://backend.engineering-z.com/storefront/sale_item_request/';  // Replace with the actual endpoint
 
-alert("Im there!");
+//alert("Im there!");
 
   // Get the selected value from the dropdown
   const selectedValue = document.getElementById("dropdown").value;
@@ -19,7 +19,7 @@ const data = {
   received_data: 'value2'
 };  
 
-alert("Im here!");
+//alert("Im here!");
 
 // Send JSON request to the server
 fetch(url, {
