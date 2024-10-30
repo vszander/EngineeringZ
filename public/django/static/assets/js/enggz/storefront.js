@@ -17,7 +17,7 @@ alert("Im there!");
 const data = {
   key1: selectedValue,
   received_data: 'value2'
-};
+};  
 
 alert("Im here!");
 
