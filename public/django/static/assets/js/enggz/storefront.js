@@ -11,7 +11,7 @@ alert("Im there!");
   // Get the selected value from the dropdown
   const selectedValue = document.getElementById("dropdown").value;
 
-
+   
 // Define the data to send to the server as JSON
 const data = {
   key1: selectedValue,
