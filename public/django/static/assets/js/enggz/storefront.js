@@ -11,7 +11,7 @@ function sale_item_request() {
     // Define the URL of the Django endpoint
 const url = 'https://backend.engineering-z.com/storefront/sale_item_request/';  // Replace with the actual endpoint
 
-alert("Im over here!");
+alert("Im way way over here!");
 
   // Get the selected value from the dropdown
   const selectedValue = document.getElementById("dropdown").value;
