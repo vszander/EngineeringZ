@@ -1,29 +1,29 @@
 // Helper function to get CSRF token from Django's CSRF cookie
 
-document.getElementById('SendData').addEventListener('click', function(sale_item_request()) {
+
+document.getElementById('SendData').addEventListener('click', function() {
+  sale_item_request();  // Call the function here
   alert('Clicked!');
 });
-
 
 function sale_item_request() {
 
     // Define the URL of the Django endpoint
-//const url = 'http://localhost:8000/storefront/sale_item_request/';  // Replace with the actual endpoint
-const url = 'https://backend.engineering-z.com/storefront/sale_item_request/';  // Replace with the actual endpoint
+const url = 'http://localhost:8000/storefront/sale_item_request/';  // Replace with the actual endpoint
 
-//alert("Im there!");
+alert("Im there!");
 
   // Get the selected value from the dropdown
   const selectedValue = document.getElementById("dropdown").value;
 
-   
+
 // Define the data to send to the server as JSON
 const data = {
   key1: selectedValue,
   received_data: 'value2'
-};  
+};
 
-//alert("Im here!");
+alert("Im here!");
 
 // Send JSON request to the server
 fetch(url, {
