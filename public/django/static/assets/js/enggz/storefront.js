@@ -1,5 +1,9 @@
 // Helper function to get CSRF token from Django's CSRF cookie
 
+document.getElementById('SendData').addEventListener('click', function(sale_item_request()) {
+  alert('Clicked!');
+});
+
 
 function sale_item_request() {
 
