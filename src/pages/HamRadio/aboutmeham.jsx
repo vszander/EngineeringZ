@@ -13,7 +13,7 @@ function HamRadioAbout() {
           I got my novice license (KA0ZKV) in 1986 while in high school... and upgraded to Tech+ while in Electrical Engineering at Kansas State ( W0QQQ  is still the club callsign). 
             I tried to upgrade to General / Advanced - but couldn't defeat the 13wpm 'wall'. &nbsp;&nbsp; Maybe this will be the year ! </p>
         <p>I joined the Army at the start of the 1st Gulf war and enjoyed 11yrs active duty and 2yrs in the Reserves thereafter. &nbsp; While serving in the states I continued to stay active in clubs at Ft Riley (Manhattan, KS)  
-          and Ft Bragg (Fayetteville, NC) and have always had a passion for Emergency Comms.  Like some others,  I slipped away from the hobby as I started a family and a business.</p>
+          and   Ft Bragg (Fayetteville, NC) and have always had a passion for Emergency Comms.  Like some others,  I slipped away from the hobby as I started a family and a business.</p>
           <p>I now have an <Link to='/hamradio'>  online store <img src='/images/EnggZ_logo3d.png' width='30' height='30'/> </Link>  to showcase some of my HamRadio  inventions and customized 3D products.</p>
          </td>
       </tr>
