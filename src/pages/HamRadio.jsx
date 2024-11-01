@@ -30,7 +30,7 @@ function HamRadio() {
 
       </p>
      
-      <p> <iframe align="top" frameborder="0" scrolling="yes" src="https://backend.engineering-z.com/storefront/card/" width="100%" height="600"></iframe></p>
+      <p> <iframe align="top" frameborder="0" scrolling="yes" src="https://backend.engineering-z.com/storefront/dynamic_cards/" width="100%" height="600"></iframe></p>
 
     </div>
   );
