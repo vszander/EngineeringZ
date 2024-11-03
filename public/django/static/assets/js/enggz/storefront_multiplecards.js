@@ -22,6 +22,8 @@ function sendJson (filterValue) {
    
    const url = 'https://backend.engineering.com/storefront/mcard/';  // Replace with the actual endpoint
 
+
+   
    
     // Send POST request to the server
     fetch(url, {
@@ -58,7 +60,6 @@ document.getElementById('submitButton').addEventListener('click', function() {
 document.getElementById('thisProduct').innerHTML = "get initial";
 window.onload =function () {
     const filterValue = 0;
-    alert("whoa!");
     sendJson(filterValue);
 };
 
