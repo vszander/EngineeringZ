@@ -10,7 +10,8 @@ function HamRadio() {
         <tbody><tr>
           <td width="10%"><img src='/images/hamradio/ft818.jpg' width='160' height='184'/>
           </td><td> <p>
-          Dropdown for  </p>
+            I am offering most of my projects for sale here.   I have personally tested each of these and modified the designs to suit me - but I'd be happy to modify to suit your needs.
+            Please browse around and feel free to ask questions. </p>
          </td>
       </tr>
       <tr><td ></td>

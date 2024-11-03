@@ -15,7 +15,7 @@ document.getElementById('submitButton').addEventListener('click', function() {
    // Define the URL of the Django endpoint
    const url = 'https://backend.engineering-z.com/storefront/mcard/';  // Replace with the actual endpoint
 
-   alert("sending request!");
+  // alert("sending request!");
     // Send POST request to the server
     fetch(url, {
         method: 'POST',
