@@ -17,7 +17,7 @@ function sendJson (filterValue) {
         ]
     };
    // Define the URL of the Django endpoint
-   const url = 'http://backend.engineering.com/storefront/mcard/';  // Replace with the actual endpoint
+   const url = 'https://backend.engineering.com/storefront/mcard/';  // Replace with the actual endpoint
 
    
     // Send POST request to the server
