@@ -20,7 +20,7 @@ function sendJson (filterValue) {
 
 
    
-   const url = 'https://backend.engineering.com/storefront/mcard/';  // Replace with the actual endpoint
+   const url = 'https://backend.engineering-z.com/storefront/mcard/';  // Replace with the actual endpoint
 
 
    
@@ -57,7 +57,7 @@ document.getElementById('submitButton').addEventListener('click', function() {
     sendJson(filterValue);
 });
 
-document.getElementById('thisProduct').innerHTML = "get initial";
+document.getElementById('thisProduct').innerHTML = "get initial--";
 window.onload =function () {
     const filterValue = 0;
     sendJson(filterValue);
