@@ -8,7 +8,7 @@ function HamRadio() {
       <p>
       <table width="100%">
         <tbody><tr>
-          <td width="10%"><img src='/images/hamradio/FieldDay1.jpg' width='160' height='184'/>
+          <td width="10%"><img src='/images/hamradio/FieldDay1.jpg' width='202' height='140'/>
           </td><td> <p>
             After so many encouraged me to share some of the hobby that I love...  I am offering most of my projects for sale here. </p>
             <p> I'm happy to say that I still have a 100% satisfaction rating on my ebay store - so shop here with confidence and save a little.  The storefront is available for browsing available products... the shopping cart is under construction but it will accept PayPal, Venmo, and GoDaddy secure payments.  I have personally tested each of these and modified the designs to suit me - but I'd be happy to modify to suit your needs.
