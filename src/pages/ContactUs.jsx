@@ -4,8 +4,9 @@ function ContactUs() {
     return (
       <div className="container"><Navbar />
         <h1>Contact Us</h1>
-        <p>Message Forwarding and email forwarding  ... coming soon. 
-            A very nice web form  is in the works...  but please  <a href="mailto:contact@engineering-z.com" >email us </a>  for now !</p>
+        <p> <iframe align="top" frameborder="0" scrolling="yes" src="https://backend.engineering-z.com/contactus/" width="100%" height="600"></iframe></p>
+        <p>
+          Or you can  <a href="mailto:contact@engineering-z.com" >email us </a></p>
         <p> </p>
       </div>
     );
