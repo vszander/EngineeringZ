@@ -89,3 +89,17 @@ body {
     transform: scale(0.98);
   }
   
+  .navbar-decoration {
+    position: absolute; /* Places the decoration relative to the navbar */
+    bottom: 0;          /* Aligns it to the bottom of the navbar */
+    left: 50%;          /* Centers it horizontally */
+    transform: translateX(-50%); /* Adjusts for centering */
+    width: 100%;        /* Ensure it spans the full width of the navbar */
+    text-align: center; /* Centers the image inside the div */
+  }
+  
+  .navbar-decoration img {
+    height: 12px;       /* Maintain the image height */
+    max-width: 1000px;  /* Ensure the width doesn’t exceed 1000px */
+  }
+  

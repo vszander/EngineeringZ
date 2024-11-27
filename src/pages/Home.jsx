@@ -17,7 +17,7 @@ function Home() {
 
     <div className="container"><Navbar />
       <h1 className="my-4">Engineering-Z</h1>
-      <img src='/images/Webpage_collage.png' width='1000' height='500'/>
+      <img class="img-fluid border-radius-lg" src='/images/Webpage_collage.png' width='1000' height='500'/>
       <table className="table">
          <tbody>
           <tr>

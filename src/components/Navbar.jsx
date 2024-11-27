@@ -1,36 +1,101 @@
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../assets/css/customStyles.css';
 
 export default function Navbar() {
+  // State variables for cart icon and quantity
+  const [cartQuantity, setCartQuantity] = useState(0);
+  const [cartIcon, setCartIcon] = useState('shopping_cart');
+
+  // Function to handle cart icon click
+  const handleCartClick = () => {
+    const currentUrl = window.location.href; // Get the current browser URL
+    if (currentUrl.includes('/hamradio')) {
+      // Redirect the iframe to /storefront/product_list/
+      const iframe = document.querySelector('iframe');
+      if (iframe) {
+        iframe.src = '/storefront/product_list/';
+      } else {
+        console.error('Iframe not found!');
+      }
+    } else {
+      // Redirect the entire browser to /lights
+      window.location.href = '/lights';
+    }
+  };
+
+  // Listen for messages from iframe
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.origin !== 'https://backend.engineering-z.com') return; // Replace with your backend domain
+      const { type, value } = event.data;
+
+      if (type === 'cartUpdate') {
+        setCartQuantity(value);
+        setCartIcon(value > 0 ? 'shopping_cart_checkout' : 'shopping_cart');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   return (
-    
     <nav className="navbar navbar-expand-lg navbar-dark" style={{ backgroundColor: '#496dba' }}>
       <div className="container-fluid">
         <table width="100%">
-          <tbody><tr>
-            <td width="65%"></td><td>
-        &nbsp;
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"><Link className="navbar-brand" to="/home">Home</Link></span>
-        </button></td>
-        <td>
-        <div className="collapse navbar-collapse" id="navbarNav">
+          <tbody>
+            <tr>
+              <td width="65%"></td>
+              <td>
+                &nbsp;
+                <button
+                  className="navbar-toggler"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#navbarNav"
+                  aria-controls="navbarNav"
+                  aria-expanded="false"
+                  aria-label="Toggle navigation"
+                >
+                  <span className="navbar-toggler-icon">
+                    <Link className="navbar-brand" to="/home">Home</Link>
+                  </span>
+                </button>
+              </td>
+              <td>
+                <div className="collapse navbar-collapse" id="navbarNav">
+                  <Link className="nav-link" to="/services">Services</Link>
+                  <Link className="nav-link" to="/contact">Contact</Link>
+                  <Link className="nav-link" to="/about">About</Link>
+                  <a className="nav-link" href="https://backend.engineering-z.com/accounts/cover-login/">Sign In</a>
+                  {/* Shopping Cart Anchor */}
+                  <a
+                    href="javascript:;"
+                    className="nav-link text-body p-0 position-relative"
+                    onClick={handleCartClick}
+                    id="shoppingButton"
+                  >
+                    <i className="material-icons cursor-pointer" id="shopping_cart">
+                      {cartIcon}
+                    </i>
+                    <span className="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
+                      <span className="small" id="cart_quantity">{cartQuantity}</span>
+                      <span className="visually-hidden">unread notifications</span>
+                    </span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
           
-              <Link className="nav-link" to="/services">Services   </Link>
-           
-              <Link className="nav-link" to="/contact">Contact   </Link>
-          
-              <Link className="nav-link" to="/about">About   </Link>
-              <a className="nav-link" href="https://backend.engineering-z.com/accounts/cover-login/">Sign In</a>          
-        </div>
-        </td>
-        </tr>
-        </tbody>
         </table>
-        <img src='/images/navbar.png' width='1000' height='12'/>
+        <div className="navbar-decoration ">
+  <img class="img-fluid" src="/images/navbar.png" width="1000" height="12" alt="Navbar Decoration" />
+</div>
+
       </div>
+      
     </nav>
-    
   );
 }
-
