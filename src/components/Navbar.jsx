@@ -27,10 +27,26 @@ export default function Navbar() {
     }
   };
 
+
+  const testMessage = () => {
+    const testEvent = {
+        data: { status: 1, quantity: 11 },
+        origin: "https://backend.engineering-z.com",
+    };
+    console.log("Simulated message:", testEvent);  // Debugging
+    handleMessage(testEvent);  // Call your handler manually
+  };
   // Listen for messages from iframe
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.origin !== 'https://backend.engineering-z.com') return; // Replace with your backend domain
+
+      console.log("Message received:", event); // Log the entire event object
+
+
+      if (event.origin !== 'https://backend.engineering-z.com') {
+        console.warn("Message from untrusted origin:", event.origin);
+        return;
+    } // Replace with your backend domain
       const { type, value } = event.data;
 
     // Update the cart state
@@ -43,7 +59,9 @@ export default function Navbar() {
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    return () => {
+        window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   return (
@@ -68,6 +86,7 @@ export default function Navbar() {
                     <Link className="navbar-brand" to="/home">Home</Link>
                   </span>
                 </button>
+                <button onClick={testMessage}>Test Message</button>
               </td>
               <td>
                 <div className="collapse navbar-collapse" id="navbarNav">
