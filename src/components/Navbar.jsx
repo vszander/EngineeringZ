@@ -9,23 +9,30 @@ export default function Navbar() {
    // State to hold cart status and quantity
    const [cartStatus, setCartStatus] = useState(0); // 0 = empty, 1 = items in cart
  
+ // Function to handle cart icon click
+const handleCartClick = () => {
+  const iframe = document.getElementById('shoppingiframe'); // Ensure you have the correct iframe ID
+  const currentUrl = window.location.href; // Get the current browser URL
 
-  // Function to handle cart icon click
-  const handleCartClick = () => {
-    const currentUrl = window.location.href; // Get the current browser URL
-    if (currentUrl.includes('/hamradio')) {
-      // Redirect the iframe to /storefront/product_list/
-      const iframe = document.querySelector('iframe');
-      if (iframe) {
-        iframe.src = 'https://backend.engineering-z.com/storefront/cart';
-      } else {
-        console.error('Iframe not found!');
-      }
+  if (cartQuantity > 0) {
+    // If there are items in the cart, redirect iframe to the cart page
+    if (iframe) {
+      iframe.src = 'https://backend.engineering-z.com/storefront/cart';
     } else {
-      // Redirect the entire browser to /lights
-      window.location.href = '/lights';
+      console.error('Iframe not found!');
     }
-  };
+  } else if (currentUrl.includes('/hamradio')) {
+    // If on /hamradio and no items in the cart, redirect iframe to product list
+    if (iframe) {
+      iframe.src = 'https://backend.engineering-z.com/storefront/product_list';
+    } else {
+      console.error('Iframe not found!');
+    }
+  } else {
+    // If not on /hamradio and no items in the cart, redirect the entire browser to /lights
+    window.location.href = '/lights';
+  }
+};
 
   const handleMessage = (event) => {
     console.log("Message received:", event); // Debugging
