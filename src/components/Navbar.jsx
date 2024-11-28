@@ -14,7 +14,7 @@ export default function Navbar() {
       // Redirect the iframe to /storefront/product_list/
       const iframe = document.querySelector('iframe');
       if (iframe) {
-        iframe.src = '/storefront/product_list/';
+        iframe.src = 'https://backend.engineering-z.com/storefront/product_list/';
       } else {
         console.error('Iframe not found!');
       }
