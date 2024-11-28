@@ -27,42 +27,45 @@ export default function Navbar() {
     }
   };
 
+  const handleMessage = (event) => {
+    console.log("Message received:", event); // Debugging
 
-  const testMessage = () => {
-    const testEvent = {
-        data: { status: 1, quantity: 11 },
-        origin: "https://backend.engineering-z.com",
-    };
-    console.log("Simulated message:", testEvent);  // Debugging
-    handleMessage(testEvent);  // Call your handler manually
-  };
-  // Listen for messages from iframe
-  useEffect(() => {
-    const handleMessage = (event) => {
-
-      console.log("Message received:", event); // Log the entire event object
-
-
-      if (event.origin !== 'https://backend.engineering-z.com') {
+    // Check origin for security
+    if (event.origin !== "https://backend.engineering-z.com") {
         console.warn("Message from untrusted origin:", event.origin);
         return;
-    } // Replace with your backend domain
-      const { type, value } = event.data;
-
-    // Update the cart state
-    if (typeof status === "number" && typeof quantity === "number") {
-     // setCartStatus(status);
-     // setCartQuantity(quantity);
-       // Trigger an alert to confirm message receipt
-    alert("trigger");
     }
-    };
 
-    window.addEventListener('message', handleMessage);
+    const { status, quantity } = event.data;
+    if (status === 1) {
+        console.log("Updating cart with quantity:", quantity); // Debugging
+        setCartQuantity(quantity);
+        alert(`Cart updated with quantity: ${quantity}`); // Test alert
+    }
+};
+
+const testMessage = () => {
+  const testEvent = {
+      data: { status: 1, quantity: 11 },
+      origin: "https://backend.engineering-z.com",
+  };
+  console.log("Simulated message:", testEvent); // Debugging
+  handleMessage(testEvent); // Call the global handler
+};
+
+  // Listen for messages from iframe
+useEffect(() => {
+    window.addEventListener("message", handleMessage);
     return () => {
         window.removeEventListener("message", handleMessage);
     };
-  }, []);
+}, []);
+
+
+
+  
+
+ 
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark" style={{ backgroundColor: '#496dba' }}>
@@ -74,7 +77,7 @@ export default function Navbar() {
               <td>
                 &nbsp;
                 <button
-                  className="navbar-toggler"
+                  
                   type="button"
                   data-bs-toggle="collapse"
                   data-bs-target="#navbarNav"
@@ -82,8 +85,8 @@ export default function Navbar() {
                   aria-expanded="false"
                   aria-label="Toggle navigation"
                 >
-                  <span className="navbar-toggler-icon">
-                    <Link className="navbar-brand" to="/home">Home</Link>
+                  <span >
+                    <Link  to="/home">Home</Link>
                   </span>
                 </button>
                 <button onClick={testMessage}>Test Message</button>
@@ -102,7 +105,7 @@ export default function Navbar() {
                     id="shoppingButton"
                   >
                     <i className="material-icons cursor-pointer" id="shopping_cart">
-                      {cartIcon} {cartStatus === 1 ? 'shopping_cart_checkout' : 'shopping_cart'}
+                      {cartStatus === 1 ? 'shopping_cart_checkout' : cartIcon}
                       </i>
                     <span className="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
                       <span className="small" id="cart_quantity">{cartQuantity}</span>
