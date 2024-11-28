@@ -6,6 +6,9 @@ export default function Navbar() {
   // State variables for cart icon and quantity
   const [cartQuantity, setCartQuantity] = useState(0);
   const [cartIcon, setCartIcon] = useState('shopping_cart');
+   // State to hold cart status and quantity
+   const [cartStatus, setCartStatus] = useState(0); // 0 = empty, 1 = items in cart
+ 
 
   // Function to handle cart icon click
   const handleCartClick = () => {
@@ -30,10 +33,13 @@ export default function Navbar() {
       if (event.origin !== 'https://backend.engineering-z.com') return; // Replace with your backend domain
       const { type, value } = event.data;
 
-      if (type === 'cartUpdate') {
-        setCartQuantity(value);
-        setCartIcon(value > 0 ? 'shopping_cart_checkout' : 'shopping_cart');
-      }
+    // Update the cart state
+    if (typeof status === "number" && typeof quantity === "number") {
+     // setCartStatus(status);
+     // setCartQuantity(quantity);
+       // Trigger an alert to confirm message receipt
+    alert("trigger");
+    }
     };
 
     window.addEventListener('message', handleMessage);
@@ -77,8 +83,8 @@ export default function Navbar() {
                     id="shoppingButton"
                   >
                     <i className="material-icons cursor-pointer" id="shopping_cart">
-                      {cartIcon}
-                    </i>
+                      {cartIcon} {cartStatus === 1 ? 'shopping_cart_checkout' : 'shopping_cart'}
+                      </i>
                     <span className="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
                       <span className="small" id="cart_quantity">{cartQuantity}</span>
                       <span className="visually-hidden">unread notifications</span>
