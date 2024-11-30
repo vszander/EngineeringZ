@@ -89,14 +89,7 @@ const handleCartClick = () => {
     }
 };
 
-const testMessage = () => {
-  const testEvent = {
-      data: { status: 1, quantity: 11 },
-      origin: "https://backend.engineering-z.com",
-  };
-  console.log("Simulated message:", testEvent); // Debugging
-  handleMessage(testEvent); // Call the global handler
-};
+
 
   // Log fallingProduct whenever it changes
   useEffect(() => {
@@ -148,7 +141,7 @@ useEffect(() => {
                     <Link  to="/home">Home</Link>
                   </span>
                 </button>
-                <button onClick={testMessage}>Test Message</button>
+                
               </td>
               <td>
               <div className="collapse navbar-collapse" id="navbarNav">
