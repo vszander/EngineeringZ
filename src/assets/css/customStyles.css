@@ -3,7 +3,33 @@ body {
     background-color: #d7d8c6; /* Cream White */
     color: #2f2f2f; /* Dark Font Color */
   }
-  
+
+/* Scoped animation */
+.navbar .falling-product {
+  position: fixed;
+  top: var(--start-y, 50%);
+  left: var(--start-x, 50%);
+  transform: translate(-50%, -50%);
+  animation: fall-and-shrink 1s ease-in-out forwards; /* Correct animation name */
+  z-index: 1000;
+}
+
+@keyframes fall-and-shrink { /* Matches the animation name */
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+      calc(var(--cart-x) - var(--start-x) - 30px), 
+      calc(var(--cart-y) - var(--start-y))
+      ) scale(0.3);
+    opacity: 0;
+  }
+}
+
+
+
   /* Bootstrap Table */
   .table {
     background-color: #d7d8c6; /* Cream White */
