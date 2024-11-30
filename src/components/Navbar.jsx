@@ -92,9 +92,9 @@ const handleCartClick = () => {
 
 
   // Log fallingProduct whenever it changes
-  useEffect(() => {
-    console.log('Falling Product State:', fallingProduct);
-  }, [fallingProduct]);
+ // useEffect(() => {
+  //  console.log('Falling Product State:', fallingProduct);
+ // }, [fallingProduct]);
 
 
   // Listen for messages from iframe
