@@ -1,12 +1,13 @@
 //import React from 'react';
 import Navbar from '../components/Navbar'
+import { Link } from 'react-router-dom';
 
 function Lights() {
   return (
 
-<div className="container">
+<div className="container" scrolling="yes">
     <Navbar />
-     <h1>Lights Page</h1>
+     <h1>Holiday Lights Page</h1>
       <p>This page contains information about Lights.</p>
     </div>
   
