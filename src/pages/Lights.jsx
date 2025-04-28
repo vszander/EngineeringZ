@@ -9,6 +9,8 @@ function Lights() {
     <Navbar />
      <h1>Holiday Lights Page</h1>
       <p>This page contains information about Lights.</p>
+
+      <p><Link to='/store'>  here </Link>.</p>
     </div>
   
   );

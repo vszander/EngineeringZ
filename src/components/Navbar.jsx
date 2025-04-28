@@ -20,8 +20,8 @@ const handleCartClick = () => {
     // If there are items in the cart, redirect iframe to the cart page
     if (iframe) {
       
- //     iframe.src = 'http://localhost:8000/storefront/cart';
-      iframe.src = 'https://backend.engineering-z.com/storefront/cart';
+      iframe.src = 'http://localhost:8000/storefront/cart';
+  //    iframe.src = 'https://backend.engineering-z.com/storefront/cart';
 
     } else {
       console.error('Iframe not found!');
@@ -190,7 +190,7 @@ useEffect(() => {
           
         </table>
         <div className="navbar-decoration ">
-          <img class="img-fluid" src="/images/navbar.png" width="1000" height="12" alt="Navbar Decoration" />
+          <img className="img-fluid" src="/images/navbar.png" width="1000" height="12" alt="Navbar Decoration" />
         </div>
 
       </div>

@@ -12,6 +12,7 @@ import OurServices from './pages/Services'
 import ContactUs from './pages/ContactUs'
 import AboutUs from './pages/AboutUs'
 import PowerZ from './pages/powerz'
+import LightsStore from './pages/Lights_store'
 
 import { BrowserRouter, Routes, Route  } from 'react-router-dom'
 
@@ -25,6 +26,7 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/smarthome" element={<SmartHome />} />
               <Route path="/lights" element={<Lights />} />
+              <Route path="/store" element={<LightsStore />} />
               <Route path="/powerz" element={<PowerZ />} />
               <Route path="/gazebo" element={<Gazebo />} />
               <Route path="/hamradio" element={<HamRadio />} />
