@@ -24,9 +24,11 @@ function LightsStore() {
 
      
       <p> 
-        <iframe align="top" frameBorder="0" scrolling="yes" id ="shoppingiframe" src="https://backend.engineering-z.com/storefront/lights_product_list/" width="100%" height="600"></iframe> 
-     
-         </p>
+
+         <iframe align="top" frameBorder="0" scrolling="yes" id ="shoppingiframe" src="https://backend.engineering-z.com/storefront/lights_product_list/" width="100%" height="600"></iframe> 
+
+     {/*  <iframe align="top" frameBorder="0" scrolling="yes" id ="shoppingiframe" src="http://localhost:8000/storefront/lights_product_list/" width="100%" height="600"></iframe>  */}
+      </p>
 
     </div>
   );
