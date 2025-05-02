@@ -8,8 +8,10 @@ function Lights() {
 <div className="container" scrolling="yes">
     <Navbar />
      <h1>Holiday Lights Page</h1>
-      <p>This page contains information about Lights.</p>
 
+
+      <p>This page contains information about Lights.</p>
+<img src='/images/xlights/gifs/Many_elements1.gif' width='202' height='140'/>
       <p><Link to='/store'>  here </Link>.</p>
     </div>
   
