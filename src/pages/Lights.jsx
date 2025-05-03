@@ -11,7 +11,7 @@ function Lights() {
 
 
       <p>This page contains information about Lights.</p>
-<img src='/images/xlights/gifs/Many_elements1.gif' width='202' height='140'/>
+<img src='/images/xlights/gifs/Many_elements1.gif' width='800' height='540'/>
       <p><Link to='/store'>  here </Link>.</p>
     </div>
   
