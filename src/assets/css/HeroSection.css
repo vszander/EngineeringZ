@@ -1,0 +1,45 @@
+/* HeroSection.css */
+.hero-container {
+  background-size: cover;
+  background-position: center;
+  height: 60vh;
+  position: relative;
+  text-align: center;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(5, 15, 42, 0.2); /* optional dimming layer */
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.hero-btn {
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+}
