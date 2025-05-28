@@ -1,0 +1,126 @@
+/* Packages.css */
+
+.package-section {
+  padding: 4rem 2rem;
+  background-color: #d7d8c6; /* Cream background */
+}
+
+.package-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.package-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #155157; /* Darker blue */
+}
+
+.package-header p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.package-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.package-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.package-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.package-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.package-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #148d97; /* Primary blue */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.package-price {
+  font-size: 1.1rem;
+  color: #8e5f38; /* Earth Brown */
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.package-description {
+  font-size: 0.95rem;
+  color: #444;
+  margin-bottom: 1rem;
+}
+
+.package-card .btn {
+  background-color: #0c9c89; /* Light Green */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.package-card .btn:hover {
+  background-color: #148d97;
+}
+
+.tier-card {
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.tier-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-image {
+  width: 100%;
+  height: auto;
+  transition: transform 0.4s ease;
+  display: block;
+}
+
+.price-overlay {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  width: 100%;
+  background-color: rgba(20, 141, 151, 0.9); /* primary blue background */
+  color: white;
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: bold;
+  transition: bottom 0.3s ease;
+}
+
+.tier-card:hover .tier-image {
+  transform: translateY(-20px);
+}
+
+.tier-card:hover .price-overlay {
+  bottom: 0;
+}

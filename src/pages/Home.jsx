@@ -61,10 +61,7 @@ function Home() {
                         enhances every holiday.
                       </p>
                     </div>
-                    <Link
-                      to="/services"
-                      className="btn btn-outline-primary mt-3"
-                    >
+                    <Link to="/packages" className="btn btn-outline-primary">
                       Learn More
                     </Link>
                   </div>
