@@ -5,6 +5,7 @@ import SmartHome from "./pages/SmartHome";
 import Gazebo from "./pages/Gazebo";
 import HamRadio from "./pages/HamRadio";
 import ThreeD from "./pages/ThreeD";
+import Admin from "./pages/Admin";
 import HamRadioAbout from "./pages/HamRadio/aboutmeham";
 
 import OurServices from "./pages/Services";
@@ -36,6 +37,7 @@ function App() {
             <Route path="/packages" element={<Packages />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/auth" element={<Admin />} />
           </Routes>
         </BrowserRouter>
       </div>
