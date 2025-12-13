@@ -22,8 +22,9 @@ function HamRadio() {
               <td>
                 {" "}
                 <p>
-                  After so many encouraged me to share some of the hobby that I
-                  love... I am offering most of my projects for sale here.{" "}
+                  After so many encouraged me to share that part of the hobby
+                  that I love... I am offering most of my projects for sale
+                  here.{" "}
                 </p>
                 <p>
                   {" "}
