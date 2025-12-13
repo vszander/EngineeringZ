@@ -17,7 +17,8 @@ function Home() {
         <div className="hero-overlay"></div>
 
         <div className="hero-content text-center text-white">
-          <h1 className="hero-title">Fantastical Lighting</h1>
+          <h1 className="hero-title">Material Handling DemO</h1>
+
           <p className="hero-subtitle">
             White glove lighting displays for holidays, parties, and life’s
             brightest moments
