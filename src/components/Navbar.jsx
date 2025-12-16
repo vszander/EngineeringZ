@@ -231,6 +231,7 @@ export default function Navbar() {
                   <Link className="nav-link" to="/about">
                     About
                   </Link>
+                  <Link to="/clubcar/tugger-map">MHSA Tugger Map</Link>
 
                   <div
                     className="nav-link"

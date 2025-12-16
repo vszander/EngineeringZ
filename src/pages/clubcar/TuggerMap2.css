@@ -1,0 +1,21 @@
+.map-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow: auto;
+}
+
+.map-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tugger {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background-image: url("/images/clubcar/Tugger.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
