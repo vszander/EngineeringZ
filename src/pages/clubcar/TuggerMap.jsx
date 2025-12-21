@@ -9,9 +9,9 @@ const backendBase = import.meta.env.VITE_BACKEND_URL;
 const backendURL = backendBase;
 
 export default function TuggerMap() {
-  {
-    `${backendURL}/storefront/product_list/`;
-  }
+  //{
+  //  `${backendURL}/storefront/product_list/`;
+  //}
 
   // Step 2 bootstrap state
   const [mapLayer, setMapLayer] = useState(null);
