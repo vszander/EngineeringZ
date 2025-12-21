@@ -58,7 +58,7 @@ function Home() {
 
                       <p className="card-text">
                         Our team works with you to design a year-round lighting
-                        layout that accentuates your home's features and
+                        layout that accentuates your home&apos;s features and
                         enhances every holiday.
                       </p>
                     </div>

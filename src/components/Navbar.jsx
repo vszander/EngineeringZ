@@ -26,7 +26,7 @@ export default function Navbar() {
     username: null,
   });
 
-  const isDev = window.location.hostname === "localhost";
+  // const isDev = window.location.hostname === "localhost";
 
   const handleAuthClick = () => {
     let mode = "login";
