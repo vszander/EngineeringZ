@@ -3,15 +3,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 // import Navbar from "../../components/Navbar"; // uncomment when ready
 
+// const backendBase = "http://localhost:8000";
+
+const backendBase = import.meta.env.VITE_BACKEND_URL;
+const backendURL = backendBase;
+
 export default function TuggerMap() {
   {
     `${backendURL}/storefront/product_list/`;
   }
-
-  // const backendBase = "http://localhost:8000";
-
-  const backendBase = import.meta.env.VITE_BACKEND_URL;
-  const backendURL = backendBase;
 
   // Step 2 bootstrap state
   const [mapLayer, setMapLayer] = useState(null);
