@@ -15,6 +15,7 @@ import PowerZ from "./pages/powerz";
 import LightsStore from "./pages/Lights_store";
 import TuggerMap from "./pages/clubcar/TuggerMap"; // <- your new JSX component
 import Packages from "./pages/Packages";
+import ClubCarRouter from "./pages/clubcar/ClubCarRouter";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -38,6 +39,7 @@ function App() {
             <Route path="/packages" element={<Packages />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/clubcar/*" element={<ClubCarRouter />} />
             <Route path="/clubcar/tugger-map" element={<TuggerMap />} />
             <Route path="/auth" element={<Admin />} />
           </Routes>
