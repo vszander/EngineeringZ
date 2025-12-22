@@ -1,0 +1,236 @@
+:root {
+  --bg: #121417;
+  --panel: #171a1f;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.65);
+
+  --gold: #b79a5d;
+  --gold-dim: rgba(183, 154, 93, 0.18);
+}
+
+.erd-page {
+  min-height: 100vh;
+  background: radial-gradient(
+      900px 600px at 25% 0%,
+      rgba(183, 154, 93, 0.1),
+      transparent 60%
+    ),
+    var(--bg);
+  color: var(--text);
+}
+
+.erd-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(18, 20, 23, 0.78);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.erd-kicker {
+  color: var(--gold);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.erd-h1 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.erd-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.erd-link {
+  color: rgba(183, 154, 93, 0.95);
+  text-decoration: none;
+  font-weight: 700;
+}
+.erd-link:hover {
+  text-decoration: underline;
+}
+
+.erd-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 14px;
+  padding: 18px 22px 26px 22px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.erd-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.erd-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.erd-card-title {
+  color: var(--gold);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.erd-btn {
+  border: 1px solid rgba(183, 154, 93, 0.35);
+  background: var(--gold-dim);
+  color: var(--text);
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.erd-btn:hover {
+  background: rgba(183, 154, 93, 0.24);
+}
+
+.erd-image-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.erd-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.erd-notes {
+  width: 100%;
+  min-height: 280px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  padding: 10px 12px;
+  outline: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.erd-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.erd-ref {
+  font-size: 14px;
+}
+
+.erd-bullet-block {
+  margin-top: 10px;
+}
+
+.erd-bullet-title {
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.erd-ul {
+  margin: 0 0 0 18px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.erd-muted {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 1050px) {
+  .erd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.erd-section {
+  font-size: 14px;
+}
+
+.erd-section-title {
+  color: var(--gold);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.erd-p {
+  margin: 10px 0;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.erd-callout {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  margin-top: 10px;
+}
+
+.erd-callout-title {
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.erd-caution {
+  padding: 12px 14px;
+  border-left: 4px solid rgba(183, 154, 93, 0.75);
+  border-radius: 10px;
+  background: rgba(183, 154, 93, 0.08);
+  border: 1px solid rgba(183, 154, 93, 0.2);
+}
+
+.erd-caution-title {
+  font-weight: 900;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.erd-ol {
+  margin: 0 0 0 18px;
+  padding: 0;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.erd-code {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.erd-note {
+  margin-top: 6px;
+  opacity: 0.85;
+}
