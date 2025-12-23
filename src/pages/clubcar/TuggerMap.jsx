@@ -3,16 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 // import Navbar from "../../components/Navbar"; // uncomment when ready
 
-// const backendBase = "http://localhost:8000";
-
 const backendBase = import.meta.env.VITE_BACKEND_URL;
-const backendURL = backendBase;
 
 export default function TuggerMap() {
-  //{
-  //  `${backendURL}/storefront/product_list/`;
-  //}
-
   // Step 2 bootstrap state
   const [mapLayer, setMapLayer] = useState(null);
   const [assetsById, setAssetsById] = useState({}); // static-ish asset dataset by UUID
@@ -256,7 +249,7 @@ export default function TuggerMap() {
               ← Home
             </Link>
             <a
-              href={backendURL}
+              href={backendBase}
               target="_blank"
               rel="noreferrer"
               style={styles.link}
@@ -313,7 +306,7 @@ export default function TuggerMap() {
                           setInfoPanelHtml("");
 
                           fetch(
-                            `http://localhost:8000/mhsa/cart/9c5d1788-e15e-42dd-97ad-01317bd42dc8/panel`
+                            `${backendBase}/mhsa/cart/9c5d1788-e15e-42dd-97ad-01317bd42dc8/panel`
                           )
                             .then((r) => {
                               if (!r.ok) throw new Error(`HTTP ${r.status}`);

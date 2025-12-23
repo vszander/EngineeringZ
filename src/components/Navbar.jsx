@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../assets/css/customStyles.css";
 
+const backendBase = import.meta.env.VITE_BACKEND_URL;
+
 export default function Navbar() {
   // State variables for cart icon and quantity
   const [cartQuantity, setCartQuantity] = useState(0);
@@ -11,14 +13,7 @@ export default function Navbar() {
   const [fallingProduct, setFallingProduct] = useState(null);
   const cartIconRef = useRef(null);
 
-  const BACKEND_BASE_URL =
-    window.location.hostname === "localhost"
-      ? "http://localhost:8000"
-      : "https://backend.engineering-z.com";
-
   // 🔁 Central state for auth
-
-  const backendURL = import.meta.env.VITE_BACKEND_URL;
 
   const [authStatus, setAuthStatus] = useState({
     isAuthenticated: false,
@@ -51,11 +46,11 @@ export default function Navbar() {
     }
 
     if (cartQuantity > 0) {
-      iframe.src = `${BACKEND_BASE_URL}/storefront/lightscart`;
+      iframe.src = `${backendBase}/storefront/lightscart`;
     } else if (currentUrl.includes("/store")) {
-      iframe.src = `${BACKEND_BASE_URL}/storefront/lights_product_list`;
+      iframe.src = `${backendBase}/storefront/lights_product_list`;
     } else if (currentUrl.includes("/hamradio")) {
-      iframe.src = `${BACKEND_BASE_URL}/storefront/product_list`;
+      iframe.src = `${backendBase}/storefront/product_list`;
     } else {
       window.location.href = "/lights";
     }
@@ -173,7 +168,7 @@ export default function Navbar() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!messageReceivedRef.current) {
-        fetch(`${backendURL}/auth/status/`, {
+        fetch(`${backendBase}/auth/status/`, {
           // will adapt to prod vs dev
           method: "GET",
           credentials: "include",
