@@ -217,6 +217,25 @@
   }
 }
 
+.mhsa-results {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header stays fixed */
+.mhsa-results-header {
+  flex: 0 0 auto;
+}
+
+/* Scrollable content area */
+.mhsa-results-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px; /* space for scrollbar */
+}
+
 .mhsa-card {
   background: var(--mhsa-card);
   border: 1px solid var(--mhsa-border);

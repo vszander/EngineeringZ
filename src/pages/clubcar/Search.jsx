@@ -5,6 +5,8 @@ import "./mhsa_home.css";
 import "./Search.css";
 import { ItemLookupInput } from "/src/components/ItemLookupInput";
 import { useParams, useNavigate } from "react-router-dom";
+import MapOverlay from "/src/components/map/MapOverlay";
+import { buildIconsFromPartSearch } from "/src/components/map/search_map_icons";
 
 export default function Search() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
@@ -93,15 +95,25 @@ export default function Search() {
 }
 
 function SearchResults({ resultsModel }) {
+  const [view, setView] = useState("table"); // "table" | "map"
   if (!resultsModel) return null;
 
   const { title, type, tables, data, error } = resultsModel;
+  const hasMap = (resultsModel?.icons?.length || 0) > 0;
 
   return (
     <div className="mhsa-results">
       <div className="mhsa-results-header">
         <h3>{title || "Results"}</h3>
         <div className="mhsa-results-meta">{type}</div>
+        {hasMap && (
+          <button
+            className="mhsa-linkbtn"
+            onClick={() => setView(view === "map" ? "table" : "map")}
+          >
+            {view === "map" ? "Table" : "Map"}
+          </button>
+        )}
       </div>
 
       {type === "error" && (
@@ -119,14 +131,20 @@ function SearchResults({ resultsModel }) {
       )}
 
       {/* Preferred: render tables if provided */}
-      {Array.isArray(tables) && tables.length > 0 ? (
+      {view === "map" ? (
+        <div className="mhsa-results-body">
+          <MapOverlay
+            mapImageSrc="/images/clubcar/darkcarbackground.jpg"
+            icons={resultsModel?.icons || []}
+          />
+        </div>
+      ) : Array.isArray(tables) && tables.length > 0 ? (
         <div className="mhsa-results-body">
           {tables.map((t, idx) => (
             <ResultTable key={idx} table={t} />
           ))}
         </div>
       ) : (
-        /* Fallback: show raw payload */
         <pre className="mhsa-results-pre">{JSON.stringify(data, null, 2)}</pre>
       )}
     </div>
@@ -223,10 +241,10 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
   async function runPartSearch(partNumber) {
     if (!partNumber) return;
 
-    // placeholder endpoint (we implement later)
     const url = `${backendBase}/mhsa/search/partid?part_number=${encodeURIComponent(
       partNumber
     )}`;
+
     const res = await fetch(url);
     if (!res.ok) {
       onResults({
@@ -236,10 +254,8 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
       });
       return;
     }
-    const data = await res.json();
 
-    // expected future model:
-    // { item: {...}, locations:[...], containers:[...], carts:[...], overlays:[...] }
+    const data = await res.json();
     const item = data.item;
 
     const containersRows = (data.containers || []).map((c) => ({
@@ -267,6 +283,14 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
       qty: p.qty,
       where: p.cart_location_name || "",
     }));
+
+    // ✅ DEFINE icons AS A LOCAL VARIABLE (so console.log works)
+    const icons = buildIconsFromPartSearch(
+      data,
+      "87403789-d602-4382-8ba1-130efb74dbd2"
+    );
+
+    console.log("built icons:", icons.length, icons);
 
     onResults({
       type: "partid",
@@ -300,6 +324,7 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
             ]
           : []),
       ],
+      icons, // ✅ attach icons to resultsModel
     });
   }
 

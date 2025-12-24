@@ -1,0 +1,77 @@
+.mi-wrap {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--mhsa-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.mi-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.mi {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.mi__txt {
+  font-size: 9px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+/* Container fills */
+.mi-container--gaylord {
+  background: #148d97;
+}
+.mi-container--pallet {
+  background: #0c9c89;
+}
+.mi-container--custom {
+  background: #7d5cff;
+}
+
+/* Status border */
+.mi-status--opened {
+  border: 3px solid #f4d03f;
+}
+.mi-status--unopened {
+  border: 0px solid transparent;
+}
+
+/* Cart fills */
+.mi-cart--null {
+  background: #ffffff;
+}
+.mi-cart--sc {
+  background: #f2844e;
+}
+.mi-cart--line {
+  background: #5dc9a5;
+}
+
+/* Cart borders */
+.mi-cartborder--charcoal {
+  border: 3px solid #121417;
+}
+.mi-cartborder--black {
+  border: 3px solid #000;
+}
+.mi-cartborder--green {
+  border: 3px solid #0c9c89;
+}
+.mi-cartborder--red {
+  border: 3px solid #ff3b30;
+}
