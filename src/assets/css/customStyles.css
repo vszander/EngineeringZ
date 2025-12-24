@@ -1,8 +1,8 @@
 /* Body background */
 body {
-    background-color: #d7d8c6; /* Cream White */
-    color: #2f2f2f; /* Dark Font Color */
-  }
+  background-color: #d7d8c6; /* Cream White */
+  color: #2f2f2f; /* Dark Font Color */
+}
 
 /* Scoped animation */
 .navbar .falling-product {
@@ -14,118 +14,124 @@ body {
   z-index: 1000;
 }
 
-@keyframes fall-and-shrink { /* Matches the animation name */
+@keyframes fall-and-shrink {
+  /* Matches the animation name */
   0% {
     transform: translate(0, 0) scale(1);
     opacity: 1;
   }
   100% {
     transform: translate(
-      calc(var(--cart-x) - var(--start-x) - 30px), 
-      calc(var(--cart-y) - var(--start-y))
-      ) scale(0.3);
+        calc(var(--cart-x) - var(--start-x) - 30px),
+        calc(var(--cart-y) - var(--start-y))
+      )
+      scale(0.3);
     opacity: 0;
   }
 }
 
+/* Bootstrap Table */
+.table {
+  background-color: #d7d8c6; /* Cream White */
+  color: #2f2f2f; /* Dark Font Color */
+}
 
+.table th {
+  background-color: #148d97; /* Primary Blue */
+  color: #fff; /* White text for contrast */
+}
 
-  /* Bootstrap Table */
-  .table {
-    background-color: #d7d8c6; /* Cream White */
-    color: #2f2f2f; /* Dark Font Color */
-  }
-  
-  .table th {
-    background-color: #148d97; /* Primary Blue */
-    color: #fff; /* White text for contrast */
-  }
-  
-  .table thead th {
-    border-bottom: 2px solid #155157; /* Darker Blue for header border */
-  }
-  
-  .table tbody tr:nth-child(even) {
-    background-color: #5dc9a5; /* Lighter Green */
-  }
-  
-  .table tbody tr:nth-child(odd) {
-   /*  background-color: #0c9c89; Light Green */
-   background-color: #d7d8c6; /* Cream White */
-  }
-  
-  .table tbody td {
-    border-bottom: 1px solid #8e5f38; /* Earth Brown for table row borders */
-  }
-  
+.table thead th {
+  border-bottom: 2px solid #155157; /* Darker Blue for header border */
+}
 
-  /*  paragraph  div styles  */
-  .text-paragraph {
-    max-width: 1000px;
-    min-width: 100px;
-    margin: 10px auto; /* Center the div and add margin */
-    padding: 10px;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #2f2f2f; /* Dark Font Color (from your stylesheet) */
-    /*  background-color: #fff;  Optional: white background */
-    border: 1px solid #155157; /* Optional: Darker Blue border for style */
-    border-radius: 5px; /* Add a slight rounding to the corners */
-  }
+.table tbody tr:nth-child(even) {
+  background-color: #5dc9a5; /* Lighter Green */
+}
 
-  /* React Buttons */
-  .btn-warn {
-    background-color: #f2844e; /* Orange */
-    color: #fff; /* White text */
-    border: none;
-  }
-  
-  .btn-error {
-    background-color: #8e5f38; /* Earth Brown */
-    color: #fff; /* White text */
-    border: none;
-  }
-  
-  .btn-primary {
-    background-color: #148d97; /* Primary Blue */
-    color: #fff; /* White text */
-    border: none;
-  }
-  
-  .btn-success {
-    background-color: #0c9c89; /* Light Green */
-    color: #fff; /* White text */
-    border: none;
-  }
-  
-  .btn-light {
-    background-color: #5dc9a5; /* Lighter Green */
-    color: #2f2f2f; /* Dark Font Color */
-    border: none;
-  }
-  
-  /* Button Hover Effects */
-  .btn-warn:hover, .btn-error:hover, .btn-primary:hover, .btn-success:hover, .btn-light:hover {
-    filter: brightness(90%);
-  }
-  
-  /* Button Active Effects */
-  .btn-warn:active, .btn-error:active, .btn-primary:active, .btn-success:active, .btn-light:active {
-    filter: brightness(80%);
-    transform: scale(0.98);
-  }
-  
-  .navbar-decoration {
-    position: absolute; /* Places the decoration relative to the navbar */
-    bottom: 0;          /* Aligns it to the bottom of the navbar */
-    left: 50%;          /* Centers it horizontally */
-    transform: translateX(-50%); /* Adjusts for centering */
-    width: 100%;        /* Ensure it spans the full width of the navbar */
-    text-align: center; /* Centers the image inside the div */
-  }
-  
-  .navbar-decoration img {
-    height: 12px;       /* Maintain the image height */
-    max-width: 1000px;  /* Ensure the width doesn’t exceed 1000px */
-  }
-  
+.table tbody tr:nth-child(odd) {
+  /*  background-color: #0c9c89; Light Green */
+  background-color: #d7d8c6; /* Cream White */
+}
+
+.table tbody td {
+  border-bottom: 1px solid #8e5f38; /* Earth Brown for table row borders */
+}
+
+/*  paragraph  div styles  */
+.text-paragraph {
+  max-width: 1000px;
+  min-width: 100px;
+  margin: 10px auto; /* Center the div and add margin */
+  padding: 10px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #2f2f2f; /* Dark Font Color (from your stylesheet) */
+  /*  background-color: #fff;  Optional: white background */
+  border: 1px solid #155157; /* Optional: Darker Blue border for style */
+  border-radius: 5px; /* Add a slight rounding to the corners */
+}
+
+/* React Buttons */
+.btn-warn {
+  background-color: #f2844e; /* Orange */
+  color: #fff; /* White text */
+  border: none;
+}
+
+.btn-error {
+  background-color: #8e5f38; /* Earth Brown */
+  color: #fff; /* White text */
+  border: none;
+}
+
+.btn-primary {
+  background-color: #148d97; /* Primary Blue */
+  color: #fff; /* White text */
+  border: none;
+}
+
+.btn-success {
+  background-color: #0c9c89; /* Light Green */
+  color: #fff; /* White text */
+  border: none;
+}
+
+.btn-light {
+  background-color: #5dc9a5; /* Lighter Green */
+  color: #2f2f2f; /* Dark Font Color */
+  border: none;
+}
+
+/* Button Hover Effects */
+.btn-warn:hover,
+.btn-error:hover,
+.btn-primary:hover,
+.btn-success:hover,
+.btn-light:hover {
+  filter: brightness(90%);
+}
+
+/* Button Active Effects */
+.btn-warn:active,
+.btn-error:active,
+.btn-primary:active,
+.btn-success:active,
+.btn-light:active {
+  filter: brightness(80%);
+  transform: scale(0.98);
+}
+
+.navbar-decoration {
+  position: absolute; /* Places the decoration relative to the navbar */
+  bottom: 0; /* Aligns it to the bottom of the navbar */
+  left: 50%; /* Centers it horizontally */
+  transform: translateX(-50%); /* Adjusts for centering */
+  width: 100%; /* Ensure it spans the full width of the navbar */
+  text-align: center; /* Centers the image inside the div */
+}
+
+.navbar-decoration img {
+  height: 12px; /* Maintain the image height */
+  max-width: 1500px; /* Ensure the width doesn’t exceed 1000px */
+}

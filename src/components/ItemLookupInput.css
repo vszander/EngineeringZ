@@ -1,0 +1,79 @@
+.mhsa-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mhsa-label {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.mhsa-inputrow {
+  display: flex;
+  gap: 8px;
+}
+.mhsa-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.mhsa-btn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.mhsa-subrow {
+  min-height: 18px;
+}
+.mhsa-dim {
+  opacity: 0.7;
+}
+.mhsa-err {
+  opacity: 0.9;
+}
+
+.mhsa-hints {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+
+  max-height: 820px; /* choose a height you like */
+  overflow-y: auto; /* adds scrollbar */
+  padding-right: 4px; /* space for scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) rgba(255, 255, 255, 0.05);
+}
+
+/* Append these (they only style the scrollbar in Chromium/WebKit browsers) */
+.mhsa-hints::-webkit-scrollbar {
+  width: 10px;
+}
+
+.mhsa-hints::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.mhsa-hints::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+}
+
+.mhsa-hints::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mhsa-hint {
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.mhsa-hint-top {
+  font-weight: 700;
+}
+.mhsa-hint-bot {
+  opacity: 0.75;
+  font-size: 0.9em;
+}

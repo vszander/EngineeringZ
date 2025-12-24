@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+
 import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import "./mhsa_home.css";
@@ -144,110 +146,112 @@ export default function MhsaHome() {
   );
 
   return (
-    <div className="mhsa-home">
-      <header className="mhsa-topbar">
-        <div className="mhsa-brand">
-          <div className="mhsa-brand-title">MHSA</div>
-          <div className="mhsa-brand-subtitle">
-            Material Handling Situational Awareness
-          </div>
-        </div>
-
-        <nav className="mhsa-actions">
-          <Link className="mhsa-link" to="/clubcar/tugger-map">
-            Tugger Map
-          </Link>
-          <Link className="mhsa-link" to="/clubcar/relationships">
-            ERD (login)
-          </Link>
-        </nav>
-      </header>
-
-      <section className="mhsa-hero">
-        <div className="mhsa-hero-left">
-          <h1 className="mhsa-h1">
-            Operational questions deserve operational data.
-          </h1>
-
-          <p className="mhsa-p">
-            <strong>Material Handling Situational Awareness (MHSA)</strong> is a
-            facility-scale digital twin for material movement and inventory
-            context.
-          </p>
-
-          <p className="mhsa-p">
-            It answers questions that don&apos;t survive spreadsheets and siloed
-            scanners:
-            <span className="mhsa-em"> where is this part right now</span>, how
-            many instances exist, what containers they live in, and what&apos;s
-            staged at the line vs. in transit.
-          </p>
-
-          <p className="mhsa-p">
-            The novelty is the relational backbone:{" "}
-            <span className="mhsa-code">
-              location → asset → cart → pod → container → item
-            </span>
-            . That model makes “where is this part?” a query — and also makes
-            “show every instance of this part across warehouse / line / transit”
-            equally solvable.
-          </p>
-
-          <div className="mhsa-cta-row">
-            <Link
-              className="mhsa-btn mhsa-btn-primary"
-              to="/clubcar/tugger-map"
-            >
-              Open Tugger Map
-            </Link>
-
-            <Link
-              className="mhsa-btn mhsa-btn-secondary"
-              to="/clubcar/relationships"
-            >
-              View ERD (login)
-            </Link>
-          </div>
-        </div>
-
-        <div className="mhsa-hero-right">
-          {/* Put your 1200x637 image into public/images/clubcar/ */}
-          <img
-            className="mhsa-hero-img"
-            src="/images/clubcar/darkcarbackground.jpg"
-            alt="Material Handling Situational Awareness"
-            draggable={false}
-          />
-        </div>
-      </section>
-
-      <section className="mhsa-menu">
-        <h2 className="mhsa-h2">Project Features</h2>
-        <p className="mhsa-muted">
-          Menu items will later support hover tooltips that explain value and
-          expected outputs.
-        </p>
-
-        <div className="mhsa-menu-grid">
-          {menu.map((group) => (
-            <div key={group.section} className="mhsa-card">
-              <div className="mhsa-card-title">{group.section}</div>
-              <div className="mhsa-tree">
-                {group.items.map((item) => (
-                  <MenuItem key={item.label} item={item} depth={0} />
-                ))}
-              </div>
+    <div className="mhsa-dark">
+      <div className="mhsa-home">
+        <header className="mhsa-topbar">
+          <div className="mhsa-brand">
+            <div className="mhsa-brand-title">MHSA</div>
+            <div className="mhsa-brand-subtitle">
+              Material Handling Situational Awareness
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      <footer className="mhsa-footer">
-        <div className="mhsa-muted">
-          Built by an engineer who needed answers before the organization could
-          even articulate the questions.
-        </div>
-      </footer>
+          <nav className="mhsa-actions">
+            <Link className="mhsa-link" to="/clubcar/tugger-map">
+              Tugger Map
+            </Link>
+            <Link className="mhsa-link" to="/clubcar/relationships">
+              ERD (login)
+            </Link>
+          </nav>
+        </header>
+
+        <section className="mhsa-hero">
+          <div className="mhsa-hero-left">
+            <h1 className="mhsa-h1">
+              Operational questions deserve operational data.
+            </h1>
+
+            <p className="mhsa-p">
+              <strong>Material Handling Situational Awareness (MHSA)</strong> is
+              a facility-scale digital twin for material movement and inventory
+              context.
+            </p>
+
+            <p className="mhsa-p">
+              It answers questions that don&apos;t survive spreadsheets and
+              siloed scanners:
+              <span className="mhsa-em"> where is this part right now</span>,
+              how many instances exist, what containers they live in, and
+              what&apos;s staged at the line vs. in transit.
+            </p>
+
+            <p className="mhsa-p">
+              The novelty is the relational backbone:{" "}
+              <span className="mhsa-code">
+                location → asset → cart → pod → container → item
+              </span>
+              . That model makes “where is this part?” a query — and also makes
+              “show every instance of this part across warehouse / line /
+              transit” equally solvable.
+            </p>
+
+            <div className="mhsa-cta-row">
+              <Link
+                className="mhsa-btn mhsa-btn-primary"
+                to="/clubcar/tugger-map"
+              >
+                Open Tugger Map
+              </Link>
+
+              <Link
+                className="mhsa-btn mhsa-btn-secondary"
+                to="/clubcar/relationships"
+              >
+                View ERD (login)
+              </Link>
+            </div>
+          </div>
+
+          <div className="mhsa-hero-right">
+            {/* Put your 1200x637 image into public/images/clubcar/ */}
+            <img
+              className="mhsa-hero-img"
+              src="/images/clubcar/darkcarbackground.jpg"
+              alt="Material Handling Situational Awareness"
+              draggable={false}
+            />
+          </div>
+        </section>
+
+        <section className="mhsa-menu">
+          <h2 className="mhsa-h2">Project Features</h2>
+          <p className="mhsa-muted">
+            Menu items will later support hover tooltips that explain value and
+            expected outputs.
+          </p>
+
+          <div className="mhsa-menu-grid">
+            {menu.map((group) => (
+              <div key={group.section} className="mhsa-card">
+                <div className="mhsa-card-title">{group.section}</div>
+                <div className="mhsa-tree">
+                  {group.items.map((item) => (
+                    <MenuItem key={item.label} item={item} depth={0} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="mhsa-footer">
+          <div className="mhsa-muted">
+            Built by an engineer who needed answers before the organization
+            could even articulate the questions.
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

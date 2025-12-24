@@ -29,6 +29,29 @@
   color: var(--mhsa-text);
 }
 
+/* MHSA dark theme only within MHSA pages */
+.mhsa-dark {
+  color: var(--mhsa-text);
+}
+
+/* Full-bleed charcoal behind MHSA pages only */
+.mhsa-dark::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--mhsa-bg);
+  z-index: -1;
+}
+
+/* Optional: if you want MHSA panels to default dark */
+.mhsa-dark .mhsa-panel,
+.mhsa-dark .mhsa-search-left,
+.mhsa-dark .mhsa-search-aside,
+.mhsa-dark .mhsa-left,
+.mhsa-dark .mhsa-aside {
+  background: rgba(18, 19, 22, 0.55);
+}
+
 .mhsa-topbar {
   display: flex;
   align-items: center;
@@ -186,6 +209,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+
+.mhsa-aside-title {
+  text-align: left;
+  margin-top: 6px;
 }
 
 .mhsa-card {

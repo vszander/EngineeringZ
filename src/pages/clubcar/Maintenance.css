@@ -1,0 +1,22 @@
+.mhsa-form {
+  margin-top: 10px;
+}
+
+.mhsa-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mhsa-btn-ghost {
+  opacity: 0.85;
+}
+
+.mhsa-pre {
+  margin: 0;
+  padding: 12px;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--mhsa-border);
+  overflow: auto;
+  max-height: 320px;
+}
