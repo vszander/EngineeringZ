@@ -261,9 +261,6 @@ function CreateCartPanel({ backendBase, onBack, onStatusHtml, onResultJson }) {
   const [upcValue, setUPC] = useState("");
   const [cartType, setCartType] = useState(defaults.cart_type || "FrameRails");
 
-  // hard-set pods to 1 for scan-ingestion sprint
-  const pods = 1;
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const upcRef = useRef(null);
 
@@ -398,6 +395,18 @@ function CreateCartPanel({ backendBase, onBack, onStatusHtml, onResultJson }) {
         <h3>Create Cart (Scan Mode)</h3>
         <button className="mhsa-linkbtn" onClick={onBack}>
           ← Back
+        </button>
+        <button
+          className="btn btn-outline-secondary"
+          onClick={() =>
+            window.open(
+              `${backendBase}/mhsa/carts/popup/`,
+              "cartPopup",
+              "width=1100,height=850,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes"
+            )
+          }
+        >
+          Manual Add / Edit Cart
         </button>
       </div>
 
