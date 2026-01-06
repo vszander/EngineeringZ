@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import "./mhsa_home.css";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 export default function MhsaHome() {
   // Menu hierarchy based on your Excel sheet
   const menu = useMemo(
@@ -94,6 +96,15 @@ export default function MhsaHome() {
             label: "Transactions HeatMap",
             path: "/clubcar/mitzo/transactions-heatmap",
             note: "Heat map",
+          },
+          {
+            label: "Fill Cart (Scanner)",
+            external: true,
+            popout: true,
+            path: `${backendURL}/mhsa/fillcart/`,
+            icon: "scanner", // see icon handling below
+            iconImg: "/assets/icons/scanner.svg",
+            note: "Operator barcode workflow",
           },
           {
             label: "Inventory Sensing",
@@ -247,8 +258,8 @@ export default function MhsaHome() {
 
         <footer className="mhsa-footer">
           <div className="mhsa-muted">
-            Built by an engineer who needed answers before the organization
-            could even articulate the questions.
+            Built by an engineer who provided a needed answer before someone
+            articulated the question.
           </div>
         </footer>
       </div>
