@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "../assets/css/customStyles.css";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL;
@@ -12,6 +12,8 @@ export default function Navbar() {
   const [cartStatus, setCartStatus] = useState(0); // 0 = empty, 1 = items in cart
   const [fallingProduct, setFallingProduct] = useState(null);
   const cartIconRef = useRef(null);
+  const location = useLocation();
+  const inMhsa = location.pathname.startsWith("/clubcar/mhsa");
 
   // 🔁 Central state for auth
 
@@ -226,7 +228,23 @@ export default function Navbar() {
                   <Link className="nav-link" to="/about">
                     About
                   </Link>
-                  <Link to="/clubcar/mhsa">MHSA</Link>
+                  {authStatus.isAuthenticated && (
+                    <>
+                      <Link className="nav-link" to="/clubcar/mhsa">
+                        MHSA
+                      </Link>
+
+                      {/* Only show while *in* MHSA, and only for staff */}
+                      {inMhsa && authStatus.isStaff && (
+                        <Link
+                          className="nav-link"
+                          to="/clubcar/mhsa/maintenance"
+                        >
+                          Maintenance
+                        </Link>
+                      )}
+                    </>
+                  )}
 
                   <div
                     className="nav-link"
