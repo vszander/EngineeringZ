@@ -139,6 +139,7 @@
   font-size: 28px;
   line-height: 1.15;
   letter-spacing: -0.02em;
+  color: var(--mhsa-text, rgba(197, 147, 40, 0.95));
 }
 
 .mhsa-h2 {

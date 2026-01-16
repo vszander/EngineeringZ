@@ -1,7 +1,14 @@
 :root {
-  --mhsa-bg: #140b1f; /* deep purple-ish */
-  --mhsa-panel: #1d102b;
+  --mhsa-bg: #00000a; /* TOTAL black*/
+  --mhsa-panel: #222121;
   --mhsa-text: #f2eef7;
-  --mhsa-accent: #d94b6a; /* red/pink accent */
+  --mhsa-color1: #b79a5d;
+  --mhsa-color2: #8d2f8d;
+  --mhsa-accent: #b66274; /* red/pink accent */
   --mhsa-accent-2: #7a3cff; /* purple accent */
+}
+
+.mhsa-dark {
+  --mhsa-text: rgba(255, 255, 255, 0.92); /* body */
+  --mhsa-heading: rgba(197, 147, 40, 0.95); /* brushed gold heading */
 }
