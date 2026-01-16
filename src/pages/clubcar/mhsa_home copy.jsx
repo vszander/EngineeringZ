@@ -1,37 +1,13 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useMemo, useState } from "react";
+
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import "./mhsa_home.css";
 import MhsaNav from "../../components/MhsaNav";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 export default function MhsaHome() {
-  // Demo-quality local authStatus (keeps MHSA self-contained)
-  const [authStatus, setAuthStatus] = useState({
-    isAuthenticated: false,
-    isStaff: false,
-    username: null,
-  });
-
-  useEffect(() => {
-    fetch(`${backendURL}/auth/status/`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((auth) => {
-        setAuthStatus({
-          isAuthenticated: !!auth.isAuthenticated,
-          isStaff: !!auth.isStaff,
-          username: auth.username ?? null,
-        });
-      })
-      .catch(() => {
-        // stay unauthenticated on error (dev-friendly)
-      });
-  }, []);
-
   // Menu hierarchy based on your Excel sheet
   const menu = useMemo(
     () => [
@@ -127,6 +103,8 @@ export default function MhsaHome() {
             external: true,
             popout: true,
             path: `${backendURL}/mhsa/fillcart/`,
+            icon: "scanner", // see icon handling below
+            iconImg: "/assets/icons/scanner.svg",
             note: "Operator barcode workflow",
           },
           {
@@ -163,6 +141,8 @@ export default function MhsaHome() {
           { label: "Show AI requests", path: "/clubcar/stats/ai-requests" },
         ],
       },
+
+      // Your current live feature:
       {
         section: "Live Visualization",
         items: [
@@ -180,8 +160,24 @@ export default function MhsaHome() {
   return (
     <div className="mhsa-dark">
       <div className="mhsa-home">
-        {/* Single topbar source of truth */}
-        <MhsaNav authStatus={authStatus} />
+        <header className="mhsa-topbar">
+          <div className="mhsa-brand">
+            <div className="mhsa-brand-title">MHSA</div>
+            <div className="mhsa-brand-subtitle">
+              Material Handling Situational Awareness
+            </div>
+            <MhsaNav authStatus={authStatus} />
+          </div>
+
+          <nav className="mhsa-actions">
+            <Link className="mhsa-link" to="/clubcar/tugger-map">
+              Tugger Map
+            </Link>
+            <Link className="mhsa-link" to="/clubcar/relationships">
+              ERD (login)
+            </Link>
+          </nav>
+        </header>
 
         <section className="mhsa-hero">
           <div className="mhsa-hero-left">
@@ -208,7 +204,9 @@ export default function MhsaHome() {
               <span className="mhsa-code">
                 location → asset → cart → pod → container → item
               </span>
-              .
+              . That model makes “where is this part?” a query — and also makes
+              “show every instance of this part across warehouse / line /
+              transit” equally solvable.
             </p>
 
             <div className="mhsa-cta-row">
@@ -229,6 +227,7 @@ export default function MhsaHome() {
           </div>
 
           <div className="mhsa-hero-right">
+            {/* Put your 1200x637 image into public/images/clubcar/ */}
             <img
               className="mhsa-hero-img"
               src="/images/clubcar/darkcarbackground.jpg"
@@ -271,33 +270,6 @@ export default function MhsaHome() {
 }
 
 function MenuItem({ item, depth }) {
-  // Demo-quality: external links open new tab if external/popout
-  if (item.external) {
-    return (
-      <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
-        <div className="mhsa-tree-row">
-          <a
-            className="mhsa-tree-link"
-            href={item.path}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {item.label}
-          </a>
-          {item.note ? <span className="mhsa-pill">{item.note}</span> : null}
-        </div>
-
-        {item.children?.length ? (
-          <div className="mhsa-tree-children">
-            {item.children.map((c) => (
-              <MenuItem key={c.label} item={c} depth={depth + 1} />
-            ))}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
     <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
       <div className="mhsa-tree-row">

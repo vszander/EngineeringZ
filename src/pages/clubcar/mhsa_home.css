@@ -1,4 +1,5 @@
 /* Dark charcoal + brushed gold vibe */
+
 :root {
   --mhsa-bg: #121417; /* charcoal */
   --mhsa-panel: #171a1f; /* slightly lighter */
@@ -11,6 +12,9 @@
   --mhsa-gold: #b79a5d; /* brushed gold */
   --mhsa-gold-dim: rgba(183, 154, 93, 0.2);
   --mhsa-link: rgba(183, 154, 93, 0.95);
+
+  --mhsa-accent: #b79a5d;
+  --mhsa-accent-2: #148d97;
 }
 
 .mhsa-home {
@@ -50,6 +54,12 @@
 .mhsa-dark .mhsa-left,
 .mhsa-dark .mhsa-aside {
   background: rgba(18, 19, 22, 0.55);
+}
+
+/* Active state */
+.mhsa-link--active {
+  border-bottom: 2px solid var(--mhsa-accent, #5dc9a5);
+  padding-bottom: 2px;
 }
 
 .mhsa-topbar {

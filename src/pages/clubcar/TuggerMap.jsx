@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Link } from "react-router-dom";
 // import Navbar from "../../components/Navbar"; // uncomment when ready
+import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
 
 const backendBase = import.meta.env.VITE_BACKEND_URL;
 

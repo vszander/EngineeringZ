@@ -16,6 +16,7 @@ import LightsStore from "./pages/Lights_store";
 import TuggerMap from "./pages/clubcar/TuggerMap"; // <- your new JSX component
 import Packages from "./pages/Packages";
 import ClubCarRouter from "./pages/clubcar/ClubCarRouter";
+import Maintenance from "./pages/clubcar/Maintenance";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 

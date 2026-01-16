@@ -5,6 +5,7 @@ import TuggerMap from "./TuggerMap";
 import RelationshipsERD from "./RelationshipsERD";
 import Search from "./Search";
 import Maintenance from "./Maintenance";
+import CartMoveMenu from "./CartMoveMenu";
 
 // future placeholders
 // import PartSearch from "./PartSearch";
@@ -24,6 +25,7 @@ export default function ClubcarRouter() {
       <Route path="search/:mode" element={<Search />} />
       <Route path="maintenance" element={<Maintenance />} />
       <Route path="maintenance/:tool" element={<Maintenance />} />
+      <Route path="cart-move" element={<CartMoveMenu />} />
       {/* <Route path="/mhsa/maintenance" element={<Maintenance />} /> */}
       {/* fallback */}
       <Route path="*" element={<Navigate to="/clubcar" replace />} />
