@@ -20,6 +20,14 @@
 
   --shadow: 0 16px 45px rgba(0, 0, 0, 0.55);
   --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.42);
+
+  --gold-1: #f7e7b0;
+  --gold-2: #e7c76a;
+  --gold-3: #c79a2a;
+  --gold-4: #8f6a18;
+
+  --ink: #0b0b0b; /* true black */
+  --charcoal: #232323; /* softer black */
 }
 
 .mhsaScoreboard {
@@ -158,6 +166,11 @@
     linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.35));
   pointer-events: none;
 }
+.teamCard__titleWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
 
 .teamCard__stats {
   display: grid;
@@ -178,6 +191,34 @@
   color: var(--mhsa-gold);
   padding: 10px 12px;
   border-radius: var(--radius-pill);
+}
+
+.pillTitle {
+  min-width: 76px;
+  text-align: right;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(217, 181, 106, 0.35);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.42);
+  color: var(--mhsa-gold);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.awardHeader {
+  min-width: 76px;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(217, 181, 106, 0.35);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.42);
+  color: var(--mhsa-gold);
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.4px;
 }
 
 .pillValue {
@@ -290,6 +331,11 @@
   object-fit: cover;
   filter: contrast(1.05);
 }
+.awardCard--flat {
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 
 .mhsaScoreboard__note {
   margin-top: 14px;
@@ -314,4 +360,188 @@
   border-radius: 999px;
   background: rgba(217, 181, 106, 0.65);
   box-shadow: 0 0 0 6px rgba(217, 181, 106, 0.08);
+}
+
+/* 1) Basic gold pill: black text */
+.pillGold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--gold-1), var(--gold-2));
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  color: var(--ink);
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+/* 2) “ClubCar badge” pill: round + slightly inset rim */
+.pillGoldBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      180px 60px at 50% 10%,
+      rgba(255, 255, 255, 0.55),
+      transparent 60%
+    ),
+    linear-gradient(180deg, var(--gold-1), var(--gold-2) 55%, var(--gold-3));
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.18),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.18),
+    0 12px 28px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+/* 3) 3D gold (lighting / bevel) */
+.pillGold3D {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    #fff2c9 0%,
+    var(--gold-1) 18%,
+    var(--gold-2) 55%,
+    var(--gold-3) 78%,
+    var(--gold-4) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    /* top highlight */ inset 0 -10px 16px rgba(0, 0, 0, 0.25),
+    /* bottom shade */ 0 14px 30px rgba(0, 0, 0, 0.4);
+  color: var(--ink);
+  font-weight: 950;
+  letter-spacing: 0.35px;
+}
+
+/* 4) Trophy plaque pill (pure CSS “plate” vibe) */
+.pillPlaque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  border-radius: 18px; /* more plaque, less capsule */
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.18),
+      transparent 12%,
+      transparent 88%,
+      rgba(0, 0, 0, 0.18)
+    ),
+    linear-gradient(
+      180deg,
+      #fff2c9,
+      var(--gold-1) 25%,
+      var(--gold-2) 55%,
+      var(--gold-3) 80%,
+      var(--gold-4)
+    );
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.14),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.22),
+    0 14px 30px rgba(0, 0, 0, 0.4);
+  color: var(--ink);
+  font-weight: 950;
+}
+
+/* 5) Trophy plaque pill (image background) */
+/* Put your plaque image in /public/images/... OR use a Cloudflare URL */
+.pillPlaqueImg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Let width grow with content, control height explicitly */
+  min-height: 84px; /* adjust once to taste */
+  padding: 18px 42px; /* horizontal emphasis */
+
+  /* IMPORTANT: do NOT round more than the PNG already has */
+  border-radius: 10px;
+
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.12)),
+    url("/images/clubcar/trophy_plate.png");
+
+  /* KEY CHANGES */
+  background-size: contain; /* ← prevents cropping */
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Visual depth */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.22),
+    0 14px 30px rgba(0, 0, 0, 0.45);
+
+  border: 1px solid rgba(0, 0, 0, 0.55);
+
+  color: var(--ink);
+  font-weight: 950;
+  letter-spacing: 0.4px;
+}
+
+.pillPlaqueImg--shimmer {
+  background-image: url("/images/clubcar/trophy_plate.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pillPlaqueImg--clean {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 84px;
+  padding: 18px 42px;
+
+  /* ZERO background layers */
+  background: none !important;
+
+  background-image: url("/images/clubcar/trophy_plate.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Kill all inherited visual artifacts */
+  box-shadow: none !important;
+  border: none !important;
+  filter: none !important;
+
+  color: #1e1e1e;
+  font-weight: 950;
+  letter-spacing: 0.4px;
+}
+
+/* 6) Engraved text effect (works on any pill) */
+.textEngraved {
+  color: var(--charcoal);
+  /* “engraved” illusion: light edge + dark sink */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.55),
+    1px 0 0 rgba(0, 0, 0, 0.35),
+    -1px 0 0 rgba(255, 255, 255, 0.18);
+  letter-spacing: 0.4px;
+}
+
+/* Optional: slightly “pressed” engraved look */
+.textEngravedDeep {
+  color: #1b1b1b;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.32),
+    0 2px 2px rgba(0, 0, 0, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.65);
 }

@@ -21,7 +21,7 @@ export default function Scoreboard() {
     },
     {
       key: "team3",
-      name: "Marvelous",
+      name: "Marvel-us",
       img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/ba71195c-d3c9-41e5-cd70-38286c755900/public",
       monthlyPoints: "105",
       accuracy: "83%",
@@ -56,7 +56,7 @@ export default function Scoreboard() {
         <div className="mhsaScoreboard__header">
           <div className="mhsaScoreboard__title">Scanning Scoreboard</div>
           <div className="mhsaScoreboard__subtitle">
-            Turning barcode scans into a friendly contest (enablement, not
+            Turning barcode scanning into a friendly contest (enablement, not
             punishment).
           </div>
         </div>
@@ -64,8 +64,11 @@ export default function Scoreboard() {
         <div className="mhsaScoreboard__grid">
           {teams.map((t) => (
             <div className="teamCard" key={t.key}>
-              {/* dotted title region */}
-              <div className="dottedBox dottedBox--title">{t.name}</div>
+              <div className="teamCard__titleWrap">
+                <div className="pillGold3D">
+                  <span className="textEngraved">{t.name}</span>
+                </div>
+              </div>
 
               <div className="teamCard__hero">
                 <img
@@ -79,22 +82,27 @@ export default function Scoreboard() {
 
               <div className="teamCard__stats">
                 <div className="statRow">
-                  <div className="dottedBox dottedBox--label">
-                    Monthly Points:
+                  <div className="pillTitle">Monthly Points:</div>
+
+                  <div className="pillGold">
+                    <span className="textEngravedDeep">{t.monthlyPoints}</span>
                   </div>
-                  <div className="pillValue">{t.monthlyPoints}</div>
                 </div>
 
                 <div className="statRow">
-                  <div className="dottedBox dottedBox--label">
-                    Accuracy Score:
+                  <div className="pillTitle">Accuracy Score:</div>
+
+                  <div className="pillGold">
+                    <span className="textEngravedDeep">{t.accuracy}</span>
                   </div>
-                  <div className="pillValue">{t.accuracy}</div>
                 </div>
 
                 <div className="statRow">
-                  <div className="dottedBox dottedBox--label">Hits:</div>
-                  <div className="pillValue">{t.hits}</div>
+                  <div className="pillTitle">Scanner Hits:</div>
+
+                  <div className="pillGold">
+                    <span className="textEngravedDeep">{t.hits}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -103,7 +111,7 @@ export default function Scoreboard() {
 
         <div className="mhsaScoreboard__footer">
           <div className="awardCard">
-            <div className="dottedBox dottedBox--awardLabel">{mitzo.label}</div>
+            <div className="awardHeader">{mitzo.label}</div>
 
             <div className="awardCard__content">
               <div className="awardCard__imgWrap">
@@ -116,18 +124,18 @@ export default function Scoreboard() {
                 <div className="awardCard__imgGlow" aria-hidden="true" />
               </div>
 
-              <div className="dottedBox dottedBox--awardName">{mitzo.name}</div>
+              <div className="pillPlaqueImg">
+                <span className="textEngravedDeep">{mitzo.name}</span>
+              </div>
             </div>
           </div>
 
           <div className="awardCard awardCard--right">
-            <div className="dottedBox dottedBox--awardLabel">
-              {reigningTeam.label}
-            </div>
+            <div className="awardHeader">{reigningTeam.label}</div>
 
             <div className="awardCard__content awardCard__content--right">
-              <div className="dottedBox dottedBox--awardName">
-                {reigningTeam.name}
+              <div className="pillPlaqueImg">
+                <span className="textEngravedDeep">{reigningTeam.name}</span>
               </div>
 
               <div className="awardCard__imgWrap awardCard__imgWrap--stamp">
