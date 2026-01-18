@@ -224,6 +224,9 @@
 .pillValue {
   min-width: 96px;
   text-align: center;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   padding: 10px 14px;
   border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.26);

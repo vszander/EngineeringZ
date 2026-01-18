@@ -1,47 +1,51 @@
 import React from "react";
 import "./Scoreboard.css";
 
-export default function Scoreboard() {
-  const teams = [
-    {
-      key: "team1",
-      name: "Augusta Angels",
-      img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/d9723626-cb96-4454-bcb7-353dd729f300/public",
-      monthlyPoints: "245",
-      accuracy: "95%",
-      hits: "2567",
-    },
-    {
-      key: "team2",
-      name: "Team Ernest",
-      img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/baaffb51-84f2-4198-cff2-2401e1a71500/public",
-      monthlyPoints: "225",
-      accuracy: "93%",
-      hits: "2222",
-    },
-    {
-      key: "team3",
-      name: "Marvel-us",
-      img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/ba71195c-d3c9-41e5-cd70-38286c755900/public",
-      monthlyPoints: "105",
-      accuracy: "83%",
-      hits: "3252",
-    },
-    {
-      key: "team4",
-      name: "Graveyard Shift",
-      img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/02c73a06-a8ae-4e88-9100-6fa5024deb00/public",
-      monthlyPoints: "205",
-      accuracy: "95%",
-      hits: "3052",
-    },
-  ];
+import { useEffect, useState } from "react";
 
-  const mitzo = {
-    label: "Mitzo of the Month:",
-    name: "Monica",
-    img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/97597154-0b3a-4ae0-80e9-5112fcd34200/public",
-  };
+const initialTeams = [
+  {
+    key: "team1",
+    name: "Augusta Angels",
+    img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/d9723626-cb96-4454-bcb7-353dd729f300/public",
+    monthlyPoints: 245,
+    accuracy: "95%",
+    hits: 2567,
+  },
+  {
+    key: "team2",
+    name: "Team Ernest",
+    img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/baaffb51-84f2-4198-cff2-2401e1a71500/public",
+    monthlyPoints: 225,
+    accuracy: "93%",
+    hits: 2222,
+  },
+  {
+    key: "team3",
+    name: "Marvel-us",
+    img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/ba71195c-d3c9-41e5-cd70-38286c755900/public",
+    monthlyPoints: 105,
+    accuracy: "83%",
+    hits: 3252,
+  },
+  {
+    key: "team4",
+    name: "Graveyard Shift",
+    img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/02c73a06-a8ae-4e88-9100-6fa5024deb00/public",
+    monthlyPoints: 205,
+    accuracy: "95%",
+    hits: 3052,
+  },
+];
+
+const mitzo = {
+  label: "Mitzo of the Month:",
+  name: "Monica",
+  img: "https://imagedelivery.net/W308T4lESzXbW3jX49a-3g/97597154-0b3a-4ae0-80e9-5112fcd34200/public",
+};
+
+export default function Scoreboard() {
+  const [teams, setTeams] = useState(initialTeams);
 
   const reigningTeam = {
     label: "Reigning Team:",
@@ -49,6 +53,45 @@ export default function Scoreboard() {
     // Optional: reuse that team's image to “stamp” the winner.
     img: teams[1].img,
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const tick = () => {
+      if (cancelled) return;
+
+      setTeams((prev) => {
+        const bump = Math.floor(Math.random() * 3 + 1); // 1..3
+
+        return prev.map((t) => {
+          if (t.key === "team4") {
+            return { ...t, hits: t.hits + bump };
+          }
+
+          if (t.key === "team2" && bump === 2) {
+            return { ...t, hits: t.hits + 1 };
+          }
+
+          return t;
+        });
+      });
+
+      // Random cadence:
+      // mostly ~2s, occasional 1s bursts
+      const nextDelay =
+        Math.random() < 0.35
+          ? 900 + Math.random() * 300 // fast burst (≈1s)
+          : 1800 + Math.random() * 500; // normal pace (≈2s)
+
+      setTimeout(tick, nextDelay);
+    };
+
+    tick(); // start loop
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="mhsaScoreboard">
@@ -101,7 +144,9 @@ export default function Scoreboard() {
                   <div className="pillTitle">Scanner Hits:</div>
 
                   <div className="pillGold">
-                    <span className="textEngravedDeep">{t.hits}</span>
+                    <span className="textEngravedDeep">
+                      {t.hits.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
