@@ -13,7 +13,7 @@ export default function Search() {
   // Hard-code Evans layer for now so we can verify /mhsa/maplayer/... response
   // and test Cloudflare CDN by setting MapLayer.image_uri in the DB.
   const MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2";
-  console.log("LOADED Search.jsx @", new Date().toISOString());
+  console.log("LOADED Search page @", new Date().toISOString());
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
     "/images/clubcar/darkcarbackground.jpg",

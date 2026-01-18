@@ -69,6 +69,26 @@ function toastErr(text) {
 export default function MoveCarts() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
 
+  // MapLayer-driven image (DB controls Cloudflare vs local)
+  const [mapImageSrc, setMapImageSrc] = useState(MAP_IMAGE_SRC);
+  const [maplayer, setMaplayer] = useState(null);
+
+  useEffect(() => {
+    const url = `${backendBase}/mhsa/maplayer/${MAP_LAYER_ID}/`;
+
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((j) => {
+        console.log("MoveCarts maplayer JSON:", j);
+        setMaplayer(j);
+        if (j?.image_uri) setMapImageSrc(j.image_uri);
+      })
+      .catch((e) => console.warn("MoveCarts maplayer fetch failed:", e));
+  }, [backendBase]);
+
   const [loading, setLoading] = useState(false);
   const [carts, setCarts] = useState([]);
   const [locations, setLocations] = useState([]); // staging locations (for future snap-to)
@@ -86,7 +106,7 @@ export default function MoveCarts() {
 
   const dirtyCount = useMemo(
     () => Object.keys(pendingMoves).length,
-    [pendingMoves]
+    [pendingMoves],
   );
   const canUndo = undoStack.length > 0;
   const dragCartIdRef = useRef(null);
@@ -206,7 +226,7 @@ export default function MoveCarts() {
     setLoading(true);
     try {
       const url = `${backendBase}/mhsa/maintenance/cart/move/getcarts?filter=${encodeURIComponent(
-        filter
+        filter,
       )}&new=1`;
 
       const res = await fetch(url);
@@ -225,7 +245,7 @@ export default function MoveCarts() {
       toastOk(
         `<div style="opacity:.9">Loaded <b>${rawCarts.length}</b> ${
           data?.filter || filter
-        } carts.</div>`
+        } carts.</div>`,
       );
     } catch (e) {
       toastErr(String(e?.message || e));
@@ -319,7 +339,7 @@ export default function MoveCarts() {
     setPendingMoves({});
     setUndoStack([]);
     toastWarn(
-      `<div style="opacity:.9">Discarded <b>${dirtyCount}</b> draft move(s).</div>`
+      `<div style="opacity:.9">Discarded <b>${dirtyCount}</b> draft move(s).</div>`,
     );
   }
 
@@ -350,14 +370,14 @@ export default function MoveCarts() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ moves }),
-        }
+        },
       );
 
       const txt = await res.text();
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${txt}`);
 
       toastOk(
-        `<div style="opacity:.92">Committed <b>${moves.length}</b> move(s).</div>`
+        `<div style="opacity:.92">Committed <b>${moves.length}</b> move(s).</div>`,
       );
 
       setPendingMoves({});
@@ -461,7 +481,7 @@ export default function MoveCarts() {
 
     if (cart) {
       toastOk(
-        `<div style="opacity:.9">Drafted move for <b>${cart.name}</b>.</div>`
+        `<div style="opacity:.9">Drafted move for <b>${cart.name}</b>.</div>`,
       );
     }
   }
@@ -568,6 +588,11 @@ export default function MoveCarts() {
         <div className="card mhsa-card mb-3">
           <div className="card-header mhsa-card-header">
             <div className="mhsa-card-title">Evans (low_res)</div>
+            {maplayer && (
+              <div className="mhsa-dim">
+                MapLayer: <b>{maplayer.name}</b>
+              </div>
+            )}
             <div className="mhsa-card-sub">
               {loading ? "Working…" : `${effectiveCarts.length} carts`}
             </div>
@@ -589,7 +614,7 @@ export default function MoveCarts() {
             >
               <img
                 ref={mapImgRef}
-                src={MAP_IMAGE_SRC}
+                src={mapImageSrc}
                 alt="Evans map"
                 draggable={false}
                 onLoad={onMapImageLoad}

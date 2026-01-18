@@ -6,7 +6,7 @@ import "./mhsa_home.css";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
-const MAP_IMAGE_SRC = "/images/clubcar/TuggerRoutes_ForkZones_low_res.png"; // hard-coded for now
+const MAP_IMAGE_SRC = "/images/clubcar/TuggerRoutes_ForkZones_low_res.png";
 const MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans low_res layer id (your sample)
 
 const toast = Swal.mixin({
@@ -70,6 +70,9 @@ function toastErr(text) {
 
 export default function Carts() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
+  // MapLayer-driven image (DB controls Cloudflare vs local)
+  const [mapImageSrc, setMapImageSrc] = useState(MAP_IMAGE_SRC); // fallback to current constant
+  const [maplayer, setMaplayer] = useState(null);
 
   const navigate = useNavigate();
 
@@ -90,6 +93,22 @@ export default function Carts() {
 
   // Filter text
   const [filterText, setFilterText] = useState("");
+
+  useEffect(() => {
+    const url = `${backendBase}/mhsa/maplayer/${MAP_LAYER_ID}/`;
+
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((j) => {
+        console.log("Carts maplayer JSON:", j);
+        setMaplayer(j);
+        if (j?.image_uri) setMapImageSrc(j.image_uri);
+      })
+      .catch((e) => console.warn("Carts maplayer fetch failed:", e));
+  }, [backendBase]);
 
   // Example: whatever array you render in the table/map.
   // Replace `rows` with your actual list (carts, results, etc.)
@@ -731,7 +750,7 @@ export default function Carts() {
             >
               <img
                 ref={mapImgRef}
-                src={MAP_IMAGE_SRC}
+                src={mapImageSrc}
                 alt="Evans map"
                 draggable={false}
                 onLoad={onMapImageLoad}
