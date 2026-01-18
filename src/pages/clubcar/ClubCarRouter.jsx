@@ -8,6 +8,7 @@ import Maintenance from "./Maintenance";
 import CartMoveMenu from "./CartMoveMenu";
 import Carts from "./Carts";
 import MhsaWorkflowMenu from "./MhsaWorkflowMenu";
+import Scoreboard from "./Scoreboard";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -25,6 +26,7 @@ export default function ClubcarRouter() {
         <Route index element={<MhsaHome />} />
         {/* key demo pages */}
         <Route path="mhsa" element={<MhsaHome />} />
+        <Route path="scoreboard" element={<Scoreboard />} />
         <Route path="tugger-map" element={<TuggerMap />} />
         <Route path="relationships" element={<RelationshipsERD />} />
         {/* NEW: Search */}

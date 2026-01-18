@@ -1,0 +1,317 @@
+/* Theme knobs (adjust once, everything follows) */
+:root {
+  --mhsa-bg: #0b0f12;
+  --mhsa-panel: rgba(18, 24, 30, 0.78);
+  --mhsa-panel-2: rgba(18, 24, 30, 0.58);
+
+  /* brushed / warm gold */
+  --mhsa-gold: #d9b56a;
+  --mhsa-gold-soft: rgba(217, 181, 106, 0.75);
+
+  --mhsa-line: rgba(217, 181, 106, 0.28);
+  --mhsa-line-strong: rgba(217, 181, 106, 0.45);
+
+  --mhsa-text: rgba(240, 233, 215, 0.92);
+  --mhsa-muted: rgba(240, 233, 215, 0.66);
+
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --shadow: 0 16px 45px rgba(0, 0, 0, 0.55);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.42);
+}
+
+.mhsaScoreboard {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      1200px 600px at 15% 0%,
+      rgba(217, 181, 106, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 85% 18%,
+      rgba(93, 201, 165, 0.06),
+      transparent 62%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%),
+    var(--mhsa-bg);
+  color: var(--mhsa-text);
+  padding: 28px 18px 36px;
+}
+
+.mhsaScoreboard__inner {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.mhsaScoreboard__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.mhsaScoreboard__title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--mhsa-gold);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.mhsaScoreboard__subtitle {
+  font-size: 14px;
+  color: var(--mhsa-muted);
+}
+
+.mhsaScoreboard__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+@media (max-width: 1300px) {
+  .mhsaScoreboard__grid {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .mhsaScoreboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.teamCard {
+  background: linear-gradient(180deg, var(--mhsa-panel), var(--mhsa-panel-2));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 14px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.teamCard::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(
+    700px 200px at 50% -10%,
+    rgba(217, 181, 106, 0.12),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.dottedBox {
+  border: 2px dashed var(--mhsa-line);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  color: var(--mhsa-gold);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.dottedBox--title {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.35px;
+  margin-bottom: 12px;
+  border-color: var(--mhsa-line-strong);
+}
+
+.teamCard__hero {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.teamCard__img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+}
+
+.teamCard__imgGlow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      420px 210px at 30% 15%,
+      rgba(217, 181, 106, 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      380px 220px at 80% 70%,
+      rgba(12, 156, 137, 0.12),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+.teamCard__stats {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.dottedBox--label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--mhsa-gold);
+  padding: 10px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.pillValue {
+  min-width: 96px;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(217, 181, 106, 0.35);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.42);
+  color: var(--mhsa-gold);
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: 0.4px;
+}
+
+.mhsaScoreboard__footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+@media (max-width: 900px) {
+  .mhsaScoreboard__footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.awardCard {
+  background: linear-gradient(180deg, var(--mhsa-panel), var(--mhsa-panel-2));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: 14px;
+}
+
+.dottedBox--awardLabel {
+  border-radius: var(--radius-lg);
+  font-weight: 800;
+  color: var(--mhsa-gold);
+  border-color: var(--mhsa-line-strong);
+  margin-bottom: 12px;
+}
+
+.awardCard__content {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.awardCard__content--right {
+  grid-template-columns: 1fr 220px;
+}
+
+@media (max-width: 560px) {
+  .awardCard__content,
+  .awardCard__content--right {
+    grid-template-columns: 1fr;
+  }
+}
+
+.awardCard__imgWrap {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.awardCard__img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+}
+
+.awardCard__imgGlow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      380px 200px at 35% 20%,
+      rgba(217, 181, 106, 0.22),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.38));
+  pointer-events: none;
+}
+
+.dottedBox--awardName {
+  border-radius: var(--radius-pill);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--mhsa-gold);
+  padding: 12px 14px;
+  text-align: center;
+  border-color: var(--mhsa-line-strong);
+}
+
+.awardCard__imgWrap--stamp {
+  transform: rotate(-3deg);
+}
+
+.awardCard__img--stamp {
+  height: 190px;
+  object-fit: cover;
+  filter: contrast(1.05);
+}
+
+.mhsaScoreboard__note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--mhsa-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.mhsaScoreboard__note code {
+  color: var(--mhsa-gold);
+}
+
+.mhsaScoreboard__noteDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(217, 181, 106, 0.65);
+  box-shadow: 0 0 0 6px rgba(217, 181, 106, 0.08);
+}
