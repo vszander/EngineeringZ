@@ -13,7 +13,7 @@ export default function Search() {
   // Hard-code Evans layer for now so we can verify /mhsa/maplayer/... response
   // and test Cloudflare CDN by setting MapLayer.image_uri in the DB.
   const MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2";
-  console.log("LOADED Search.jsx @", new Date().toISOString());
+
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
     "/images/clubcar/darkcarbackground.jpg",
@@ -72,14 +72,7 @@ export default function Search() {
       <main className="mhsa-main">
         <section className="mhsa-left">
           {/* Left area: hero initially; later: results table and/or map overlays */}
-          {resultsModel ? (
-            <SearchResults
-              resultsModel={resultsModel}
-              mapImageSrc={mapImageSrc}
-            />
-          ) : (
-            hero
-          )}
+          {resultsModel ? <SearchResults resultsModel={resultsModel} /> : hero}
         </section>
 
         <aside className="mhsa-aside">
@@ -131,8 +124,7 @@ export default function Search() {
   );
 }
 
-// Local component so it can read mapImageSrc from Search() scope (no prop plumbing)
-function SearchResults({ resultsModel, mapImageSrc }) {
+function SearchResults({ resultsModel }) {
   const [view, setView] = useState("table"); // "table" | "map"
   if (!resultsModel) return null;
 
@@ -157,7 +149,6 @@ function SearchResults({ resultsModel, mapImageSrc }) {
       {type === "error" && (
         <div className="mhsa-results-error">{error || "Unknown error"}</div>
       )}
-
       {resultsModel?.data?.item && (
         <div className="card mhsa-card mb-3">
           <div className="card-body">
@@ -169,6 +160,7 @@ function SearchResults({ resultsModel, mapImageSrc }) {
         </div>
       )}
 
+      {/* Preferred: render tables if provided */}
       {view === "map" ? (
         <div className="mhsa-results-body">
           <MapOverlay

@@ -302,4 +302,3 @@ body.mhsa-body {
 html:has(body.mhsa-body) {
   background: var(--mhsa-bg) !important;
 }
-import "./mhsa.theme.clubcar.css";
