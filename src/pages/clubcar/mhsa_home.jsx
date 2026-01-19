@@ -123,6 +123,11 @@ export default function MhsaHome() {
             note: "Heat map",
           },
           {
+            label: "Material Handling Scoreboard",
+            path: `/clubcar/scoreboard`,
+            note: "NEW",
+          },
+          {
             label: "Fill Cart (Scanner)",
             external: true,
             popout: true,
@@ -174,7 +179,7 @@ export default function MhsaHome() {
         ],
       },
     ],
-    []
+    [],
   );
 
   return (

@@ -7,17 +7,24 @@ import { ItemLookupInput } from "/src/components/ItemLookupInput";
 import { useParams, useNavigate } from "react-router-dom";
 import MapOverlay from "/src/components/map/MapOverlay";
 import { buildIconsFromPartSearch } from "/src/components/map/search_map_icons";
+const DEFAULT_MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans for now
 
 export default function Search() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
+  console.log("SEARCH.JSX LOADED ✅", new Date().toISOString());
+
   // Hard-code Evans layer for now so we can verify /mhsa/maplayer/... response
   // and test Cloudflare CDN by setting MapLayer.image_uri in the DB.
-  const MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2";
+  // Default layer used when we don't yet know the layer from results
+
   console.log("LOADED Search page @", new Date().toISOString());
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
     "/images/clubcar/darkcarbackground.jpg",
   ); // fallback
+  useEffect(() => {
+    console.log("mapImageSrc changed ->", mapImageSrc);
+  }, [mapImageSrc]);
   const [resultsModel, setResultsModel] = useState(null); // future: { type, data, overlays }
 
   const navigate = useNavigate();
@@ -28,9 +35,12 @@ export default function Search() {
 
   useEffect(() => {
     // Only fetch when user is actually looking at results (avoid noise)
-    if (!resultsModel) return;
+    console.log("MAPLAYER EFFECT FIRED");
+    //if (!resultsModel) return;
 
-    const url = `${backendBase}/mhsa/maplayer/${MAP_LAYER_ID}/`;
+    const layerId = resultsModel?.map_layer_id || DEFAULT_MAP_LAYER_ID;
+    const url = `${backendBase}/mhsa/maplayer/${layerId}/`;
+    console.log("maplayer fetch url:", url);
 
     fetch(url)
       .then((r) => {
@@ -40,12 +50,13 @@ export default function Search() {
       .then((j) => {
         console.log("maplayer JSON (verify br_lat/br_lon):", j);
         setMaplayer(j);
-        if (j?.image_uri) setMapImageSrc(j.image_uri); // <-- DB controls CDN vs localhost
+
+        if (j?.image_uri) setMapImageSrc(`${j.image_uri}?layer=${j.id}`); // <-- DB controls CDN vs localhost
       })
       .catch((e) => {
         console.warn("maplayer fetch failed:", e);
       });
-  }, [backendBase, resultsModel]);
+  }, [backendBase, resultsModel?.map_layer_id]);
 
   const hero = useMemo(() => {
     return (
@@ -76,6 +87,10 @@ export default function Search() {
             <SearchResults
               resultsModel={resultsModel}
               mapImageSrc={mapImageSrc}
+              maplayer={maplayer}
+              onPatchResults={(patch) =>
+                setResultsModel((prev) => (prev ? { ...prev, ...patch } : prev))
+              }
             />
           ) : (
             hero
@@ -132,19 +147,55 @@ export default function Search() {
 }
 
 // Local component so it can read mapImageSrc from Search() scope (no prop plumbing)
-function SearchResults({ resultsModel, mapImageSrc }) {
+function SearchResults({
+  resultsModel,
+  mapImageSrc,
+  maplayer,
+  onPatchResults,
+}) {
+  console.log("SearchResults pre");
   const [view, setView] = useState("table"); // "table" | "map"
   if (!resultsModel) return null;
 
   const { title, type, tables, data, error } = resultsModel;
   const hasMap = (resultsModel?.icons?.length || 0) > 0;
+  const parentLayerId =
+    maplayer?.parent_id ||
+    maplayer?.parent?.id ||
+    (typeof maplayer?.parent === "string" ? maplayer.parent : null);
+  console.log("SearchResults maplayer:", maplayer);
+
+  const canZoomOut = !!parentLayerId;
+  console.log("SearchResults maplayer:", maplayer);
+  const handleZoomOut = () => {
+    console.log(
+      "ZoomOut clicked. parentLayerId:",
+      parentLayerId,
+      "maplayer:",
+      maplayer,
+    );
+
+    if (!parentLayerId) return;
+
+    // Switch to parent layer and hide icons for now (projection comes later)
+    onPatchResults?.({
+      map_layer_id: parentLayerId,
+      icons: [],
+    });
+    console.log("test");
+    setView("map");
+  };
 
   return (
     <div className="mhsa-results">
       <div className="mhsa-results-header">
         <h3>{title || "Results"}</h3>
-        <div className="mhsa-results-meta">{type}</div>
-        {hasMap && (
+        {resultsModel?.map_layer_id && (
+          <div className="mhsa-results-meta mhsa-dim">
+            layer: {resultsModel.map_layer_id.slice(0, 8)}…
+          </div>
+        )}
+        {(hasMap || view === "map") && (
           <button
             className="mhsa-linkbtn"
             onClick={() => setView(view === "map" ? "table" : "map")}
@@ -171,10 +222,77 @@ function SearchResults({ resultsModel, mapImageSrc }) {
 
       {view === "map" ? (
         <div className="mhsa-results-body">
-          <MapOverlay
-            mapImageSrc={mapImageSrc}
-            icons={resultsModel?.icons || []}
-          />
+          <div className="mhsa-map-stage">
+            <MapOverlay
+              key={mapImageSrc || "no-map"}
+              mapImageSrc={mapImageSrc}
+              icons={resultsModel?.icons || []}
+            />
+
+            <div className="mhsa-map-legend">
+              <div className="mhsa-map-legend-title">
+                Legend{" "}
+                {maplayer?.layer_type && (
+                  <span
+                    className={`mhsa-scope-badge mhsa-scope-${String(maplayer.layer_type).toLowerCase()}`}
+                  >
+                    {String(maplayer.layer_type).toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              <div className="mhsa-map-legend-row">
+                <button
+                  className="mhsa-linkbtn"
+                  onClick={handleZoomOut}
+                  title={
+                    canZoomOut
+                      ? "Zoom out to parent map"
+                      : "No parent map configured yet"
+                  }
+                >
+                  Zoom Out
+                </button>
+
+                <button
+                  className="mhsa-linkbtn"
+                  onClick={() => setView("table")}
+                  title="Back to results table"
+                >
+                  Table
+                </button>
+              </div>
+
+              <div className="mhsa-map-legend-body mhsa-dim">
+                <div>
+                  <b>Map:</b> {maplayer?.name || "unknown"}
+                </div>
+
+                <div style={{ marginTop: 4 }}>
+                  <b>Scope:</b>{" "}
+                  {maplayer?.layer_type
+                    ? String(maplayer.layer_type).toUpperCase()
+                    : "UNKNOWN"}
+                </div>
+
+                <div style={{ marginTop: 4 }} className="mhsa-dim">
+                  <b>Layer ID:</b>{" "}
+                  {resultsModel?.map_layer_id
+                    ? `${String(resultsModel.map_layer_id).slice(0, 8)}…`
+                    : "unknown"}
+                </div>
+
+                <div style={{ marginTop: 6 }}>
+                  <b>Icons:</b> {(resultsModel?.icons || []).length}
+                </div>
+
+                <div style={{ marginTop: 6 }}>
+                  Shapes/colors are CSS-driven (accessibility-friendly). (Next
+                  step: cart-type shapes + open/closed state.)
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       ) : Array.isArray(tables) && tables.length > 0 ? (
         <div className="mhsa-results-body">
@@ -328,14 +446,15 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
     // Used by buildIconsFromPartSearch() so we can test maplayer JSON upgrades
     // (origin_lat/origin_lon + br_lat/br_lon + rotation_deg) without wiring
     // up facility selection yet.
-    const MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans low_res layer id
-    const icons = buildIconsFromPartSearch(data, MAP_LAYER_ID);
+    const map_layer_id = DEFAULT_MAP_LAYER_ID; // Evans for now (later: backend returns correct layer)
+    const icons = buildIconsFromPartSearch(data, map_layer_id);
 
     console.log("built icons:", icons.length, icons);
 
     onResults({
       type: "partid",
       title: `PartID: ${item.part_number}`,
+      map_layer_id,
       data,
       tables: [
         {

@@ -274,3 +274,67 @@
   color: var(--mhsa-text);
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
+
+.mhsa-map-stage {
+  position: relative;
+  width: 100%;
+}
+
+.mhsa-map-legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 9999; /* was: 50 */
+  pointer-events: auto;
+
+  width: 260px;
+  max-width: calc(100% - 24px);
+
+  background: rgba(20, 20, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 10px;
+
+  backdrop-filter: blur(6px);
+}
+
+.mhsa-map-legend-title {
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.mhsa-map-legend-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.mhsa-map-legend-body {
+  font-size: 0.9rem;
+  line-height: 1.25rem;
+}
+
+.mhsa-scope-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Optional: tweak per scope (kept subtle; you can skin later) */
+.mhsa-scope-campus {
+  background: rgba(93, 201, 165, 0.14);
+}
+.mhsa-scope-facility {
+  background: rgba(242, 132, 78, 0.14);
+}
+.mhsa-scope-regional {
+  background: rgba(20, 141, 151, 0.14);
+}

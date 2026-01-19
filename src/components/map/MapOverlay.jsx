@@ -5,8 +5,8 @@ import "./mapicons.css";
 export default function MapOverlay({ mapImageSrc, icons }) {
   // If you truly want this hard-coded, keep the next line.
   // But for reusability, I recommend deleting it.
-  mapImageSrc = "/images/clubcar/TuggerRoutes_ForkZones_low_res.png";
-
+  mapImageSrc =
+    mapImageSrc || "/images/clubcar/TuggerRoutes_ForkZones_low_res.png";
   const imgRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -26,6 +26,11 @@ export default function MapOverlay({ mapImageSrc, icons }) {
     setNatural({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 });
     measure();
   };
+
+  useEffect(() => {
+    // When src changes, re-measure soon after the browser applies it
+    requestAnimationFrame(() => measure());
+  }, [mapImageSrc]);
 
   useEffect(() => {
     measure();
@@ -56,13 +61,13 @@ export default function MapOverlay({ mapImageSrc, icons }) {
         const xNat = Number.isFinite(i?.x)
           ? i.x
           : Number.isFinite(i?.x_px)
-          ? i.x_px
-          : null;
+            ? i.x_px
+            : null;
         const yNat = Number.isFinite(i?.y)
           ? i.y
           : Number.isFinite(i?.y_px)
-          ? i.y_px
-          : null;
+            ? i.y_px
+            : null;
         if (xNat == null || yNat == null) return null;
         return { ...i, _xNat: xNat, _yNat: yNat };
       })

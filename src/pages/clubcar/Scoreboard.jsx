@@ -97,7 +97,9 @@ export default function Scoreboard() {
     <div className="mhsaScoreboard">
       <div className="mhsaScoreboard__inner">
         <div className="mhsaScoreboard__header">
-          <div className="mhsaScoreboard__title">Scanning Scoreboard</div>
+          <div className="mhsaScoreboard__title">
+            Material Handling Scoreboard
+          </div>
           <div className="mhsaScoreboard__subtitle">
             Turning barcode scanning into a friendly contest (enablement, not
             punishment).
