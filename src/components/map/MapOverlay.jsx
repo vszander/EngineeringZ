@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useMemo, useRef, useState } from "react";
-import "./mapicons.css";
+import "./mapicons.css?v=20260120";
 
 export default function MapOverlay({ mapImageSrc, icons }) {
   // If you truly want this hard-coded, keep the next line.
