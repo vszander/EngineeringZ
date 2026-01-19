@@ -11,13 +11,11 @@ const DEFAULT_MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans fo
 
 export default function Search() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
-  console.log("SEARCH.JSX LOADED ✅", new Date().toISOString());
 
   // Hard-code Evans layer for now so we can verify /mhsa/maplayer/... response
   // and test Cloudflare CDN by setting MapLayer.image_uri in the DB.
   // Default layer used when we don't yet know the layer from results
 
-  console.log("LOADED Search page @", new Date().toISOString());
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
     "/images/clubcar/darkcarbackground.jpg",
@@ -35,12 +33,9 @@ export default function Search() {
 
   useEffect(() => {
     // Only fetch when user is actually looking at results (avoid noise)
-    console.log("MAPLAYER EFFECT FIRED");
-    //if (!resultsModel) return;
 
     const layerId = resultsModel?.map_layer_id || DEFAULT_MAP_LAYER_ID;
     const url = `${backendBase}/mhsa/maplayer/${layerId}/`;
-    console.log("maplayer fetch url:", url);
 
     fetch(url)
       .then((r) => {
@@ -48,7 +43,6 @@ export default function Search() {
         return r.json();
       })
       .then((j) => {
-        console.log("maplayer JSON (verify br_lat/br_lon):", j);
         setMaplayer(j);
 
         if (j?.image_uri) setMapImageSrc(`${j.image_uri}?layer=${j.id}`); // <-- DB controls CDN vs localhost
@@ -153,7 +147,6 @@ function SearchResults({
   maplayer,
   onPatchResults,
 }) {
-  console.log("SearchResults pre");
   const [view, setView] = useState("table"); // "table" | "map"
   if (!resultsModel) return null;
 
@@ -163,18 +156,10 @@ function SearchResults({
     maplayer?.parent_id ||
     maplayer?.parent?.id ||
     (typeof maplayer?.parent === "string" ? maplayer.parent : null);
-  console.log("SearchResults maplayer:", maplayer);
 
   const canZoomOut = !!parentLayerId;
-  console.log("SearchResults maplayer:", maplayer);
+  // console.log("SearchResults maplayer:", maplayer);
   const handleZoomOut = () => {
-    console.log(
-      "ZoomOut clicked. parentLayerId:",
-      parentLayerId,
-      "maplayer:",
-      maplayer,
-    );
-
     if (!parentLayerId) return;
 
     // Switch to parent layer and hide icons for now (projection comes later)
@@ -182,7 +167,6 @@ function SearchResults({
       map_layer_id: parentLayerId,
       icons: [],
     });
-    console.log("test");
     setView("map");
   };
 

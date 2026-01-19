@@ -55,19 +55,17 @@ export default function MapOverlay({ mapImageSrc, icons }) {
   };
 
   const normalizedIcons = useMemo(() => {
-    // Accept either x/y or x_px/y_px from caller
+    // Accept x/y or x_px/y_px, as numbers OR numeric strings
+    const toNum = (v) => {
+      if (v == null) return null;
+      const n = typeof v === "number" ? v : parseFloat(String(v));
+      return Number.isFinite(n) ? n : null;
+    };
+
     return (icons || [])
       .map((i) => {
-        const xNat = Number.isFinite(i?.x)
-          ? i.x
-          : Number.isFinite(i?.x_px)
-            ? i.x_px
-            : null;
-        const yNat = Number.isFinite(i?.y)
-          ? i.y
-          : Number.isFinite(i?.y_px)
-            ? i.y_px
-            : null;
+        const xNat = toNum(i?.x ?? i?.x_px);
+        const yNat = toNum(i?.y ?? i?.y_px);
         if (xNat == null || yNat == null) return null;
         return { ...i, _xNat: xNat, _yNat: yNat };
       })
