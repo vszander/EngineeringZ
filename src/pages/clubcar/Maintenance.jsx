@@ -227,12 +227,24 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
           Create Container + Load Item Qty (coming soon)
         </button>
         <button
+          className="btn btn-outline-primary"
+          onClick={() =>
+            window.open(
+              `${backendURL}/mhsa/maintenance/labels/studio/`,
+              "labelStudio",
+              "width=1200,height=900,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes",
+            )
+          }
+        >
+          BarCode Label Studio
+        </button>
+        <button
           className="btn btn-sm btn-outline-primary"
           onClick={() =>
             window.open(
               `${backendURL}/mhsa/helper/dropdowns/`,
               "DropdownsHelper",
-              "width=1200,height=900,noopener,noreferrer"
+              "width=1200,height=900,noopener,noreferrer",
             )
           }
         >
@@ -244,7 +256,7 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
             window.open(
               `${backendURL}/mhsa/helper/preferences/`,
               "PreferencesHelper",
-              "width=1200,height=900,noopener,noreferrer"
+              "width=1200,height=900,noopener,noreferrer",
             )
           }
         >
@@ -392,17 +404,18 @@ function CreateCartPanel({ backendBase, onBack, onStatusHtml, onResultJson }) {
   return (
     <div className="mhsa-panel">
       <div className="mhsa-panelhdr">
-        <h3>Create Cart (Scan Mode)</h3>
+        <h3>Create Cart</h3>
         <button className="mhsa-linkbtn" onClick={onBack}>
           ← Back
         </button>
+        <span className="mhsa-hdr-sep" />
         <button
-          className="btn btn-outline-secondary"
+          className="mhsa-linkbtn"
           onClick={() =>
             window.open(
               `${backendBase}/mhsa/carts/popup/`,
               "cartPopup",
-              "width=1100,height=850,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes"
+              "width=1100,height=850,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes",
             )
           }
         >

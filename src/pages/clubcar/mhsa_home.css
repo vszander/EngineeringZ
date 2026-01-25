@@ -76,6 +76,15 @@
   z-index: 20;
 }
 
+.mhsa-hdr-sep {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  margin: 0 12px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+
 .mhsa-brand-title {
   font-size: 18px;
   font-weight: 800;
