@@ -136,15 +136,23 @@ export default function MhsaHome() {
           },
           {
             label: "Inventory Sensing",
-            path: "/clubcar/mitzo/inventory-sensing",
+            path: `${backendURL}/mhsa/inventory-sensing`, // ← backend-served page
+            external: true, // ← IMPORTANT (iframe / full-page)
             children: [
               {
-                label: "# of red",
-                path: "/clubcar/mitzo/inventory-sensing/red-count",
+                label: "Signals (Live)",
+                path: "/mhsa/inventory-sensing",
+                external: true,
               },
               {
-                label: "# of inputs",
-                path: "/clubcar/mitzo/inventory-sensing/input-count",
+                label: "Red Count (soon)",
+                path: "/mhsa/inventory-sensing#red-count",
+                disabled: true,
+              },
+              {
+                label: "Input Count (soon)",
+                path: "/mhsa/inventory-sensing#input-count",
+                disabled: true,
               },
             ],
           },
