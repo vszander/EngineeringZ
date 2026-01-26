@@ -9,6 +9,7 @@ import CartMoveMenu from "./CartMoveMenu";
 import Carts from "./Carts";
 import MhsaWorkflowMenu from "./MhsaWorkflowMenu";
 import Scoreboard from "./Scoreboard";
+import ScanEvents from "./ScanEvents"; // adjust path if needed
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -32,6 +33,9 @@ export default function ClubcarRouter() {
         {/* NEW: Search */}
         <Route path="search" element={<Search />} />
         <Route path="search/:mode" element={<Search />} />
+        {/* NEW: Scan Events (live feed) */}
+        <Route path="scan-events" element={<ScanEvents />} />
+
         <Route path="maintenance" element={<Maintenance />} />
         <Route path="maintenance/:tool" element={<Maintenance />} />
         <Route path="cart-move" element={<CartMoveMenu />} />

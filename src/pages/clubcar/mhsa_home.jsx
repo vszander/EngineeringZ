@@ -51,7 +51,7 @@ export default function MhsaHome() {
             label: "Warehouse Browse",
             path: "/clubcar/search/warehouse-browse",
           },
-          { label: "Scan Events", path: "/clubcar/events/scans" },
+          { label: "Scan Events", path: "/clubcar/scan-events" },
           { label: "Transaction Events", path: "/clubcar/events/transactions" },
         ],
       },
