@@ -10,6 +10,7 @@ import Carts from "./Carts";
 import MhsaWorkflowMenu from "./MhsaWorkflowMenu";
 import Scoreboard from "./Scoreboard";
 import ScanEvents from "./ScanEvents"; // adjust path if needed
+import SignalsDashboard from "./SignalsDashboard";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -41,6 +42,7 @@ export default function ClubcarRouter() {
         <Route path="cart-move" element={<CartMoveMenu />} />
         <Route path="carts" element={<Carts />} />
         <Route path="workflows" element={<MhsaWorkflowMenu />} />
+        <Route path="signals" element={<SignalsDashboard />} />
 
         {/* <Route path="/mhsa/maintenance" element={<Maintenance />} /> */}
         {/* fallback */}

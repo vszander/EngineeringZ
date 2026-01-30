@@ -125,7 +125,12 @@ export default function MhsaHome() {
           {
             label: "Material Handling Scoreboard",
             path: `/clubcar/scoreboard`,
-            note: "NEW",
+          },
+          {
+            label: "CCDC Signals Dashboard",
+
+            path: `/clubcar/signals`,
+            note: "NEW,",
           },
           {
             label: "Fill Cart (Scanner)",
