@@ -22,13 +22,13 @@ export default function Admin() {
 
     switch (mode) {
       case "login":
-        targetURL += "accounts/login/";
+        targetURL += "accounts/cover-login/";
         break;
       case "logout":
         targetURL += "accounts/logout/";
         break;
       case "admin":
-        targetURL += "admin/";
+        targetURL += "admin/login";
         break;
       default:
         targetURL += "admin/";
