@@ -6,7 +6,7 @@ import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
 
 const backendBase = import.meta.env.VITE_BACKEND_URL;
 
-export default function TuggerMap() {
+export default function MhsaHud() {
   // Step 2 bootstrap state
   const [mapLayer, setMapLayer] = useState(null);
   const [assetsById, setAssetsById] = useState({}); // static-ish asset dataset by UUID
@@ -317,10 +317,10 @@ export default function TuggerMap() {
     <>
       {/* <Navbar /> */}
 
-      <div style={styles.page}>
+      <div className="mhsaHudPage" style={styles.page}>
         <div style={styles.headerRow}>
           <div style={styles.headerLeft}>
-            <h2 style={styles.h2}>MHSA Tugger Map</h2>
+            <h2 style={styles.h2}>MHSA Heads-Up Display (HUD)</h2>
             <span style={styles.sep}>|</span>
             <span style={styles.meta}>
               MapLayer: <strong>{mapLayer.name}</strong>
@@ -533,7 +533,7 @@ export default function TuggerMap() {
           </section>
 
           {/* INFO */}
-          <aside style={styles.infoCard}>
+          <aside className="mhsaHudInfoCard" style={styles.sticky}>
             <div style={styles.sticky}>
               {infoPanelHtml ? (
                 // CART (or other) HTML fragment replaces the whole panel

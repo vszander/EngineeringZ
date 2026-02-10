@@ -311,4 +311,123 @@ body.mhsa-body {
 html:has(body.mhsa-body) {
   background: var(--mhsa-bg) !important;
 }
+
+.mhsaHudPage {
+  min-height: 100vh;
+  background: #0b0f14;   /* dark jet */
+  color: #e6f1ff;
+}
+
+.mhsaHudPage section,
+.mhsaHudPage aside {
+  background: rgba(255,255,255,0.06);   /* glass */
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+
+.mhsaHudPage a { color: #7ee7ff; }
+
+/* --- MHSA HUD Info Panel (dark charcoal) --- */
+.mhsaHudInfoCard {
+  background: linear-gradient(
+    180deg,
+    #141a21 0%,
+    #0f141a 100%
+  );
+  color: #e6f1ff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Headings */
+.mhsaHudInfoCard h3 {
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+/* Labels vs values */
+.mhsaHudInfoCard strong {
+  color: #9fdfff;        /* cyan label */
+  font-weight: 600;
+}
+
+/* Body text */
+.mhsaHudInfoCard {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Muted / secondary text */
+.mhsaHudInfoCard .muted,
+.mhsaHudInfoCard hr {
+  opacity: 0.65;
+}
+
+
+/* --- HUD pulses --- */
+.hudPulse,
+.hudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0.9;
+  animation: hudPulse 1.6s ease-out forwards;
+  border: 2px solid rgba(20, 141, 151, 0.9); /* default = your primary */
+  box-shadow: 0 0 12px rgba(20, 141, 151, 0.35);
+}
+
+.hudPulseAck {
+  border-color: rgba(242, 132, 78, 0.95); /* your orange */
+  box-shadow: 0 0 16px rgba(242, 132, 78, 0.4);
+  animation-duration: 2.0s;
+}
+
+@keyframes hudPulse {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.0);
+    opacity: 0.0;
+  }
+}
+
+/* HUD pulse: normal scan blip */
+.mhsaHudPulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(20, 141, 151, 0.95); /* your MHSA teal */
+  box-shadow: 0 0 0 2px rgba(20, 141, 151, 0.25);
+  animation: mhsaPulse 1.2s ease-out infinite;
+}
+
+/* HUD pulse: ack-worthy event (more intense) */
+.mhsaHudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(242, 132, 78, 0.95); /* orange */
+  box-shadow: 0 0 0 2px rgba(242, 132, 78, 0.25);
+  animation: mhsaPulse 0.9s ease-out infinite;
+}
+
+@keyframes mhsaPulse {
+  0% {
+    transform: scale(0.15);
+    opacity: 0.95;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+}
+
+
 import "./mhsa.theme.clubcar.css";

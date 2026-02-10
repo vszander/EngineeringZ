@@ -13,7 +13,7 @@ import ContactUs from "./pages/ContactUs";
 import AboutUs from "./pages/AboutUs";
 import PowerZ from "./pages/powerz";
 import LightsStore from "./pages/Lights_store";
-import TuggerMap from "./pages/clubcar/TuggerMap"; // <- your new JSX component
+import MhsaHud from "./pages/clubcar/MhsaHud"; // <- your newly branded JSX component
 import Packages from "./pages/Packages";
 import ClubCarRouter from "./pages/clubcar/ClubCarRouter";
 import Maintenance from "./pages/clubcar/Maintenance";
@@ -41,7 +41,8 @@ function App() {
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/clubcar/*" element={<ClubCarRouter />} />
-            <Route path="/clubcar/tugger-map" element={<TuggerMap />} />
+            <Route path="/clubcar/hud" element={<MhsaHud />} />
+
             <Route path="/auth" element={<Admin />} />
           </Routes>
         </BrowserRouter>
