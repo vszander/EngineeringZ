@@ -32,16 +32,11 @@ export default function MhsaHud() {
   const seenHudEventIdsRef = useRef(new Set());
 
   // Keep ~N seconds of HUD overlays
-  const HUD_TTL_MS = 70_000;
+  const HUD_TTL_MS = 12_000;
 
   function pruneHudEvents(list) {
-    const now = Date.now();
-    return (list ?? []).filter((e) => {
-      const tsMs = e?.created_at ? Date.parse(e.created_at) : 0;
-      const decayMs = Number(e?.decay_ms ?? HUD_TTL_MS);
-      if (!tsMs) return true; // if missing timestamp, keep briefly (or change to false)
-      return now - tsMs <= decayMs;
-    });
+    const cutoff = Date.now() - HUD_TTL_MS;
+    return list.filter((e) => (e.ts ?? 0) >= cutoff);
   }
 
   function addHudEvent(evt) {
@@ -61,13 +56,6 @@ export default function MhsaHud() {
     };
     return { x: p.x, y: p.y };
   }
-
-  const [nowMs, setNowMs] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = setInterval(() => setNowMs(Date.now()), 250); // 250ms smooth
-    return () => clearInterval(id);
-  }, []);
 
   // --- Step 2: Bootstrap (map layer + objects) ---
   useEffect(() => {
@@ -189,7 +177,6 @@ export default function MhsaHud() {
   }, [backendBase, mapLayer?.id]);
 
   // --- Step 3b: Poll HUD events (scan pulses / blips) ---
-  // --- Step 3b: Poll HUD events (scan pulses / blips) ---
   useEffect(() => {
     if (!mapLayer?.id) return;
 
@@ -200,51 +187,35 @@ export default function MhsaHud() {
         const url = `${backendBase}/mhsa/api/hud/events/recent/?limit=80`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
-          credentials: "include",
+          credentials: "include", // IMPORTANT if endpoint is login-protected
         });
 
         if (!res.ok) throw new Error(`hud events HTTP ${res.status}`);
         const data = await res.json();
         if (cancelled) return;
 
-        const rows = data?.results ?? [];
+        const rows = data?.results ?? data ?? [];
 
         for (const r of rows) {
-          // only draw resolved events
+          // Only draw resolved events (unresolved go to Insights later)
           if (!r?.resolved) continue;
 
-          // layer filter
+          // If your endpoint returns events from multiple layers, keep only the current one
           if (r.map_layer_id && String(r.map_layer_id) !== String(mapLayer.id))
             continue;
 
-          // must have coords
-          if (r.x_px == null || r.y_px == null) continue;
-
-          // ✅ Store the backend row shape (snake_case) because your renderer expects it
+          // Build a HUD overlay event
           addHudEvent({
             id: String(r.id),
-
-            created_at: r.created_at ?? null,
-            event_class: r.event_class ?? null,
-            event_type: r.event_type ?? null,
+            ts: Date.now(), // 👈 use arrival time //    ts: Date.parse(r.created_at ?? "") || Date.now(),
+            x: Number(r.x_px),
+            y: Number(r.y_px),
             label: r.label ?? r.event_type ?? "event",
-            ack_required: !!r.ack_required,
-
-            x_px: Number(r.x_px),
-            y_px: Number(r.y_px),
-            map_layer_id: r.map_layer_id ?? null,
-            resolved: true,
-
-            pulse_color: r.pulse_color ?? "#148d97",
-            pulse_radius: Number(
-              r.pulse_radius ?? (r.ack_required ? 140 : 110),
-            ),
-            pulse_count: Number(r.pulse_count ?? 1),
-            decay_ms: Number(r.decay_ms ?? 60000),
+            ackRequired: !!r.ack_required,
           });
         }
 
-        // trim
+        // keep list trimmed
         setHudEvents((prev) => pruneHudEvents(prev ?? []));
       } catch (err) {
         console.error("hud events poll failed:", err);
@@ -252,7 +223,7 @@ export default function MhsaHud() {
     }
 
     tickHud();
-    const id = setInterval(tickHud, 2000);
+    const id = setInterval(tickHud, 2000); // 2s feels right for scan pulses
 
     return () => {
       cancelled = true;
@@ -372,21 +343,6 @@ export default function MhsaHud() {
         </div>
 
         <div style={styles.grid}>
-          <div
-            style={{
-              position: "absolute",
-              left: 8,
-              top: 8,
-              zIndex: 9999,
-              color: "white",
-              background: "rgba(0,0,0,0.6)",
-              padding: "4px 6px",
-              borderRadius: 6,
-              fontSize: 12,
-            }}
-          >
-            hudEvents: {hudEvents.length}
-          </div>
           {/* MAP */}
           <section style={styles.mapCard}>
             <div style={styles.mapViewport}>
@@ -407,24 +363,32 @@ export default function MhsaHud() {
                 {/* HUD Event Overlays (pulses/blips) */}
 
                 {hudEvents.map((e) => {
+                  // skip unresolved (no coords) to avoid weird placement
                   if (e.x_px == null || e.y_px == null) return null;
 
-                  // ✅ snake_case from backend
-                  const size = e.pulse_radius ?? (e.ack_required ? 140 : 110);
+                  const size = e.pulseRadius ?? (e.ack_required ? 140 : 110);
 
+                  // ---- decay math (uses created_at) ----
                   const now = Date.now();
+                  const tsMs = e.created_at
+                    ? new Date(e.created_at).getTime()
+                    : now;
+                  const ageMs = Math.max(0, now - tsMs);
 
-                  const tsMs = e.created_at ? Date.parse(e.created_at) : nowMs;
-                  const ageMs = Math.max(0, nowMs - tsMs);
-
-                  const decayMs = e.decay_ms ?? 60000;
+                  const decayMs = e.decayMs ?? 60000; // 60 seconds
                   const t = Math.min(1, ageMs / decayMs);
 
-                  // fast dim early, slow late (feels “log-ish”)
-                  const k = 4;
+                  // “log-ish” fade: bright early, dims quickly, lingers faint
+                  const k = 4; // tweak 3..6
                   const ghostOpacity = Math.exp(-k * t);
 
-                  const pulseColor = e.pulse_color ?? "#148d97";
+                  // color/radius (hard-code defaults now; backend later)
+                  // For your requirement: scan.item -> blue + 100px
+                  const pulseColor =
+                    e.pulseColor ??
+                    (e.event_type === "scan.item" ? "#2f80ff" : "#148d97");
+
+                  const pulseRadiusPx = `${e.pulseRadius ?? size}px`;
 
                   return (
                     <div
@@ -440,26 +404,30 @@ export default function MhsaHud() {
                         pointerEvents: "none",
                       }}
                     >
+                      {/* ghost linger layer (no pulsing, just fades) */}
                       <div
                         className="mhsaHudGhost"
                         style={{
-                          border: `2px solid ${pulseColor}33`, // 0x33 alpha-ish
-                          boxShadow: `0 0 18px ${pulseColor}22`,
-                          opacity: ghostOpacity,
+                          "--pulse-color": pulseColor,
+                          "--pulse-radius": pulseRadiusPx,
+                          opacity: Math.max(0, Math.min(1, ghostOpacity)),
                         }}
                       />
 
+                      {/* animated pulse ring */}
                       <div
                         className={
                           e.ack_required ? "mhsaHudPulseAck" : "mhsaHudPulse"
                         }
                         style={{
                           "--pulse-color": pulseColor,
+                          "--pulse-radius": pulseRadiusPx,
                           "--pulse-speed": e.ack_required ? "0.9s" : "1.2s",
-                          "--pulse-count": e.pulse_count ?? 1,
+                          // later: "--pulse-count": e.pulseCount ?? 1,
                         }}
                       />
 
+                      {/* optional center label */}
                       <div
                         style={{
                           position: "absolute",

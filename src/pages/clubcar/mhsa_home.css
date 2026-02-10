@@ -308,7 +308,7 @@ body.mhsa-body {
 }
 
 /* Optional: also keep Material Dashboard from painting html */
-html:has(body.mhsa-body) {
+body.mhsa-body {
   background: var(--mhsa-bg) !important;
 }
 
@@ -385,6 +385,11 @@ html:has(body.mhsa-body) {
   box-shadow: 0 0 12px rgba(20, 141, 151, 0.35);
 }
 
+.mhsaHudPulse,
+.mhsaHudPulseAck {
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
 .hudPulseAck {
   border-color: rgba(242, 132, 78, 0.95); /* your orange */
   box-shadow: 0 0 16px rgba(242, 132, 78, 0.4);
@@ -403,13 +408,19 @@ html:has(body.mhsa-body) {
 }
 
 /* HUD pulse: normal scan blip */
+/* HUD pulse: normal scan blip */
 .mhsaHudPulse {
   position: absolute;
-  inset: 0;
+  inset: 0;                 /* fill the wrapper div */
   border-radius: 999px;
-  border: 2px solid rgba(20, 141, 151, 0.95); /* your MHSA teal */
-  box-shadow: 0 0 0 2px rgba(20, 141, 151, 0.25);
-  animation: mhsaPulse 1.2s ease-out infinite;
+
+  border: 2px solid var(--pulse-color, rgba(20, 141, 151, 0.95));
+  box-shadow:
+    0 0 0 2px rgba(20, 141, 151, 0.25),
+    0 0 14px rgba(20, 141, 151, 0.35);
+
+  animation: mhsaPulse var(--pulse-speed, 1.2s) ease-out;
+  animation-iteration-count: var(--pulse-count, infinite);
 }
 
 /* HUD pulse: ack-worthy event (more intense) */
@@ -417,10 +428,28 @@ html:has(body.mhsa-body) {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  border: 2px solid rgba(242, 132, 78, 0.95); /* orange */
-  box-shadow: 0 0 0 2px rgba(242, 132, 78, 0.25);
-  animation: mhsaPulse 0.9s ease-out infinite;
+
+  border: 2px solid var(--pulse-color, rgba(242, 132, 78, 0.95));
+  box-shadow:
+    0 0 0 3px rgba(242, 132, 78, 0.25),
+    0 0 20px rgba(242, 132, 78, 0.4);
+
+  animation: mhsaPulse var(--pulse-speed, 0.9s) ease-out;
+  animation-iteration-count: var(--pulse-count, infinite);
 }
+
+.mhsaHudGhost {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  border: 2px solid rgba(0,0,0,0); /* baseline */
+  box-shadow: 0 0 22px rgba(0,0,0,0.0);
+}
+
+
+
+
 
 @keyframes mhsaPulse {
   0% {
