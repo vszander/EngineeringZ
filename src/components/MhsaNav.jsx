@@ -19,7 +19,7 @@ export default function MhsaNav({ authStatus }) {
 
   const items = [
     { label: "MHSA Home", to: "/clubcar/mhsa", show: true },
-    { label: "Tugger Map", to: "/clubcar/tugger-map", show: true },
+    { label: "HUD", to: "/clubcar/hud", show: true },
     { label: "ERD (login)", to: "/clubcar/relationships", show: true },
 
     // New page you’re about to build

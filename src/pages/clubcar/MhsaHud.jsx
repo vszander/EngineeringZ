@@ -533,8 +533,8 @@ export default function MhsaHud() {
           </section>
 
           {/* INFO */}
-          <aside className="mhsaHudInfoCard" style={styles.sticky}>
-            <div style={styles.sticky}>
+          <aside style={styles.infoCard}>
+            <div className="mhsaHudInfoCard" style={styles.sticky}>
               {infoPanelHtml ? (
                 // CART (or other) HTML fragment replaces the whole panel
                 <div dangerouslySetInnerHTML={{ __html: infoPanelHtml }} />
@@ -703,7 +703,7 @@ const styles = {
     border: "1px solid rgba(0,0,0,0.15)",
     borderRadius: 12,
     padding: 14,
-    background: "white",
+    background: "black",
   },
 
   sticky: { position: "sticky", top: 12 },

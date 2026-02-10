@@ -329,13 +329,21 @@ html:has(body.mhsa-body) {
 .mhsaHudPage a { color: #7ee7ff; }
 
 /* --- MHSA HUD Info Panel (dark charcoal) --- */
+.mhsaHudInfoCard,
+.mhsaHudInfoCard * {
+  background-color: transparent;
+}
+
+.mhsaHudInfoCard {
+  background: linear-gradient(180deg, #141a21 0%, #0f141a 100%);
+}
 .mhsaHudInfoCard {
   background: linear-gradient(
     180deg,
     #141a21 0%,
     #0f141a 100%
   );
-  color: #e6f1ff;
+  color: #a4b4c9;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
 }

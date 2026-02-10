@@ -185,9 +185,9 @@ export default function MhsaHome() {
         section: "Live Visualization",
         items: [
           {
-            label: "Tugger Map (Live Demo)",
-            path: "/clubcar/tugger-map",
-            note: "Asset + cart + pod context",
+            label: "MHSA HUD (Live Demo)",
+            path: "/clubcar/hud",
+            note: "Asset + cart + pod + scanner signals context",
           },
         ],
       },
@@ -230,11 +230,8 @@ export default function MhsaHome() {
             </p>
 
             <div className="mhsa-cta-row">
-              <Link
-                className="mhsa-btn mhsa-btn-primary"
-                to="/clubcar/tugger-map"
-              >
-                Open Tugger Map
+              <Link className="mhsa-btn mhsa-btn-primary" to="/clubcar/hud">
+                Heads-Up Display
               </Link>
 
               <Link
