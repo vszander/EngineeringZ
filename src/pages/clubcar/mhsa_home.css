@@ -419,7 +419,7 @@ body.mhsa-body {
     0 0 0 2px rgba(20, 141, 151, 0.25),
     0 0 14px rgba(20, 141, 151, 0.35);
 
-  animation: mhsaPulse var(--pulse-speed, 1.2s) ease-out;
+  animation: mhsaPulse var(--pulse-speed, 1.2s) ease-out forwards;
   animation-iteration-count: var(--pulse-count, infinite);
 }
 
@@ -434,7 +434,7 @@ body.mhsa-body {
     0 0 0 3px rgba(242, 132, 78, 0.25),
     0 0 20px rgba(242, 132, 78, 0.4);
 
-  animation: mhsaPulse var(--pulse-speed, 0.9s) ease-out;
+  animation: mhsaPulse var(--pulse-speed, 0.9s) ease-out forwards;
   animation-iteration-count: var(--pulse-count, infinite);
 }
 
@@ -443,8 +443,9 @@ body.mhsa-body {
   inset: 0;
   border-radius: 999px;
 
-  border: 2px solid rgba(0,0,0,0); /* baseline */
-  box-shadow: 0 0 22px rgba(0,0,0,0.0);
+  /* 🔍 DEBUG / IDENTIFY GHOST */
+  border: 2px dashed rgba(255, 255, 0, 0.9);   /* yellow dashed */
+  box-shadow: 0 0 0 rgba(0,0,0,0);
 }
 
 
