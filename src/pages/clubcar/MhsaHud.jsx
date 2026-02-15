@@ -197,7 +197,7 @@ export default function MhsaHud() {
 
     async function tickHud() {
       try {
-        const url = `${backendBase}/mhsa/api/hud/events/recent/?limit=80`;
+        const url = `${backendBase}/mhsa/api/events/recent/?limit=80`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
           credentials: "include",
@@ -206,12 +206,20 @@ export default function MhsaHud() {
         if (!res.ok) throw new Error(`hud events HTTP ${res.status}`);
         const data = await res.json();
         if (cancelled) return;
+        console.log("fetch");
 
-        const rows = data?.results ?? [];
+        const rows = data?.rows ?? [];
 
         for (const r of rows) {
           // only draw resolved events
-          if (!r?.resolved) continue;
+          // draw if resolved flag is true OR coords exist
+          const isResolved =
+            r?.resolved === true ||
+            (r?.x_px != null && r?.y_px != null && r?.map_layer_id);
+
+          if (!isResolved) continue;
+
+          console.log("resolved");
 
           // layer filter
           if (r.map_layer_id && String(r.map_layer_id) !== String(mapLayer.id))
@@ -219,10 +227,15 @@ export default function MhsaHud() {
 
           // must have coords
           if (r.x_px == null || r.y_px == null) continue;
-
+          console.log("coords");
+          const stableId = r.id
+            ? String(r.id)
+            : `${r.created_at ?? "no-ts"}|${r.event_class ?? ""}|${r.event_type ?? ""}|${r.x_px ?? ""},${r.y_px ?? ""}|${r.label ?? ""}`;
+          console.log("HUD row", r.id, r.created_at, r.label, r.x_px, r.y_px);
           // ✅ Store the backend row shape (snake_case) because your renderer expects it
           addHudEvent({
-            id: String(r.id),
+            //id: String(r.id),
+            id: stableId,
 
             created_at: r.created_at ?? null,
             event_class: r.event_class ?? null,
@@ -240,6 +253,7 @@ export default function MhsaHud() {
               r.pulse_radius ?? (r.ack_required ? 140 : 110),
             ),
             pulse_count: Number(r.pulse_count ?? 1),
+            pulse_speed: r.pulse_speed ?? null,
             decay_ms: Number(r.decay_ms ?? 60000),
           });
         }
@@ -455,7 +469,8 @@ export default function MhsaHud() {
                         }
                         style={{
                           "--pulse-color": pulseColor,
-                          "--pulse-speed": e.ack_required ? "0.9s" : "1.2s",
+                          "--pulse-speed":
+                            e.pulse_speed ?? (e.ack_required ? "0.9s" : "1.2s"),
                           "--pulse-count": e.pulse_count ?? 1,
                         }}
                       />
