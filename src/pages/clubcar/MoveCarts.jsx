@@ -52,6 +52,27 @@ function toastErr(text) {
   });
 }
 
+async function apiFetchJson(url, opts = {}) {
+  const res = await fetch(url, {
+    credentials: "include",
+    headers: { Accept: "application/json", ...(opts.headers || {}) },
+    ...opts,
+  });
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    // non-JSON response (e.g., HTML error page)
+    data = { detail: text };
+  }
+  if (!res.ok) {
+    const msg = data?.detail || data?.reason || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
 /**
  * Draft move model:
  * pendingMoves[cart_id] = {
@@ -92,7 +113,11 @@ export default function MoveCarts() {
   const [loading, setLoading] = useState(false);
   const [carts, setCarts] = useState([]);
   const [locations, setLocations] = useState([]); // staging locations (for future snap-to)
-  const [filter, setFilter] = useState("staging"); // future: dropdown options
+  const [filterMode, setFilterMode] = useState("staging"); // staging | all | zone | carttype
+  const [filterZoneId, setFilterZoneId] = useState("");
+  const [filterCartTypeId, setFilterCartTypeId] = useState("");
+  const [zones, setZones] = useState([]);
+  const [cartTypes, setCartTypes] = useState([]);
   const [createNewOnDrop, setCreateNewOnDrop] = useState(true);
 
   const [pendingMoves, setPendingMoves] = useState(() => ({}));
@@ -222,19 +247,59 @@ export default function MoveCarts() {
     });
   }
 
+  async function loadFilters() {
+    // Best-effort: these endpoints should return lists for dropdowns.
+    // If you don't have them yet, see backend notes below.
+    try {
+      const [z, ct] = await Promise.all([
+        apiFetchJson(`${backendBase}/mhsa/api/zones/`).catch(() => ({
+          zones: [],
+        })),
+        apiFetchJson(`${backendBase}/mhsa/api/carttypes/`).catch(() => ({
+          carttypes: [],
+        })),
+      ]);
+
+      const zrows = Array.isArray(z?.zones) ? z.zones : [];
+      const ctrows = Array.isArray(ct?.carttypes) ? ct.carttypes : [];
+
+      setZones(zrows);
+      setCartTypes(ctrows);
+
+      // keep selections valid if lists changed
+      if (
+        filterZoneId &&
+        !zrows.find((r) => String(r.id) === String(filterZoneId))
+      ) {
+        setFilterZoneId("");
+      }
+      if (
+        filterCartTypeId &&
+        !ctrows.find((r) => String(r.id) === String(filterCartTypeId))
+      ) {
+        setFilterCartTypeId("");
+      }
+    } catch (e) {
+      // non-fatal; MoveCarts can still run on 'staging'/'all'
+      console.warn("MoveCarts loadFilters failed:", e);
+    }
+  }
+
   async function loadData() {
     setLoading(true);
     try {
-      const url = `${backendBase}/mhsa/maintenance/cart/move/getcarts?filter=${encodeURIComponent(
-        filter,
-      )}&new=1`;
+      const params = new URLSearchParams();
+      params.set("filter", filterMode);
+      params.set("new", "1");
 
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`GetCarts HTTP ${res.status}: ${await res.text()}`);
-      }
+      if (filterMode === "zone" && filterZoneId)
+        params.set("zone_id", filterZoneId);
+      if (filterMode === "carttype" && filterCartTypeId)
+        params.set("cart_type_id", filterCartTypeId);
 
-      const data = await res.json();
+      const url = `${backendBase}/mhsa/maintenance/cart/move/getcarts?${params.toString()}`;
+
+      const data = await apiFetchJson(url);
 
       const rawCarts = Array.isArray(data?.carts) ? data.carts : [];
       setCarts(rawCarts.map(normalizeCart));
@@ -244,7 +309,7 @@ export default function MoveCarts() {
 
       toastOk(
         `<div style="opacity:.9">Loaded <b>${rawCarts.length}</b> ${
-          data?.filter || filter
+          data?.filter || filterMode
         } carts.</div>`,
       );
     } catch (e) {
@@ -255,9 +320,29 @@ export default function MoveCarts() {
   }
 
   useEffect(() => {
+    loadFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backendBase]);
+
+  useEffect(() => {
+    // reset secondary dropdown when switching modes
+    if (filterMode !== "zone") setFilterZoneId("");
+    if (filterMode !== "carttype") setFilterCartTypeId("");
+
+    // lazily load lists if user switches into a mode and we don't have options yet
+    if (
+      (filterMode === "zone" && zones.length === 0) ||
+      (filterMode === "carttype" && cartTypes.length === 0)
+    ) {
+      loadFilters();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterMode]);
+
+  useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [filterMode, filterZoneId, filterCartTypeId]);
 
   // Track rendered size for coordinate mapping
   useEffect(() => {
@@ -538,17 +623,60 @@ export default function MoveCarts() {
               </div>
               <select
                 className="form-select form-select-sm"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                value={filterMode}
+                onChange={(e) => setFilterMode(e.target.value)}
                 disabled={loading}
               >
                 <option value="staging">staging</option>
-                {/* future */}
-                <option value="all" disabled>
-                  all (coming soon)
-                </option>
+                <option value="all">all</option>
+                <option value="zone">zone…</option>
+                <option value="carttype">cart type…</option>
               </select>
             </div>
+
+            {filterMode === "zone" && (
+              <div>
+                <div className="mhsa-dim" style={{ marginBottom: 6 }}>
+                  Zone
+                </div>
+                <select
+                  className="form-select form-select-sm"
+                  value={filterZoneId}
+                  onChange={(e) => setFilterZoneId(e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">(choose)</option>
+                  {zones.map((z) => (
+                    <option key={String(z.id)} value={String(z.id)}>
+                      {z.code ? `${z.code} — ` : ""}
+                      {z.name || z.display_name || String(z.id)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {filterMode === "carttype" && (
+              <div>
+                <div className="mhsa-dim" style={{ marginBottom: 6 }}>
+                  Cart Type
+                </div>
+                <select
+                  className="form-select form-select-sm"
+                  value={filterCartTypeId}
+                  onChange={(e) => setFilterCartTypeId(e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">(choose)</option>
+                  {cartTypes.map((ct) => (
+                    <option key={String(ct.id)} value={String(ct.id)}>
+                      {ct.code ? `${ct.code} — ` : ""}
+                      {ct.name || String(ct.id)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <label
               style={{
