@@ -31,6 +31,10 @@ export default function MhsaHud() {
   const [hudEvents, setHudEvents] = useState([]); // [{id, kind, x, y, ts, label, ackRequired, severity}]
   const seenHudEventIdsRef = useRef(new Set());
 
+  const [selectedHudId, setSelectedHudId] = useState(null);
+  const selectedHudEvent =
+    hudEvents.find((x) => String(x.id) === String(selectedHudId)) ?? null;
+
   // Keep ~N seconds of HUD overlays
   const HUD_TTL_MS = 70_000;
 
@@ -419,30 +423,42 @@ export default function MhsaHud() {
                 />
 
                 {/* HUD Event Overlays (pulses/blips) */}
-
                 {hudEvents.map((e) => {
                   if (e.x_px == null || e.y_px == null) return null;
 
-                  // ✅ snake_case from backend
                   const size = e.pulse_radius ?? (e.ack_required ? 140 : 110);
-
-                  const now = Date.now();
 
                   const tsMs = e.created_at ? Date.parse(e.created_at) : nowMs;
                   const ageMs = Math.max(0, nowMs - tsMs);
 
-                  const decayMs = e.decay_ms ?? 60000;
+                  // ✅ "sticky until ack" behavior for ack_required (don’t fade out / prune visually)
+                  const decayMs = e.ack_required
+                    ? 60 * 60 * 1000
+                    : (e.decay_ms ?? 60000);
                   const t = Math.min(1, ageMs / decayMs);
 
-                  // fast dim early, slow late (feels “log-ish”)
                   const k = 4;
                   const ghostOpacity = Math.exp(-k * t);
 
                   const pulseColor = e.pulse_color ?? "#148d97";
 
+                  // Decide “actionable” (pin) vs “benign” (pulse only)
+                  const labelU = String(
+                    e.label ?? e.event_type ?? "",
+                  ).toUpperCase();
+                  const isPin =
+                    !!e.ack_required ||
+                    labelU === "PARTOUT" ||
+                    labelU === "PARTLOW";
+
+                  const isSelected =
+                    selectedHudId != null &&
+                    String(selectedHudId) === String(e.id);
+
                   return (
                     <div
                       key={e.id}
+                      title={e.label || e.event_type || "event"} // ✅ hover tooltip
                       style={{
                         position: "absolute",
                         left: e.x_px,
@@ -450,16 +466,28 @@ export default function MhsaHud() {
                         transform: "translate(-50%, -50%)",
                         width: size,
                         height: size,
-                        zIndex: 5,
-                        pointerEvents: "none",
+                        zIndex: isSelected ? 30 : isPin ? 20 : 5,
+                        pointerEvents: "auto", // ✅ allow hover/click
+                      }}
+                      onClick={(evt) => {
+                        if (!isPin) return; // benign = no click action
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        setSelectedHudId(String(e.id));
+                      }}
+                      onMouseDown={(evt) => {
+                        if (!isPin) return;
+                        evt.stopPropagation(); // avoids map drag starting
                       }}
                     >
+                      {/* Pulse visuals remain pointerless so wrapper handles interaction */}
                       <div
                         className="mhsaHudGhost"
                         style={{
-                          border: `2px solid ${pulseColor}33`, // 0x33 alpha-ish
+                          border: `2px solid ${pulseColor}33`,
                           boxShadow: `0 0 18px ${pulseColor}22`,
                           opacity: ghostOpacity,
+                          pointerEvents: "none",
                         }}
                       />
 
@@ -472,25 +500,39 @@ export default function MhsaHud() {
                           "--pulse-speed":
                             e.pulse_speed ?? (e.ack_required ? "0.9s" : "1.2s"),
                           "--pulse-count": e.pulse_count ?? 1,
+                          pointerEvents: "none",
                         }}
                       />
 
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: "50%",
-                          top: "50%",
-                          transform: "translate(-50%, -50%)",
-                          fontSize: 10,
-                          padding: "2px 6px",
-                          borderRadius: 10,
-                          background: "rgba(0,0,0,0.55)",
-                          color: "white",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {e.label}
-                      </div>
+                      {/* ✅ Actionable: pin instead of label */}
+                      {isPin ? (
+                        <div
+                          style={{
+                            position: "absolute",
+                            left: "50%",
+                            top: "50%",
+                            transform: "translate(-50%, -70%)",
+                            pointerEvents: "none", // wrapper receives clicks
+                            filter: isSelected
+                              ? "drop-shadow(0 0 10px rgba(255,255,255,0.75))"
+                              : "none",
+                          }}
+                        >
+                          {/* Swap this for a GIF URL when ready */}
+                          <img
+                            src="/static/mhsa/img/pins/pin_red.gif"
+                            alt=""
+                            style={{
+                              width: 34,
+                              height: 34,
+                              display: "block",
+                            }}
+                            draggable={false}
+                          />
+                        </div>
+                      ) : null}
+
+                      {/* ✅ Benign: no label at all (tooltip handles hover text) */}
                     </div>
                   );
                 })}
