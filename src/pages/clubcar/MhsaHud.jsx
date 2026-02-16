@@ -201,7 +201,7 @@ export default function MhsaHud() {
 
     async function tickHud() {
       try {
-        const url = `${backendBase}/mhsa/api/events/recent/?limit=80`;
+        const url = `${backendBase}/mhsa/api/events/recent/?limit=30`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
           credentials: "include",
@@ -245,12 +245,16 @@ export default function MhsaHud() {
             event_class: r.event_class ?? null,
             event_type: r.event_type ?? null,
             label: r.label ?? r.event_type ?? "event",
-            ack_required: !!r.ack_required,
 
             x_px: Number(r.x_px),
             y_px: Number(r.y_px),
             map_layer_id: r.map_layer_id ?? null,
             resolved: true,
+            ui_kind: r.ui_kind ?? "pulse",
+            icon_url: r.icon_url ?? null,
+            icon_w_px: r.icon_w_px ?? null,
+            icon_anchor: r.icon_anchor ?? "center",
+            ack_required: !!r.ack_required,
 
             pulse_color: r.pulse_color ?? "#148d97",
             pulse_radius: Number(
@@ -446,19 +450,14 @@ export default function MhsaHud() {
                   const labelU = String(
                     e.label ?? e.event_type ?? "",
                   ).toUpperCase();
-                  const isPin =
-                    !!e.ack_required ||
-                    labelU === "PARTOUT" ||
-                    labelU === "PARTLOW";
-
-                  const isSelected =
-                    selectedHudId != null &&
-                    String(selectedHudId) === String(e.id);
+                  const isPin = e.ui_kind === "pin";
+                  const iconUrl = e.icon_url || null;
+                  const iconW = Number(e.icon_w_px ?? 90); // Evans-low-res baseline
 
                   return (
                     <div
                       key={e.id}
-                      title={e.label || e.event_type || "event"} // ✅ hover tooltip
+                      title={e.label || e.event_type || "event"} // ✅ hover tooltip for all
                       style={{
                         position: "absolute",
                         left: e.x_px,
@@ -466,21 +465,22 @@ export default function MhsaHud() {
                         transform: "translate(-50%, -50%)",
                         width: size,
                         height: size,
-                        zIndex: isSelected ? 30 : isPin ? 20 : 5,
-                        pointerEvents: "auto", // ✅ allow hover/click
+                        zIndex: isPin ? 20 : 5,
+                        pointerEvents: isPin ? "auto" : "none", // ✅ pins clickable
+                        cursor: isPin ? "pointer" : "default",
                       }}
                       onClick={(evt) => {
-                        if (!isPin) return; // benign = no click action
+                        if (!isPin) return;
                         evt.preventDefault();
                         evt.stopPropagation();
-                        setSelectedHudId(String(e.id));
+                        alert(e.label || "HUD pin clicked");
                       }}
                       onMouseDown={(evt) => {
                         if (!isPin) return;
-                        evt.stopPropagation(); // avoids map drag starting
+                        evt.stopPropagation(); // helps avoid map drag capture
                       }}
                     >
-                      {/* Pulse visuals remain pointerless so wrapper handles interaction */}
+                      {/* Pulse visuals */}
                       <div
                         className="mhsaHudGhost"
                         style={{
@@ -504,35 +504,31 @@ export default function MhsaHud() {
                         }}
                       />
 
-                      {/* ✅ Actionable: pin instead of label */}
-                      {isPin ? (
+                      {/* ✅ Pin overlay (bottom-center anchored at Location x,y) */}
+                      {isPin && iconUrl ? (
                         <div
                           style={{
                             position: "absolute",
                             left: "50%",
                             top: "50%",
-                            transform: "translate(-50%, -70%)",
-                            pointerEvents: "none", // wrapper receives clicks
-                            filter: isSelected
-                              ? "drop-shadow(0 0 10px rgba(255,255,255,0.75))"
-                              : "none",
+                            transform: "translate(-50%, -100%)", // bottom-center
+                            pointerEvents: "none", // wrapper handles click
                           }}
                         >
-                          {/* Swap this for a GIF URL when ready */}
                           <img
-                            src="/static/mhsa/img/pins/pin_red.gif"
+                            src={iconUrl}
                             alt=""
+                            draggable={false}
                             style={{
-                              width: 34,
-                              height: 34,
+                              width: iconW,
+                              height: "auto",
                               display: "block",
                             }}
-                            draggable={false}
                           />
                         </div>
                       ) : null}
 
-                      {/* ✅ Benign: no label at all (tooltip handles hover text) */}
+                      {/* ✅ No visible label for pulse-only */}
                     </div>
                   );
                 })}
