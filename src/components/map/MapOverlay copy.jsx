@@ -1,38 +1,15 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useMemo, useRef, useState } from "react";
-
-function normalizeClassTokens(iconClass) {
-  const raw = String(iconClass || "").trim();
-  if (!raw) return "";
-
-  // If backend accidentally sent "mi-mi-container-mi-container-custom"
-  const spaced = raw.includes(" ") ? raw : raw.replaceAll("-", " ");
-
-  // Tokenize, drop empties, de-dupe
-  const toks = spaced
-    .split(/\s+/g)
-    .map((t) => t.trim())
-    .filter(Boolean);
-
-  const seen = new Set();
-  const out = [];
-  for (const t of toks) {
-    if (seen.has(t)) continue;
-    seen.add(t);
-    out.push(t);
-  }
-  return out.join(" ");
-}
+import "./mapicons.css?v=20260120";
 
 export default function MapOverlay({
   mapImageSrc,
   icons,
   onIconClick,
-  fitMode = "width", // "width" | "native"
+  fitMode = "width",
 }) {
   mapImageSrc =
     mapImageSrc || "/images/clubcar/TuggerRoutes_ForkZones_low_res.png";
-
   const imgRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -55,10 +32,11 @@ export default function MapOverlay({
 
   useEffect(() => {
     requestAnimationFrame(() => measure());
-  }, [mapImageSrc, fitMode]);
+  }, [mapImageSrc]);
 
   useEffect(() => {
     measure();
+
     const ro = new ResizeObserver(() => measure());
     if (wrapRef.current) ro.observe(wrapRef.current);
     if (imgRef.current) ro.observe(imgRef.current);
@@ -70,10 +48,12 @@ export default function MapOverlay({
     };
   }, []);
 
-  const toRenderedXY = (xNat, yNat) => ({
-    x: (xNat / natural.w) * rendered.w,
-    y: (yNat / natural.h) * rendered.h,
-  });
+  const toRenderedXY = (xNat, yNat) => {
+    return {
+      x: (xNat / natural.w) * rendered.w,
+      y: (yNat / natural.h) * rendered.h,
+    };
+  };
 
   const normalizedIcons = useMemo(() => {
     const toNum = (v) => {
@@ -96,14 +76,16 @@ export default function MapOverlay({
     <div ref={wrapRef} className="mi-wrap">
       <img
         ref={imgRef}
-        className={fitMode === "native" ? "mi-img mi-img--native" : "mi-img"}
+        className={
+          fitMode === "native" ? "mi-img mi-img--native" : "mi-img mi-img--fit"
+        }
         src={mapImageSrc}
         alt="Map"
         draggable={false}
         onLoad={onImgLoad}
       />
 
-      {normalizedIcons.map((i, idx) => {
+      {(normalizedIcons || []).map((i, idx) => {
         const p = toRenderedXY(i._xNat, i._yNat);
 
         const clickProps =
@@ -118,14 +100,10 @@ export default function MapOverlay({
               }
             : {};
 
-        const cls = normalizeClassTokens(i.iconClass);
-        // Always include base .mi once
-        const className = cls.includes("mi") ? cls : `mi ${cls}`.trim();
-
         return (
           <div
             key={i.key || idx}
-            className={`mi ${className}`.trim()}
+            className={`mi ${String(i.iconClass || "").replaceAll("-", " ")}`}
             title={i.title || ""}
             style={{ left: `${p.x}px`, top: `${p.y}px` }}
             {...clickProps}

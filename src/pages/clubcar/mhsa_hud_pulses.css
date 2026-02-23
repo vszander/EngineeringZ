@@ -1,0 +1,147 @@
+.mhsaHudPage {
+  min-height: 100vh;
+  background: #0b0f14; /* dark jet */
+  color: #e6f1ff;
+}
+
+.mhsaHudPage section,
+.mhsaHudPage aside {
+  background: rgba(255, 255, 255, 0.06); /* glass */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.mhsaHudPage a {
+  color: #7ee7ff;
+}
+
+/* --- MHSA HUD Info Panel (dark charcoal) --- */
+.mhsaHudInfoCard,
+.mhsaHudInfoCard * {
+  background-color: transparent;
+}
+
+.mhsaHudInfoCard {
+  background: linear-gradient(180deg, #141a21 0%, #0f141a 100%);
+}
+.mhsaHudInfoCard {
+  background: linear-gradient(180deg, #141a21 0%, #0f141a 100%);
+  color: #a4b4c9;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Headings */
+.mhsaHudInfoCard h3 {
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+/* Labels vs values */
+.mhsaHudInfoCard strong {
+  color: #9fdfff; /* cyan label */
+  font-weight: 600;
+}
+
+/* Body text */
+.mhsaHudInfoCard {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Muted / secondary text */
+.mhsaHudInfoCard .muted,
+.mhsaHudInfoCard hr {
+  opacity: 0.65;
+}
+
+/* --- HUD pulses --- */
+.hudPulse,
+.hudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0.9;
+  animation: hudPulse 1.6s ease-out forwards;
+  border: 2px solid rgba(20, 141, 151, 0.9); /* default = your primary */
+  box-shadow: 0 0 12px rgba(20, 141, 151, 0.35);
+}
+
+.mhsaHudPulse,
+.mhsaHudPulseAck {
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+.hudPulseAck {
+  border-color: rgba(242, 132, 78, 0.95); /* your orange */
+  box-shadow: 0 0 16px rgba(242, 132, 78, 0.4);
+  animation-duration: 2s;
+}
+
+@keyframes hudPulse {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* HUD pulse: normal scan blip */
+/* HUD pulse: normal scan blip */
+.mhsaHudPulse {
+  position: absolute;
+  inset: 0; /* fill the wrapper div */
+  border-radius: 999px;
+
+  border: 2px solid var(--pulse-color, rgba(20, 141, 151, 0.95));
+  box-shadow:
+    0 0 0 2px rgba(20, 141, 151, 0.25),
+    0 0 14px rgba(20, 141, 151, 0.35);
+
+  animation: mhsaPulse var(--pulse-speed, 1.2s) ease-out forwards;
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+/* HUD pulse: ack-worthy event (more intense) */
+.mhsaHudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  border: 2px solid var(--pulse-color, rgba(242, 132, 78, 0.95));
+  box-shadow:
+    0 0 0 3px rgba(242, 132, 78, 0.25),
+    0 0 20px rgba(242, 132, 78, 0.4);
+
+  animation: mhsaPulse var(--pulse-speed, 0.9s) ease-out forwards;
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+.mhsaHudGhost {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  /* 🔍 DEBUG / IDENTIFY GHOST */
+  border: 2px dashed rgba(255, 255, 0, 0.9); /* yellow dashed */
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+@keyframes mhsaPulse {
+  0% {
+    transform: scale(0.15);
+    opacity: 0.95;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+}

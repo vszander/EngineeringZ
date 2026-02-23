@@ -11,6 +11,7 @@ import MhsaWorkflowMenu from "./MhsaWorkflowMenu";
 import Scoreboard from "./Scoreboard";
 import ScanEvents from "./ScanEvents"; // adjust path if needed
 import SignalsDashboard from "./SignalsDashboard";
+import CockpitPage from "./Cockpit";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -30,6 +31,7 @@ export default function ClubcarRouter() {
         <Route path="mhsa" element={<MhsaHome />} />
         <Route path="scoreboard" element={<Scoreboard />} />
         <Route path="tugger-map" element={<TuggerMap />} />
+        <Route path="cockpit" element={<CockpitPage />} />
         <Route path="relationships" element={<RelationshipsERD />} />
         {/* NEW: Search */}
         <Route path="search" element={<Search />} />

@@ -71,6 +71,30 @@ export default function MhsaHud() {
     return { x: p.x, y: p.y };
   }
 
+  const [mapScale, setMapScale] = useState(1);
+
+  useEffect(() => {
+    if (!mapLayer?.widthPx || !mapLayer?.heightPx) return;
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() => {
+      const vw = el.clientWidth || 1;
+      const vh = el.clientHeight || 1;
+
+      // Fit-to-viewport (grows as browser widens, but won’t exceed height constraint)
+      const s = Math.min(vw / mapLayer.widthPx, vh / mapLayer.heightPx);
+
+      // Optional: clamp if you never want it to shrink too far or grow too huge
+      const clamped = Math.max(0.15, Math.min(s, 3.0));
+
+      setMapScale(clamped);
+    });
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [mapLayer?.widthPx, mapLayer?.heightPx]);
+
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -152,7 +176,7 @@ export default function MhsaHud() {
     };
   }, [backendBase]);
 
-  // --- 2b  make sure map is stretchable  horizontally  ---
+  // --  allow map to stretch horizontally ---
   useEffect(() => {
     if (!mapLayer?.widthPx) return;
 
@@ -176,7 +200,6 @@ export default function MhsaHud() {
       window.removeEventListener("resize", compute);
     };
   }, [mapLayer?.widthPx]);
-
   // --- Step 3: Poll positions bundle (1 Hz) ---
   useEffect(() => {
     if (!mapLayer?.id) return;
@@ -440,6 +463,7 @@ export default function MhsaHud() {
             hudEvents: {hudEvents.length}
           </div>
           {/* MAP */}
+
           <section style={styles.mapCard}>
             <div ref={viewportRef} style={styles.mapViewport}>
               {/* This wrapper provides the *scaled* scroll height */}
@@ -466,203 +490,8 @@ export default function MhsaHud() {
                     draggable={false}
                     style={styles.mapImg}
                   />
-                  {/* HUD Event Overlays (pulses/blips) */}
-                  {hudEvents.map((e) => {
-                    if (e.x_px == null || e.y_px == null) return null;
 
-                    const size = e.pulse_radius ?? (e.ack_required ? 140 : 110);
-
-                    const tsMs = e.created_at
-                      ? Date.parse(e.created_at)
-                      : nowMs;
-                    const ageMs = Math.max(0, nowMs - tsMs);
-
-                    // "sticky until ack" behavior for ack_required
-                    const decayMs = e.ack_required
-                      ? 60 * 60 * 1000
-                      : (e.decay_ms ?? 60000);
-                    const t = Math.min(1, ageMs / decayMs);
-
-                    const k = 4;
-                    const ghostOpacity = Math.exp(-k * t);
-
-                    const pulseColor = e.pulse_color ?? "#148d97";
-
-                    const isPin = e.ui_kind === "pin";
-                    const iconUrl = e.icon_url || null;
-                    const iconW = Number(e.icon_w_px ?? 90);
-
-                    return (
-                      <div
-                        key={e.id}
-                        title={e.label || e.event_type || "event"}
-                        style={{
-                          position: "absolute",
-                          left: e.x_px,
-                          top: e.y_px,
-                          transform: "translate(-50%, -50%)",
-                          width: size,
-                          height: size,
-                          zIndex: isPin ? 20 : 5,
-                          pointerEvents: isPin ? "auto" : "none",
-                          cursor: isPin ? "pointer" : "default",
-                        }}
-                        onClick={(evt) => {
-                          if (!isPin) return;
-                          evt.preventDefault();
-                          evt.stopPropagation();
-                          alert(e.label || "HUD pin clicked");
-                        }}
-                        onMouseDown={(evt) => {
-                          if (!isPin) return;
-                          evt.stopPropagation();
-                        }}
-                      >
-                        <div
-                          className="mhsaHudGhost"
-                          style={{
-                            border: `2px solid ${pulseColor}33`,
-                            boxShadow: `0 0 18px ${pulseColor}22`,
-                            opacity: ghostOpacity,
-                            pointerEvents: "none",
-                          }}
-                        />
-
-                        <div
-                          className={
-                            e.ack_required ? "mhsaHudPulseAck" : "mhsaHudPulse"
-                          }
-                          style={{
-                            "--pulse-color": pulseColor,
-                            "--pulse-speed":
-                              e.pulse_speed ??
-                              (e.ack_required ? "0.9s" : "1.2s"),
-                            "--pulse-count": e.pulse_count ?? 1,
-                            pointerEvents: "none",
-                          }}
-                        />
-
-                        {/* Pin overlay (bottom-center anchored at Location x,y) */}
-                        {isPin && iconUrl ? (
-                          <div
-                            style={{
-                              position: "absolute",
-                              left: "50%",
-                              top: "50%",
-                              transform: "translate(-50%, -100%)",
-                              pointerEvents: "none",
-                            }}
-                          >
-                            <img
-                              src={iconUrl}
-                              alt=""
-                              draggable={false}
-                              style={{
-                                width: iconW,
-                                height: "auto",
-                                display: "block",
-                              }}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
                   {/* ... your hudEvents + assets overlays stay EXACTLY as-is ... */}
-                  {/* Render all assets as overlays */}
-                  {Object.keys(assetsById).map((id) => {
-                    const a = assetsById[id];
-                    const prevPose = clampPose(
-                      prevPoseById[id] ?? poseById[id],
-                    );
-                    const isSelected = id === selectedAssetId;
-
-                    if (a.asset_type !== "tugger") return null;
-
-                    const pose = clampPose(poseById[id]);
-
-                    const cartW = 62;
-                    const cartH = 42;
-                    const cartRadius = 12;
-
-                    return (
-                      <div key={id}>
-                        {/* CART (trail) */}
-                        <div
-                          title={`${a.name} cart`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInfoPanelHtml("");
-
-                            fetch(
-                              `${backendBase}/mhsa/cart/9c5d1788-e15e-42dd-97ad-01317bd42dc8/panel`,
-                            )
-                              .then((r) => {
-                                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                                return r.text();
-                              })
-                              .then((html) => setInfoPanelHtml(html))
-                              .catch((err) => {
-                                console.error("Cart panel fetch failed:", err);
-                                alert(
-                                  "Failed to load cart panel (see console)",
-                                );
-                              });
-                          }}
-                          style={{
-                            position: "absolute",
-                            left: prevPose.x,
-                            top: prevPose.y,
-                            width: cartW,
-                            height: cartH,
-                            transform: "translate(-50%, -50%)",
-                            borderRadius: cartRadius,
-                            background: "rgba(255,255,255,0.92)",
-                            border: "2px solid rgba(0,0,0,0.35)",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                            zIndex: 4,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 11,
-                            opacity: 0.95,
-                            cursor: "pointer",
-                            userSelect: "none",
-                          }}
-                        >
-                          CART-01
-                        </div>
-
-                        {/* TUGGER */}
-                        <button
-                          type="button"
-                          title={`${a.name} @ (${Math.round(pose.x)}, ${Math.round(pose.y)})`}
-                          onClick={() => {
-                            setSelectedAssetId(id);
-                            setInfoPanelHtml("");
-                          }}
-                          style={{
-                            ...styles.markerBtn,
-                            left: pose.x,
-                            top: pose.y,
-                            transform: `translate(-50%, -50%) rotate(${pose.heading}deg)`,
-                            outline: isSelected
-                              ? "2px solid rgba(20,141,151,0.7)"
-                              : "none",
-                            borderRadius: 10,
-                            zIndex: 6,
-                          }}
-                        >
-                          <img
-                            src="/images/clubcar/Tugger.png"
-                            alt={a.name}
-                            draggable={false}
-                            style={styles.markerImg}
-                          />
-                        </button>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </div>
@@ -788,7 +617,8 @@ const styles = {
   mapViewport: {
     height: "calc(100vh - 170px)",
     minHeight: 520,
-    overflow: "auto",
+    overflowY: "auto",
+    overflowX: "hidden", // ✅ no sideways scroll when fitting to width
   },
 
   mapStage: { position: "relative", background: "white" },

@@ -12,3 +12,54 @@
   --mhsa-text: rgba(255, 255, 255, 0.92); /* body */
   --mhsa-heading: rgba(197, 147, 40, 0.95); /* brushed gold heading */
 }
+
+/* mhsa.theme.clubcar.css
+   CLUBCAR SKIN: colors + fonts + typography tokens
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap");
+
+:root {
+  /* Fonts */
+  --mhsa-font-sans:
+    Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --mhsa-font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+
+  /* Brand palette (from your backup charcoal/gold direction) */
+  --mhsa-bg: #121417;
+  --mhsa-panel: #171a1f;
+  --mhsa-card: #14181d;
+
+  --mhsa-text: rgba(255, 255, 255, 0.92);
+  --mhsa-muted: rgba(255, 255, 255, 0.68);
+
+  --mhsa-heading: rgba(197, 147, 40, 0.95); /* brushed gold heading */
+  --mhsa-link: rgba(183, 154, 93, 0.95);
+
+  --mhsa-accent: #b79a5d; /* gold */
+  --mhsa-accent-2: #148d97; /* teal */
+
+  --mhsa-border: rgba(255, 255, 255, 0.1);
+  --mhsa-border2: rgba(255, 255, 255, 0.06);
+
+  --mhsa-radius: 18px;
+}
+
+/* Optional context mode (you already use mhsa-dark in DOM) */
+.mhsa-dark {
+  --mhsa-text: rgba(255, 255, 255, 0.92);
+  --mhsa-heading: rgba(197, 147, 40, 0.95);
+}
+
+/* Apply typography globally only under MHSA */
+.mhsa-home,
+.mhsa-page {
+  font-family: var(--mhsa-font-sans);
+  color: var(--mhsa-text);
+}
+
+.mhsa-code {
+  font-family: var(--mhsa-font-mono);
+}

@@ -1,3 +1,16 @@
+function qtyToIntLabel(qtyText, qtyNum) {
+  // prefer qtyText if present (e.g., "12.0000"), else fall back to numeric qty
+  const raw =
+    qtyText != null && String(qtyText).trim() !== "" ? String(qtyText) : qtyNum;
+
+  const n =
+    typeof raw === "number"
+      ? raw
+      : Number(String(raw).replace(/,/g, "").trim());
+  if (!Number.isFinite(n)) return ""; // nothing displayed if bad/empty
+  return String(Math.trunc(n)); // truncate toward zero (12.9 -> 12)
+}
+
 export function buildIconsFromPartSearch(data, mapLayerId) {
   const icons = [];
 
@@ -8,12 +21,14 @@ export function buildIconsFromPartSearch(data, mapLayerId) {
     if (loc.map_layer_id !== mapLayerId) continue;
     if (loc.map_x == null || loc.map_y == null) continue;
 
+    const qtyInt = qtyToIntLabel(c.qty, c.qty); // handles number or string
+
     icons.push({
       x: Number(loc.map_x),
       y: Number(loc.map_y),
-      qtyText: String(c.qty ?? ""),
+      qtyText: qtyInt, // ✅ integer-only label
       iconClass: c.icon_class, // comes from backend
-      title: `${c.container_uid} @ ${loc.name}\nQty: ${c.qty}\n${c.container_type} / ${c.status}`,
+      title: `${c.container_uid} @ ${loc.name}\nQty: ${qtyInt}\n${c.container_type} / ${c.status}`,
     });
   }
 
@@ -24,12 +39,14 @@ export function buildIconsFromPartSearch(data, mapLayerId) {
     if (loc.map_layer_id !== mapLayerId) continue;
     if (loc.map_x == null || loc.map_y == null) continue;
 
+    const qtyInt = qtyToIntLabel(lp.qty, lp.qty);
+
     icons.push({
       x: Number(loc.map_x),
       y: Number(loc.map_y),
-      qtyText: String(lp.qty ?? ""),
+      qtyText: qtyInt, // ✅ integer-only label
       iconClass: lp.icon_class, // comes from backend
-      title: `${lp.cart_name} @ ${loc.name}\nPod: ${lp.pod_label}\nQty: ${lp.qty}`,
+      title: `${lp.cart_name} @ ${loc.name}\nPod: ${lp.pod_label}\nQty: ${qtyInt}`,
     });
   }
 

@@ -1,0 +1,221 @@
+/* mhsa_mapping.css
+   Single source of truth for:
+   - map stage sizing / stretching
+   - MapOverlay image behavior
+   - icon positioning + icon styling + color coding
+*/
+
+/* Map stage wrapper (optional utility class if you wrap MapOverlay) */
+.mhsa-map-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* MapOverlay root */
+.mi-wrap {
+  position: relative;
+  width: 100%;
+  /* IMPORTANT: do NOT clip; icons are absolute */
+  overflow: visible;
+}
+
+/* Default behavior: stretch map to container width (Search/MoveCarts “looks good”) */
+.mi-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Optional: natural size mode (used when you *want* scrolling / pixel-perfect inspection)
+   You can toggle by adding this class to <img> (or by a prop later). */
+.mi-img--native {
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Icon base
+   - absolutely positioned
+   - bottom-center anchored to (x,y) so pins sit on locations nicely
+*/
+.mi {
+  position: absolute;
+  transform: translate(-50%, -100%); /* bottom-center anchor */
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  cursor: pointer;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+}
+
+/* Small optional label inside icon */
+.mi__txt {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+/* Hover/focus clarity */
+.mi:hover {
+  transform: translate(-50%, -100%) scale(1.08);
+  box-shadow:
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+.mi:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(242, 132, 78, 0.55),
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
+/* Entity families */
+.mi-container,
+.mi-cart,
+.mi-location,
+.mi-part {
+  /* semantic grouping only */
+}
+
+/* ===== Color coding (use your brand palette) =====
+   Primary Blue  #148d97
+   Darker Blue   #155157
+   Orange        #f2844e
+   Light Green   #0c9c89
+   Lighter Green #5dc9a5
+   Earth Brown   #8e5f38
+   Cream White   #d7d8c6
+*/
+
+/* Containers by type (BEM-style is recommended; match backend) */
+.mi-container--tote {
+  background: #5dc9a5;
+}
+.mi-container--bin {
+  background: #0c9c89;
+}
+.mi-container--pallet {
+  background: #148d97;
+}
+.mi-container--gaylord {
+  background: #155157;
+}
+.mi-container--custom {
+  background: #8e5f38;
+}
+.mi-container--unknown {
+  background: #8e5f38;
+  opacity: 0.8;
+}
+
+/* Carts by carttype code (start simple; expand later) */
+.mi-cart--unknown {
+  background: #8e5f38;
+  opacity: 0.8;
+}
+.mi-cart--01 {
+  background: #f2844e;
+}
+.mi-cart--02 {
+  background: #f2844e;
+}
+.mi-cart--03 {
+  background: #f2844e;
+}
+.mi-cart--08 {
+  background: #f2844e;
+}
+
+/* Optional “status ring” you can toggle with extra classes */
+.mi-status--open {
+  box-shadow:
+    0 0 0 3px rgba(93, 201, 165, 0.35),
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.mi-status--attention {
+  box-shadow:
+    0 0 0 3px rgba(242, 132, 78, 0.35),
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+/* ===== Compatibility aliases =====
+   If older code emits mi-container-custom instead of mi-container--custom, keep it working.
+*/
+.mi-container-tote {
+  background: #5dc9a5;
+}
+.mi-container-bin {
+  background: #0c9c89;
+}
+.mi-container-pallet {
+  background: #148d97;
+}
+.mi-container-gaylord {
+  background: #155157;
+}
+.mi-container-custom {
+  background: #8e5f38;
+}
+.mi-cart-unknown {
+  background: #8e5f38;
+  opacity: 0.8;
+}
+.mi-cart-01,
+.mi-cart-02,
+.mi-cart-03,
+.mi-cart-08 {
+  background: #f2844e;
+}
+
+/* Legend overlay (Search zoom controls, etc.) */
+.mhsa-map-legend {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: min(320px, calc(100% - 28px));
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(20, 24, 29, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.mhsa-map-legend-title {
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mhsa-map-legend-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mhsa-map-legend-body {
+  font-size: 0.95rem;
+  line-height: 1.25rem;
+}

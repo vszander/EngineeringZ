@@ -23,7 +23,7 @@ export default function MhsaNav({ authStatus }) {
     { label: "ERD (login)", to: "/clubcar/relationships", show: true },
 
     // New page you’re about to build
-    { label: "Carts", to: "/clubcar/carts", show: isAuthed },
+    { label: "Cockpit", to: "/clubcar/cockpit", show: isAuthed },
 
     // Future: scanner workflows (keep hidden until ready if you want)
     { label: "Scan", to: "/clubcar/scan", show: isAuthed },

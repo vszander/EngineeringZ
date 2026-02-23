@@ -1,17 +1,46 @@
+/* MapOverlay stage must be allowed to exceed the panel so the panel can scroll */
 .mi-wrap {
   position: relative;
-  width: 100%;
+  display: inline-block; /* shrink-wrap to content */
+  width: auto; /* was 100% */
+  overflow: visible; /* was hidden (this was clipping the map) */
   border: 1px solid var(--mhsa-border);
   border-radius: 14px;
-  overflow: hidden;
 }
 
-.mi-img {
+.mi-imgold {
   width: 100%;
   height: auto;
   display: block;
   user-select: none;
   pointer-events: none;
+}
+
+/* Allow natural size (your override was correct; bake it in here too) */
+.mi-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* default: fit image to container width (HUD/Search feel) */
+.mi-img--fit {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+}
+
+/* optional: natural size (scroll/inspect) */
+.mi-img--native {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
 }
 
 .mi {

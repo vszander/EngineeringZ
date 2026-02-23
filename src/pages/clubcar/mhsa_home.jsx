@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import "../../components/mhsa.theme.clubcar.css";
 import "./mhsa_home.css";
 import MhsaNav from "../../components/MhsaNav";
 
@@ -187,6 +188,10 @@ export default function MhsaHome() {
           {
             label: "MHSA HUD (Live Demo)",
             path: "/clubcar/hud",
+          },
+          {
+            label: "Cockpit (Live Demo)",
+            path: "/clubcar/cockpit",
             note: "Asset + cart + pod + scanner signals context",
           },
         ],

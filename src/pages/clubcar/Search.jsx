@@ -2,38 +2,48 @@
 
 import { useEffect, useMemo, useState } from "react";
 import "./mhsa_home.css";
-import "./Search.css";
+import "./mhsa_mapping.css";
+
 import { ItemLookupInput } from "/src/components/ItemLookupInput";
 import { useParams, useNavigate } from "react-router-dom";
 import MapOverlay from "/src/components/map/MapOverlay";
 import { buildIconsFromPartSearch } from "/src/components/map/search_map_icons";
+
 const DEFAULT_MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans for now
+
+function qtyToIntLabel(qtyText, qtyNum) {
+  // prefer qtyText if present (e.g., "12.0000"), else fall back to numeric qty
+  const raw =
+    qtyText != null && String(qtyText).trim() !== "" ? String(qtyText) : qtyNum;
+
+  const n =
+    typeof raw === "number"
+      ? raw
+      : Number(String(raw).replace(/,/g, "").trim());
+  if (!Number.isFinite(n)) return ""; // nothing displayed if bad/empty
+  return String(Math.trunc(n)); // truncate toward zero (12.9 -> 12)
+}
 
 export default function Search() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
-
-  // Hard-code Evans layer for now so we can verify /mhsa/maplayer/... response
-  // and test Cloudflare CDN by setting MapLayer.image_uri in the DB.
-  // Default layer used when we don't yet know the layer from results
 
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
     "/images/clubcar/darkcarbackground.jpg",
   ); // fallback
+
   useEffect(() => {
     console.log("mapImageSrc changed ->", mapImageSrc);
   }, [mapImageSrc]);
-  const [resultsModel, setResultsModel] = useState(null); // future: { type, data, overlays }
+
+  const [resultsModel, setResultsModel] = useState(null);
 
   const navigate = useNavigate();
-
-  const { mode: routeMode } = useParams(); // "part", "description", etc.
-  const uiMode = routeMode || "menu"; // single source of truth
+  const { mode: routeMode } = useParams();
+  const uiMode = routeMode || "menu";
   const [heroTitle, setHeroTitle] = useState("MHSA Search");
 
   useEffect(() => {
-    // Only fetch when user is actually looking at results (avoid noise)
-
     const layerId = resultsModel?.map_layer_id || DEFAULT_MAP_LAYER_ID;
     const url = `${backendBase}/mhsa/maplayer/${layerId}/`;
 
@@ -45,10 +55,25 @@ export default function Search() {
       .then((j) => {
         setMaplayer(j);
 
-        if (j?.image_uri) setMapImageSrc(`${j.image_uri}?layer=${j.id}`); // <-- DB controls CDN vs localhost
+        // Always update mapImageSrc so MapOverlay remounts on layer change.
+        const fallback = "/images/clubcar/darkcarbackground.jpg";
+        const base = j?.image_uri || fallback;
+
+        // if base already has "?", append with "&" instead of "?"
+        const sep = String(base).includes("?") ? "&" : "?";
+        setMapImageSrc(
+          `${base}${sep}layer=${encodeURIComponent(j?.id || layerId)}`,
+        );
       })
       .catch((e) => {
         console.warn("maplayer fetch failed:", e);
+
+        // Still force a remount attempt (optional but helpful for debugging)
+        const base = "/images/clubcar/darkcarbackground.jpg";
+        const sep = String(base).includes("?") ? "&" : "?";
+        setMapImageSrc(
+          `${base}${sep}layer=${encodeURIComponent(layerId)}&err=1`,
+        );
       });
   }, [backendBase, resultsModel?.map_layer_id]);
 
@@ -76,7 +101,6 @@ export default function Search() {
     <div className="mhsa-page mhsa-home">
       <main className="mhsa-main">
         <section className="mhsa-left">
-          {/* Left area: hero initially; later: results table and/or map overlays */}
           {resultsModel ? (
             <SearchResults
               resultsModel={resultsModel}
@@ -96,10 +120,7 @@ export default function Search() {
             <SearchMenu
               onPick={(picked) => {
                 setResultsModel(null);
-
-                // picked values should be URL-friendly: "part", "description", etc.
                 navigate(`/clubcar/search/${picked}`);
-
                 setHeroTitle(
                   picked === "part" ? "Search: PartID" : "MHSA Search",
                 );
@@ -118,6 +139,7 @@ export default function Search() {
               onResults={(model) => setResultsModel(model)}
             />
           )}
+
           {uiMode !== "part" && (
             <div className="mhsa-panel">
               <div className="mhsa-panelhdr">
@@ -140,33 +162,37 @@ export default function Search() {
   );
 }
 
-// Local component so it can read mapImageSrc from Search() scope (no prop plumbing)
 function SearchResults({
   resultsModel,
   mapImageSrc,
   maplayer,
   onPatchResults,
 }) {
-  const [view, setView] = useState("table"); // "table" | "map"
+  const [view, setView] = useState("table");
   if (!resultsModel) return null;
 
   const { title, type, tables, data, error } = resultsModel;
   const hasMap = (resultsModel?.icons?.length || 0) > 0;
+
   const parentLayerId =
     maplayer?.parent_id ||
     maplayer?.parent?.id ||
     (typeof maplayer?.parent === "string" ? maplayer.parent : null);
 
   const canZoomOut = !!parentLayerId;
-  // console.log("SearchResults maplayer:", maplayer);
+
   const handleZoomOut = () => {
     if (!parentLayerId) return;
 
-    // Switch to parent layer and hide icons for now (projection comes later)
     onPatchResults?.({
       map_layer_id: parentLayerId,
       icons: [],
     });
+    console.log("[ZoomOut click]", {
+      parentLayerId,
+      before_layer: resultsModel?.map_layer_id,
+    });
+    console.log("Zoom out ->", parentLayerId);
     setView("map");
   };
 
@@ -174,11 +200,13 @@ function SearchResults({
     <div className="mhsa-results">
       <div className="mhsa-results-header">
         <h3>{title || "Results"}</h3>
+
         {resultsModel?.map_layer_id && (
           <div className="mhsa-results-meta mhsa-dim">
             layer: {resultsModel.map_layer_id.slice(0, 8)}…
           </div>
         )}
+
         {(hasMap || view === "map") && (
           <button
             className="mhsa-linkbtn"
@@ -376,7 +404,7 @@ function SearchMenu({ onPick }) {
 }
 
 function PartIdPanel({ backendBase, onBack, onResults }) {
-  const [selected, setSelected] = useState(null); // hint selection
+  const [selected, setSelected] = useState(null);
 
   async function runPartSearch(partNumber) {
     if (!partNumber) return;
@@ -424,13 +452,7 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
       where: p.cart_location_name || "",
     }));
 
-    // ==============================
-    // HARD-CODED MAP LAYER ID (TEMP)
-    // ==============================
-    // Used by buildIconsFromPartSearch() so we can test maplayer JSON upgrades
-    // (origin_lat/origin_lon + br_lat/br_lon + rotation_deg) without wiring
-    // up facility selection yet.
-    const map_layer_id = DEFAULT_MAP_LAYER_ID; // Evans for now (later: backend returns correct layer)
+    const map_layer_id = DEFAULT_MAP_LAYER_ID;
     const icons = buildIconsFromPartSearch(data, map_layer_id);
 
     console.log("built icons:", icons.length, icons);
@@ -468,7 +490,7 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
             ]
           : []),
       ],
-      icons, // ✅ attach icons to resultsModel
+      icons,
     });
   }
 
