@@ -131,6 +131,36 @@
   box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
+/* --- Edge-safe pulse positioning + stacking --- */
+.hudPulse,
+.hudPulseAck,
+.mhsaHudPulse,
+.mhsaHudPulseAck,
+.mhsaHudGhost {
+  /* inset fallback (some layouts get weird across engines) */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  /* keep it above the map/image layer */
+  z-index: 5;
+
+  /* never steal clicks */
+  pointer-events: none;
+
+  /* animation/render robustness */
+  will-change: transform, opacity;
+  transform: translateZ(0); /* nudges compositor on Chromium/Edge */
+}
+
+/* If you have a pulse wrapper, make sure it establishes positioning */
+.mhsaHudPulseWrap,
+.hudPulseWrap {
+  position: relative;
+  z-index: 4;
+}
+
 @keyframes mhsaPulse {
   0% {
     transform: scale(0.15);
