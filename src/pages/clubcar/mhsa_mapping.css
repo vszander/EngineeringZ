@@ -214,9 +214,9 @@
 
 /* Elongated diamond (compass needle) — daughter/kitting/presentation cart (movable) */
 .mi-shape--needle {
-  width: 26px;
-  height: 14px;
-  border-radius: 4px;
+  width: 16px;
+  height: 20px;
+  border-radius: 1px;
   transform: translate(-50%, -100%) rotate(45deg);
 }
 .mi:hover.mi-shape--needle {
@@ -228,7 +228,7 @@
 
 /* Hex (hardware cue / fixed rack) */
 .mi-shape--hex {
-  border-radius: 0;
+  border-radius: 4px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
@@ -462,8 +462,8 @@
 .mi.mi-cart--01,
 .mi.mi-cart--02,
 .mi.mi-cart--03 {
-  width: 26px;
-  height: 14px;
+  width: 10px;
+  height: 20px;
   border-radius: 4px;
   transform: translate(-50%, -100%) rotate(45deg);
 }
@@ -562,8 +562,8 @@
 .mi-cart-01,
 .mi-cart-02,
 .mi-cart-03 {
-  width: 26px;
-  height: 14px;
+  width: 10px;
+  height: 18px;
   border-radius: 4px;
   transform: translate(-50%, -100%) rotate(45deg);
 }

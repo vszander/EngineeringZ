@@ -29,6 +29,9 @@ function CockpitInner() {
 
   const [mode, setMode] = useState("inspect");
   const [tab, setTab] = useState("overview");
+  const [contentsModel, setContentsModel] = useState(null);
+  const [loadingContents, setLoadingContents] = useState(false);
+  const [contentsError, setContentsError] = useState(null);
 
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
@@ -93,6 +96,55 @@ function CockpitInner() {
       cancelled = true;
     };
   }, [mapLayerId]);
+
+  // Display Container Contents
+  useEffect(() => {
+    // only fetch when the user is actually viewing the tab
+    if (tab !== "contents") return;
+
+    // for now: containers only (per your request)
+    if (selection?.kind !== "container" || !selection?.id) {
+      setContentsModel(null);
+      setContentsError(null);
+      setLoadingContents(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadContents() {
+      try {
+        setLoadingContents(true);
+        setContentsError(null);
+
+        const url = `${backendBase}/mhsa/cockpit/container/contents?container_id=${encodeURIComponent(selection.id)}`;
+        const res = await fetch(url, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error(`Contents HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (cancelled) return;
+        if (!data?.ok) throw new Error(data?.error || "Contents failed");
+
+        setContentsModel(data);
+      } catch (e) {
+        if (cancelled) return;
+        setContentsModel(null);
+        setContentsError(String(e?.message || e));
+      } finally {
+        if (!cancelled) setLoadingContents(false);
+      }
+    }
+
+    loadContents();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, selection?.kind, selection?.id]);
 
   // Icons: prefer backend-provided icons, else build minimal
   const icons = useMemo(() => {
@@ -250,9 +302,12 @@ function CockpitInner() {
                 <OverviewPanel selection={selection} mode={mode} />
               )}
               {tab === "contents" && (
-                <div style={{ opacity: 0.8 }}>
-                  Contents placeholder (container contents / cart pods grid).
-                </div>
+                <ContentsPanel
+                  selection={selection}
+                  loading={loadingContents}
+                  error={contentsError}
+                  model={contentsModel}
+                />
               )}
               {tab === "actions" && (
                 <ActionsPanel
@@ -290,6 +345,130 @@ function OverviewPanel({ selection, mode }) {
       <pre style={{ whiteSpace: "pre-wrap", opacity: 0.85 }}>
         {JSON.stringify(selection?.summary || {}, null, 2)}
       </pre>
+    </div>
+  );
+}
+
+function ContentsPanel({ selection, loading, error, model }) {
+  if (selection?.kind !== "container") {
+    return (
+      <div style={{ opacity: 0.8 }}>
+        Contents currently supported for containers only.
+      </div>
+    );
+  }
+
+  if (loading) return <div style={{ opacity: 0.7 }}>Loading contents…</div>;
+  if (error)
+    return <div style={{ color: "salmon" }}>Contents error: {error}</div>;
+
+  const contents = model?.contents || [];
+  const last = model?.last_event || null;
+
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ opacity: 0.8 }}>
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>
+          Container Contents
+        </div>
+
+        {contents.length === 0 ? (
+          <div style={{ opacity: 0.7 }}>No items found in this container.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ opacity: 0.8, textAlign: "left" }}>
+                  <th style={{ padding: "6px 8px" }}>Part #</th>
+                  <th style={{ padding: "6px 8px" }}>Description</th>
+                  <th style={{ padding: "6px 8px", width: 90 }}>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contents.map((r) => (
+                  <tr
+                    key={r.item_id}
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <td style={{ padding: "6px 8px", fontFamily: "monospace" }}>
+                      {r.part_number}
+                    </td>
+                    <td style={{ padding: "6px 8px" }}>
+                      {r.description || (
+                        <span style={{ opacity: 0.6 }}>(none)</span>
+                      )}
+                    </td>
+                    <td
+                      style={{
+                        padding: "6px 8px",
+                        textAlign: "right",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {String(r.qty ?? "")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div style={{ opacity: 0.85 }}>
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>
+          Most Recent Event
+        </div>
+        {!last ? (
+          <div style={{ opacity: 0.7 }}>No related events found.</div>
+        ) : (
+          <div style={{ display: "grid", gap: 6 }}>
+            <div style={{ opacity: 0.8 }}>
+              <span style={{ fontFamily: "monospace" }}>
+                {last.event_type || last.event_class || "(event)"}
+              </span>
+              {last.created_at ? (
+                <span style={{ opacity: 0.7 }}> · {last.created_at}</span>
+              ) : null}
+            </div>
+            {(last.source || last.scan_value) && (
+              <div style={{ opacity: 0.75, fontSize: 12 }}>
+                {last.source ? (
+                  <>
+                    source:{" "}
+                    <span style={{ fontFamily: "monospace" }}>
+                      {last.source}
+                    </span>
+                  </>
+                ) : null}
+                {last.source && last.scan_value ? " · " : null}
+                {last.scan_value ? (
+                  <>
+                    scan:{" "}
+                    <span style={{ fontFamily: "monospace" }}>
+                      {last.scan_value}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            )}
+            {last.meta_json ? (
+              <pre
+                style={{
+                  margin: 0,
+                  padding: 10,
+                  borderRadius: 10,
+                  background: "rgba(0,0,0,0.25)",
+                  overflowX: "auto",
+                  fontSize: 12,
+                }}
+              >
+                {JSON.stringify(last.meta_json, null, 2)}
+              </pre>
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
