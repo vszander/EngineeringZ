@@ -1,11 +1,29 @@
-/* mhsa_mapping.css
+/* mhsa_mapping.css (DROP-IN REPLACEMENT)
    Single source of truth for:
    - map stage sizing / stretching
    - MapOverlay image behavior
-   - icon positioning + icon styling + color coding
+   - icon positioning + icon styling + symbology (shape = noun, state = verb)
+
+   Goals of this revision:
+   - Keep ALL existing class names working (backwards compatible)
+   - Add robust cascading “lego” classes:
+       .mi .mi-container--pallet .mi-state--warnqty .mi-outline--double
+   - Add SHAPE as an accessibility channel (do not rely on color)
+   - Leave CIRCLES primarily for indicators/state (but keep base circle for compatibility)
+
+   Brand palette (reference):
+     Primary Blue  #148d97
+     Darker Blue   #155157
+     Orange        #f2844e
+     Light Green   #0c9c89
+     Lighter Green #5dc9a5
+     Earth Brown   #8e5f38
+     Cream White   #d7d8c6
 */
 
-/* Map stage wrapper (optional utility class if you wrap MapOverlay) */
+/* =========================================================
+   Map stage / image behavior (unchanged)
+   ========================================================= */
 .mhsa-map-stage {
   position: relative;
   width: 100%;
@@ -16,11 +34,10 @@
 .mi-wrap {
   position: relative;
   width: 100%;
-  /* IMPORTANT: do NOT clip; icons are absolute */
-  overflow: visible;
+  overflow: visible; /* IMPORTANT: do NOT clip; icons are absolute */
 }
 
-/* Default behavior: stretch map to container width (Search/MoveCarts “looks good”) */
+/* Default: stretch map to container width */
 .mi-img {
   display: block;
   width: 100%;
@@ -31,8 +48,7 @@
   pointer-events: none;
 }
 
-/* Optional: natural size mode (used when you *want* scrolling / pixel-perfect inspection)
-   You can toggle by adding this class to <img> (or by a prop later). */
+/* Optional: natural size mode (scroll/pixel inspection) */
 .mi-img--native {
   width: auto !important;
   height: auto !important;
@@ -40,24 +56,34 @@
   max-height: none !important;
 }
 
-/* Icon base
-   - absolutely positioned
-   - bottom-center anchored to (x,y) so pins sit on locations nicely
-*/
+/* =========================================================
+   Icon base (.mi) — compatibility preserved
+   ========================================================= */
 .mi {
   position: absolute;
-  transform: translate(-50%, -100%); /* bottom-center anchor */
+
+  /* Default anchor = bottom-center at (x,y) */
+  transform: translate(-50%, -100%);
+
   width: 18px;
   height: 18px;
+
+  /* COMPAT: historically everything was circular */
   border-radius: 999px;
+
   border: 1px solid rgba(0, 0, 0, 0.35);
   box-shadow:
     0 10px 18px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+
   cursor: pointer;
   z-index: 3;
+
   display: grid;
   place-items: center;
+
+  /* default fill for unknowns if no material/cart class set */
+  background: rgba(142, 95, 56, 0.78); /* earth brown-ish */
 }
 
 /* Small optional label inside icon */
@@ -85,70 +111,206 @@
     0 0 0 1px rgba(255, 255, 255, 0.12) inset;
 }
 
-/* Entity families */
+/* Entity families (semantic grouping only) */
 .mi-container,
 .mi-cart,
 .mi-location,
-.mi-part {
+.mi-part,
+.mi-indicator {
   /* semantic grouping only */
 }
 
-/* ===== Color coding (use your brand palette) =====
-   Primary Blue  #148d97
-   Darker Blue   #155157
-   Orange        #f2844e
-   Light Green   #0c9c89
-   Lighter Green #5dc9a5
-   Earth Brown   #8e5f38
-   Cream White   #d7d8c6
+/* =========================================================
+   Optional anchor + size utilities (opt-in)
+   ========================================================= */
+
+/* Center anchor (useful for overlay points, pulses, etc.) */
+.mi-anchor--center {
+  transform: translate(-50%, -50%);
+}
+.mi:hover.mi-anchor--center {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+/* Top-center anchor (rare; e.g., hanging markers) */
+.mi-anchor--top {
+  transform: translate(-50%, 0%);
+}
+.mi:hover.mi-anchor--top {
+  transform: translate(-50%, 0%) scale(1.08);
+}
+
+/* Size modifiers */
+.mi-size--xs {
+  width: 14px;
+  height: 14px;
+}
+.mi-size--sm {
+  width: 18px;
+  height: 18px;
+}
+.mi-size--md {
+  width: 22px;
+  height: 22px;
+}
+.mi-size--lg {
+  width: 28px;
+  height: 28px;
+}
+.mi-size--xl {
+  width: 36px;
+  height: 36px;
+}
+
+/* =========================================================
+   SHAPE SYSTEM (accessibility)
+   Shape = "noun" (what it is). Color/animation = state.
+   ========================================================= */
+
+/* NOTE:
+   We keep base .mi as a circle for backwards compatibility.
+   For containers/carts we override shape via selectors below
+   so you can get shapes immediately without changing JS.
 */
 
-/* Containers by type (BEM-style is recommended; match backend) */
-.mi-container--tote {
-  background: #5dc9a5;
-}
-.mi-container--bin {
-  background: #0c9c89;
-}
-.mi-container--pallet {
-  background: #148d97;
-}
-.mi-container--gaylord {
-  background: #155157;
-}
-.mi-container--custom {
-  background: #8e5f38;
-}
-.mi-container--unknown {
-  background: #8e5f38;
-  opacity: 0.8;
+/* Explicit circle (for indicators / status) */
+.mi-shape--circle {
+  border-radius: 999px;
 }
 
-/* Carts by carttype code (start simple; expand later) */
-.mi-cart--unknown {
-  background: #8e5f38;
-  opacity: 0.8;
-}
-.mi-cart--01 {
-  background: #f2844e;
-}
-.mi-cart--02 {
-  background: #f2844e;
-}
-.mi-cart--03 {
-  background: #f2844e;
-}
-.mi-cart--08 {
-  background: #f2844e;
+/* Square (pallet; "stable/grounded") */
+.mi-shape--square {
+  border-radius: 4px;
 }
 
-/* Optional “status ring” you can toggle with extra classes */
+/* Slight radius (tote / small container) */
+.mi-shape--soft {
+  border-radius: 7px;
+}
+
+/* Heavy radius (carton/cardboard vibe) */
+.mi-shape--pill {
+  border-radius: 12px;
+}
+
+/* Elongated rectangle (warehouse location) */
+.mi-shape--loc {
+  width: 26px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+/* Diamond (rotated square) — movement / returnable */
+.mi-shape--diamond {
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+.mi:hover.mi-shape--diamond {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+.mi-shape--diamond .mi__txt {
+  transform: rotate(-45deg);
+}
+
+/* Elongated diamond (compass needle) — daughter/kitting/presentation cart (movable) */
+.mi-shape--needle {
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+.mi:hover.mi-shape--needle {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+.mi-shape--needle .mi__txt {
+  transform: rotate(-45deg);
+}
+
+/* Hex (hardware cue / fixed rack) */
+.mi-shape--hex {
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Honeycomb marker (supermarket of many racks) — small cluster impression */
+.mi-shape--honey {
+  border-radius: 0;
+  width: 26px;
+  height: 22px;
+  clip-path: polygon(
+    8% 25%,
+    25% 8%,
+    50% 8%,
+    67% 25%,
+    50% 42%,
+    25% 42%,
+    33% 58%,
+    50% 42%,
+    67% 58%,
+    50% 75%,
+    25% 75%
+  );
+}
+
+/* 60° twist (pointed top/bottom) — “unmoving presentation cart” */
+.mi-shape--twist60 {
+  border-radius: 4px;
+  clip-path: polygon(
+    50% 0%,
+    85% 15%,
+    100% 50%,
+    85% 85%,
+    50% 100%,
+    15% 85%,
+    0% 50%,
+    15% 15%
+  );
+}
+
+/* Fallback for older browsers: if clip-path unsupported, keep rounded shapes */
+@supports not (clip-path: polygon(0 0, 100% 0, 100% 100%)) {
+  .mi-shape--hex,
+  .mi-shape--honey,
+  .mi-shape--twist60 {
+    border-radius: 6px;
+  }
+}
+
+/* =========================================================
+   OUTLINE SYSTEM (open/closed, attention, etc.)
+   ========================================================= */
+
+/* Default outline (single line) — "un-opened" */
+.mi-outline--single {
+  border-width: 1px;
+}
+
+/* Double line — "opened / active"
+   (This intentionally avoids getting too busy; it reads like “open tabs”) */
+.mi-outline--double {
+  border-width: 1px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 0 0 3px rgba(255, 255, 255, 0.18),
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+/* “Opened” alias (kept from earlier file semantics) */
 .mi-status--open {
+  /* legacy ring meaning "open" */
   box-shadow:
     0 0 0 3px rgba(93, 201, 165, 0.35),
     0 10px 18px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
+
+/* =========================================================
+   STATE SYSTEM (color/urgency overlays)
+   State = "verb" (what’s happening). Keep it orthogonal to shape.
+   ========================================================= */
+
+/* Attention / caution (legacy) */
 .mi-status--attention {
   box-shadow:
     0 0 0 3px rgba(242, 132, 78, 0.35),
@@ -156,24 +318,235 @@
     0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
-/* ===== Compatibility aliases =====
-   If older code emits mi-container-custom instead of mi-container--custom, keep it working.
-*/
+/* Quantity warning (your requested example: mi-warnquantity) */
+.mi-warnquantity,
+.mi-state--warnqty {
+  box-shadow:
+    0 0 0 3px rgba(242, 132, 78, 0.38),
+    0 0 0 6px rgba(242, 132, 78, 0.12),
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+/* Critical / stop (reserve octagon for “halt”) */
+.mi-state--stop {
+  box-shadow:
+    0 0 0 3px rgba(255, 70, 70, 0.4),
+    0 0 0 7px rgba(255, 70, 70, 0.14),
+    0 14px 26px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+/* Dim / unavailable */
+.mi-state--disabled {
+  opacity: 0.35;
+  filter: grayscale(0.35);
+}
+
+/* “Moving” hint (subtle) — backend can apply based on motion criteria */
+.mi-state--moving {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.16),
+    0 10px 18px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+/* =========================================================
+   MATERIAL / ENTITY DEFINITIONS (color + shape defaults)
+   These selectors apply shape immediately to existing classes
+   without requiring JS changes.
+   ========================================================= */
+
+/* ---------- Containers (existing BEM style) ---------- */
+
+/* Pallet: square */
+.mi.mi-container--pallet {
+  background: #148d97;
+  border-radius: 4px;
+}
+
+/* Tote: slight radius */
+.mi.mi-container--tote {
+  background: #5dc9a5;
+  border-radius: 7px;
+}
+
+/* Bin: slight radius (close to tote, distinct by color) */
+.mi.mi-container--bin {
+  background: #0c9c89;
+  border-radius: 7px;
+}
+
+/* Cardboard/Carton: heavy radius (de-trash) */
+.mi.mi-container--cardboard,
+.mi.mi-container--carton,
+.mi.mi-container--box {
+  background: #d7d8c6;
+  border-radius: 12px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+/* Gaylord / returnable: diamond */
+.mi.mi-container--gaylord {
+  background: #155157;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+.mi.mi-container--gaylord .mi__txt {
+  transform: rotate(-45deg);
+}
+.mi:hover.mi-container--gaylord {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+
+/* Custom/unknown container: keep visible but subdued */
+.mi.mi-container--custom {
+  background: #8e5f38;
+  opacity: 0.9;
+}
+.mi.mi-container--unknown {
+  background: #8e5f38;
+  opacity: 0.8;
+}
+
+/* Fixed line rack (unmoving): hex cue */
+.mi.mi-container--linerack,
+.mi.mi-container--line-rack,
+.mi.mi-container--rack {
+  background: #155157;
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Supermarket (many racks): honeycomb cue */
+.mi.mi-container--supermarket,
+.mi.mi-container--super {
+  background: #0c9c89;
+  border-radius: 0;
+  width: 26px;
+  height: 22px;
+  clip-path: polygon(
+    8% 25%,
+    25% 8%,
+    50% 8%,
+    67% 25%,
+    50% 42%,
+    25% 42%,
+    33% 58%,
+    50% 42%,
+    67% 58%,
+    50% 75%,
+    25% 75%
+  );
+}
+
+/* ---------- Carts (by carttype code) ---------- */
+/* NOTE: these are “starter” mappings — your backend can override with more specific classes later. */
+
+/* Unknown cart */
+.mi.mi-cart--unknown {
+  background: #8e5f38;
+  opacity: 0.8;
+}
+
+/* Default cart color (compat with earlier file) */
+.mi.mi-cart--01,
+.mi.mi-cart--02,
+.mi.mi-cart--03,
+.mi.mi-cart--08 {
+  background: #f2844e;
+}
+
+/* Movable / moving/movable carts: elongated diamond (needle)
+   (Assumption: 01/02/03 are movable; refine with backend later) */
+.mi.mi-cart--01,
+.mi.mi-cart--02,
+.mi.mi-cart--03 {
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+.mi.mi-cart--01 .mi__txt,
+.mi.mi-cart--02 .mi__txt,
+.mi.mi-cart--03 .mi__txt {
+  transform: rotate(-45deg);
+}
+.mi:hover.mi-cart--01,
+.mi:hover.mi-cart--02,
+.mi:hover.mi-cart--03 {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+
+/* Market / “supermarket cart” / less-movable carttype: hex or twist cue
+   (Assumption: 08 is market-ish; adjust later) */
+.mi.mi-cart--08 {
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* ---------- Locations ---------- */
+/* Elongated rectangle for warehouse locations (opt-in via .mi-location)
+   If you want to keep circles for locations, remove this block. */
+.mi.mi-location {
+  width: 26px;
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(215, 216, 198, 0.78);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+}
+.mi.mi-location .mi__txt {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.8);
+  text-shadow: none;
+}
+
+/* ---------- Indicators (pulses / pins etc.) ---------- */
+/* Keep circles reserved for indicators/state */
+.mi.mi-indicator,
+.mi.mi-part {
+  border-radius: 999px;
+}
+
+/* =========================================================
+   BACKWARDS COMPATIBILITY ALIASES (kept and expanded)
+   Older code might emit mi-container-pallet instead of mi-container--pallet, etc.
+   ========================================================= */
+
+/* Containers old aliases */
 .mi-container-tote {
   background: #5dc9a5;
+  border-radius: 7px;
 }
 .mi-container-bin {
   background: #0c9c89;
+  border-radius: 7px;
 }
 .mi-container-pallet {
   background: #148d97;
+  border-radius: 4px;
 }
+
+/* Old gaylord alias (diamond) */
 .mi-container-gaylord {
   background: #155157;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
 }
+.mi-container-gaylord .mi__txt {
+  transform: rotate(-45deg);
+}
+.mi:hover.mi-container-gaylord {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+
 .mi-container-custom {
   background: #8e5f38;
+  opacity: 0.9;
 }
+
+/* Carts old aliases */
 .mi-cart-unknown {
   background: #8e5f38;
   opacity: 0.8;
@@ -185,7 +558,39 @@
   background: #f2844e;
 }
 
-/* Legend overlay (Search zoom controls, etc.) */
+/* Apply same shape assumptions to old cart aliases */
+.mi-cart-01,
+.mi-cart-02,
+.mi-cart-03 {
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+.mi-cart-01 .mi__txt,
+.mi-cart-02 .mi__txt,
+.mi-cart-03 .mi__txt {
+  transform: rotate(-45deg);
+}
+.mi:hover.mi-cart-01,
+.mi:hover.mi-cart-02,
+.mi:hover.mi-cart-03 {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+
+.mi-cart-08 {
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Legacy “mi-warnquantity” if it ever existed in code */
+.mi-warnquantity {
+  /* already defined above via shared selector */
+}
+
+/* =========================================================
+   Legend overlay (unchanged)
+   ========================================================= */
 .mhsa-map-legend {
   position: absolute;
   top: 14px;

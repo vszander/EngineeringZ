@@ -24,6 +24,106 @@ function qtyToIntLabel(qtyText, qtyNum) {
   return String(Math.trunc(n)); // truncate toward zero (12.9 -> 12)
 }
 
+function symbologyToClasses(sym) {
+  if (!sym || typeof sym !== "object") return [];
+
+  const family = String(sym.family || "").trim();
+  const identity = String(sym.identity || "").trim();
+  const outline = String(sym.outline || "").trim();
+  const anchor = String(sym.anchor || "").trim();
+  const states = Array.isArray(sym.states) ? sym.states : [];
+
+  const out = [];
+
+  // family + identity (BEM-ish)
+  if (family) out.push(`mi-${family}`);
+  if (family && identity) out.push(`mi-${family}--${identity}`);
+
+  // outline
+  if (outline) out.push(`mi-outline--${outline}`);
+
+  // anchor utility
+  if (anchor === "center") out.push("mi-anchor--center");
+  else if (anchor === "top") out.push("mi-anchor--top");
+  else if (anchor === "bottom") {
+    // default; no class needed
+  }
+
+  // states
+  for (const s of states) {
+    const k = String(s || "").trim();
+    if (k) out.push(`mi-state--${k}`);
+  }
+
+  return out;
+}
+
+function mergeClassTokens(baseClass, extraTokens) {
+  const base = String(baseClass || "").trim();
+  const baseTokens = base ? base.split(/\s+/).filter(Boolean) : [];
+  const extras = Array.isArray(extraTokens) ? extraTokens : [];
+
+  // Start with base tokens
+  let tokens = [...baseTokens];
+
+  // If extras contain a specific family identity (mi-<family>--<id>),
+  // remove any existing identity tokens for that same family from base.
+  for (const t of extras) {
+    const m = /^mi-([a-z0-9_-]+)--([a-z0-9_-]+)$/i.exec(String(t));
+    if (!m) continue;
+    const family = m[1];
+    tokens = tokens.filter((x) => !new RegExp(`^mi-${family}--`, "i").test(x));
+  }
+
+  // If extras contain an outline/anchor, keep only the last one
+  const hasOutline = extras.some((t) => /^mi-outline--/i.test(String(t)));
+  if (hasOutline) tokens = tokens.filter((x) => !/^mi-outline--/i.test(x));
+
+  const hasAnchor = extras.some((t) => /^mi-anchor--/i.test(String(t)));
+  if (hasAnchor) tokens = tokens.filter((x) => !/^mi-anchor--/i.test(x));
+
+  // Add extras
+  tokens.push(...extras);
+
+  // Dedupe, and ensure "mi" appears at most once
+  const deduped = Array.from(new Set(tokens.filter(Boolean)));
+  const miFirst = deduped.includes("mi")
+    ? ["mi", ...deduped.filter((t) => t !== "mi")]
+    : deduped;
+
+  return miFirst.join(" ");
+}
+
+/**
+ * Return a NEW payload where icon_class/cart_icon_class include symbology-derived classes.
+ * Non-breaking: if symbology fields are absent, nothing changes.
+ */
+function applySymbologyToPartSearchPayload(raw) {
+  if (!raw || typeof raw !== "object") return raw;
+
+  const containers = (raw.containers || []).map((c) => {
+    const symTokens = symbologyToClasses(c.symbology);
+    const cartSymTokens = symbologyToClasses(c.cart_symbology);
+
+    return {
+      ...c,
+      // augment existing legacy classes (do NOT remove them)
+      icon_class: mergeClassTokens(c.icon_class, symTokens),
+      cart_icon_class: mergeClassTokens(c.cart_icon_class, cartSymTokens),
+    };
+  });
+
+  const loose_pods = (raw.loose_pods || []).map((p) => {
+    const symTokens = symbologyToClasses(p.symbology);
+    return {
+      ...p,
+      icon_class: mergeClassTokens(p.icon_class, symTokens),
+    };
+  });
+
+  return { ...raw, containers, loose_pods };
+}
+
 export default function Search() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
 
@@ -453,15 +553,30 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
     }));
 
     const map_layer_id = DEFAULT_MAP_LAYER_ID;
-    const icons = buildIconsFromPartSearch(data, map_layer_id);
+    const normalized = applySymbologyToPartSearchPayload(data);
+    const icons = buildIconsFromPartSearch(normalized, map_layer_id);
+    const upgradedIcons = (icons || []).map((ic) => {
+      // If buildIconsFromPartSearch already set className, preserve it.
+      // If backend provided symbology tokens, append the new cascade.
+      const sym = ic?.symbology || ic?.sym || null;
 
+      const extra = symbologyToClasses(sym);
+
+      const base = (ic?.className || "").trim();
+      const merged = [
+        ...new Set([...(base ? base.split(/\s+/) : []), ...extra]),
+      ].join(" ");
+
+      return { ...ic, className: merged };
+    });
     console.log("built icons:", icons.length, icons);
 
     onResults({
       type: "partid",
       title: `PartID: ${item.part_number}`,
       map_layer_id,
-      data,
+      data: normalized,
+      icons: upgradedIcons,
       tables: [
         {
           title: "Containers holding this Item",
@@ -490,7 +605,6 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
             ]
           : []),
       ],
-      icons,
     });
   }
 

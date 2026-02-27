@@ -17,8 +17,6 @@
    CLUBCAR SKIN: colors + fonts + typography tokens
 */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap");
-
 :root {
   /* Fonts */
   --mhsa-font-sans:
@@ -40,6 +38,9 @@
 
   --mhsa-accent: #b79a5d; /* gold */
   --mhsa-accent-2: #148d97; /* teal */
+  --mhsa-color1: #b79a5d;
+  --mhsa-color2: #8d2f8d;
+  --mhsa-accent-3: #7a3cff; /* purple accent */
 
   --mhsa-border: rgba(255, 255, 255, 0.1);
   --mhsa-border2: rgba(255, 255, 255, 0.06);
