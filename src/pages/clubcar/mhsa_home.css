@@ -500,6 +500,11 @@ body.mhsa-body {
   user-select: none;
 }
 
+.mhsa-pin {
+  width: 70px;
+  height: 80px;
+}
+
 .mhsa-pin__img {
   width: 100%;
   height: 100%;

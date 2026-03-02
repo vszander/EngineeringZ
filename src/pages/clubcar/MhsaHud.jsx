@@ -489,8 +489,16 @@ export default function MhsaHud() {
                     const pulseColor = e.pulse_color ?? "#148d97";
 
                     const isPin = e.ui_kind === "pin";
-                    const iconUrl = e.icon_url || null;
-                    const iconW = Number(e.icon_w_px ?? 90);
+
+                    // Cache-bust GIF per pin instance so each one restarts its animation.
+                    // e.id can include pipes/commas (your stableId), so encode it.
+                    const iconUrl =
+                      isPin && e.icon_url
+                        ? `${e.icon_url}${String(e.icon_url).includes("?") ? "&" : "?"}v=${encodeURIComponent(String(e.id))}`
+                        : null;
+
+                    // Keep using backend-driven sizing (recommended)
+                    const iconW = Number(e.icon_w_px ?? 70);
 
                     return (
                       <div
@@ -500,9 +508,15 @@ export default function MhsaHud() {
                           position: "absolute",
                           left: e.x_px,
                           top: e.y_px,
-                          transform: "translate(-50%, -50%)",
-                          width: size,
-                          height: size,
+
+                          // IMPORTANT:
+                          // - pulses are centered on (x,y)
+                          // - pins want bottom-center anchored at (x,y), so we DON'T center the wrapper for pins
+                          transform: isPin ? "none" : "translate(-50%, -50%)",
+
+                          width: isPin ? "auto" : size,
+                          height: isPin ? "auto" : size,
+
                           zIndex: isPin ? 20 : 5,
                           pointerEvents: isPin ? "auto" : "none",
                           cursor: isPin ? "pointer" : "default",
@@ -518,37 +532,51 @@ export default function MhsaHud() {
                           evt.stopPropagation();
                         }}
                       >
-                        <div
-                          className="mhsaHudGhost"
-                          style={{
-                            border: `2px solid ${pulseColor}33`,
-                            boxShadow: `0 0 18px ${pulseColor}22`,
-                            opacity: ghostOpacity,
-                            pointerEvents: "none",
-                          }}
-                        />
+                        {/* ✅ PULSES / BLIPS (only when NOT a pin) */}
+                        {!isPin && (
+                          <>
+                            <div
+                              className="mhsaHudGhost"
+                              style={{
+                                border: `2px solid ${pulseColor}33`,
+                                boxShadow: `0 0 18px ${pulseColor}22`,
+                                opacity: ghostOpacity,
+                                pointerEvents: "none",
+                              }}
+                            />
 
-                        <div
-                          className={
-                            e.ack_required ? "mhsaHudPulseAck" : "mhsaHudPulse"
-                          }
-                          style={{
-                            "--pulse-color": pulseColor,
-                            "--pulse-speed":
-                              e.pulse_speed ??
-                              (e.ack_required ? "0.9s" : "1.2s"),
-                            "--pulse-count": e.pulse_count ?? 1,
-                            pointerEvents: "none",
-                          }}
-                        />
+                            <div
+                              className={
+                                e.ack_required
+                                  ? "mhsaHudPulseAck"
+                                  : "mhsaHudPulse"
+                              }
+                              style={{
+                                "--pulse-color": pulseColor,
+                                "--pulse-speed":
+                                  e.pulse_speed ??
+                                  (e.ack_required ? "0.9s" : "1.2s"),
+                                "--pulse-count": e.pulse_count ?? 1,
+                                pointerEvents: "none",
+                              }}
+                            />
+                          </>
+                        )}
 
-                        {/* Pin overlay (bottom-center anchored at Location x,y) */}
+                        {/* ✅ STICKY PIN (only when pin) */}
                         {isPin && iconUrl ? (
                           <div
+                            className="mhsa-pin mhsa-pin--bottom-center"
                             style={{
                               position: "absolute",
-                              left: "50%",
-                              top: "50%",
+                              left: 0,
+                              top: 0,
+
+                              // hard demo sizing at this resolution
+                              width: "70px",
+                              height: "80px",
+
+                              // bottom-center anchor at (x_px,y_px)
                               transform: "translate(-50%, -100%)",
                               pointerEvents: "none",
                             }}
@@ -557,10 +585,12 @@ export default function MhsaHud() {
                               src={iconUrl}
                               alt=""
                               draggable={false}
+                              className="mhsa-pin__img"
                               style={{
-                                width: iconW,
-                                height: "auto",
+                                width: "70px",
+                                height: "80px",
                                 display: "block",
+                                pointerEvents: "none",
                               }}
                             />
                           </div>
