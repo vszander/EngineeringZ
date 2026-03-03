@@ -583,9 +583,126 @@
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
-/* Legacy “mi-warnquantity” if it ever existed in code */
-.mi-warnquantity {
-  /* already defined above via shared selector */
+/* ===== MHSA Dark Popover (Bootstrap 5) ===== */
+
+.mhsa-popover {
+  --bs-popover-bg: var(--mhsa-card);
+  --bs-popover-border-color: rgba(183, 154, 93, 0.35); /* gold-ish */
+  --bs-popover-border-radius: 12px;
+  --bs-popover-box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+  --bs-popover-max-width: 320px;
+
+  color: var(--mhsa-text);
+  font-size: 12.5px;
+  border: 1px solid var(--bs-popover-border-color);
+  backdrop-filter: blur(2px);
+}
+
+.mhsa-popover .popover-header {
+  background: linear-gradient(
+    180deg,
+    rgba(23, 26, 31, 0.98),
+    rgba(18, 20, 23, 0.98)
+  );
+  color: var(--mhsa-heading);
+  border-bottom: 1px solid rgba(183, 154, 93, 0.22);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 8px 10px;
+}
+
+.mhsa-popover .popover-body {
+  padding: 10px;
+  color: var(--mhsa-text);
+}
+
+.mhsa-popover .mhsa-pop-row {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 6px 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.mhsa-popover .mhsa-pop-k {
+  color: var(--mhsa-muted);
+  font-size: 11px;
+}
+
+.mhsa-popover .mhsa-pop-v {
+  color: var(--mhsa-text);
+  font-weight: 600;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mhsa-popover .mhsa-pop-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mhsa-popover .mhsa-btn {
+  appearance: none;
+  border: 1px solid rgba(183, 154, 93, 0.35);
+  background: rgba(23, 26, 31, 0.8);
+  color: var(--mhsa-text);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mhsa-popover .mhsa-btn:hover {
+  border-color: rgba(183, 154, 93, 0.7);
+  box-shadow: 0 0 0 2px rgba(183, 154, 93, 0.12);
+}
+
+.mhsa-popover .mhsa-btn--primary {
+  border-color: rgba(20, 141, 151, 0.55); /* teal */
+  background: rgba(20, 141, 151, 0.12);
+}
+
+.mhsa-popover .mhsa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mhsa-text);
+}
+
+.mhsa-popover .mhsa-badge--red {
+  border-color: rgba(255, 82, 82, 0.45);
+}
+.mhsa-popover .mhsa-badge--yel {
+  border-color: rgba(255, 210, 72, 0.45);
+}
+
+/* Popover arrow to match dark card */
+.mhsa-popover.bs-popover-top > .popover-arrow::before,
+.mhsa-popover.bs-popover-auto[data-popper-placement^="top"]
+  > .popover-arrow::before,
+.mhsa-popover.bs-popover-bottom > .popover-arrow::before,
+.mhsa-popover.bs-popover-auto[data-popper-placement^="bottom"]
+  > .popover-arrow::before,
+.mhsa-popover.bs-popover-start > .popover-arrow::before,
+.mhsa-popover.bs-popover-auto[data-popper-placement^="left"]
+  > .popover-arrow::before,
+.mhsa-popover.bs-popover-end > .popover-arrow::before,
+.mhsa-popover.bs-popover-auto[data-popper-placement^="right"]
+  > .popover-arrow::before {
+  border-top-color: var(--mhsa-card);
+  border-bottom-color: var(--mhsa-card);
+  border-left-color: var(--mhsa-card);
+  border-right-color: var(--mhsa-card);
 }
 
 /* =========================================================
@@ -623,4 +740,131 @@
 .mhsa-map-legend-body {
   font-size: 0.95rem;
   line-height: 1.25rem;
+}
+
+/* Allow only pins to receive clicks */
+.mhsa-pin-hit {
+  pointer-events: auto !important;
+}
+
+/* Ensure inner elements don't steal the click */
+.mhsa-pin-hit * {
+  pointer-events: none !important;
+}
+
+/* ===========================
+   MHSA HUD Popovers (Pins)
+   Put this at END of loaded CSS
+   =========================== */
+
+/* Ensure our theme wins */
+.popover.mhsa-popover {
+  --bs-popover-bg: var(--mhsa-panel, #171a1f);
+  --bs-popover-border-color: rgba(183, 154, 93, 0.35);
+  --bs-popover-border-radius: 14px;
+  --bs-popover-color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+  --bs-popover-header-bg: rgba(18, 20, 23, 0.98);
+  --bs-popover-header-color: var(--mhsa-heading, rgba(197, 147, 40, 0.95));
+  --bs-popover-max-width: 360px;
+  border: 1px solid var(--bs-popover-border-color) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Header: gold + tight */
+.popover.mhsa-popover .popover-header {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  border-bottom: 1px solid rgba(183, 154, 93, 0.25);
+}
+
+/* Body: readable */
+.popover.mhsa-popover .popover-body {
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92)) !important;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+/* Make the “k/v” grid readable */
+.popover.mhsa-popover .mhsa-pop-k {
+  color: var(--mhsa-muted, rgba(255, 255, 255, 0.68));
+  font-weight: 700;
+}
+.popover.mhsa-popover .mhsa-pop-v {
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+
+/* Arrow should match charcoal */
+.popover.mhsa-popover .popover-arrow::before,
+.popover.mhsa-popover .popover-arrow::after {
+  border-top-color: var(--mhsa-panel, #171a1f) !important;
+  border-bottom-color: var(--mhsa-panel, #171a1f) !important;
+}
+
+/* Buttons inside popover */
+.popover.mhsa-popover .mhsa-btn {
+  background: rgba(20, 141, 151, 0.14);
+  border: 1px solid rgba(20, 141, 151, 0.35);
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+.popover.mhsa-popover .mhsa-btn:hover {
+  background: rgba(20, 141, 151, 0.22);
+}
+.popover.mhsa-popover .mhsa-btn--primary {
+  background: rgba(183, 154, 93, 0.18);
+  border-color: rgba(183, 154, 93, 0.45);
+}
+.popover.mhsa-popover .mhsa-btn--primary:hover {
+  background: rgba(183, 154, 93, 0.26);
+}
+
+/* HUD Aside cards (server-rendered fragments) */
+.mhsa-hud-aside-card {
+  background: var(--mhsa-panel, #171a1f);
+  border: 1px solid rgba(183, 154, 93, 0.35);
+  border-radius: 14px;
+  padding: 12px;
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+
+.mhsa-hud-aside-title {
+  font-weight: 800;
+  color: var(--mhsa-heading, rgba(197, 147, 40, 0.95));
+  margin-bottom: 8px;
+}
+
+.mhsa-hud-aside-subtitle {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--mhsa-muted, rgba(255, 255, 255, 0.68));
+}
+
+.mhsa-hud-aside-row {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 6px 10px;
+  font-size: 13px;
+}
+
+.mhsa-hud-aside-k {
+  color: var(--mhsa-muted, rgba(255, 255, 255, 0.68));
+}
+.mhsa-hud-aside-v {
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+
+.mhsa-hud-aside-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mhsa-hud-muted {
+  color: var(--mhsa-muted, rgba(255, 255, 255, 0.68));
+}
+
+.mhsa-btn.mhsa-btn--small {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
 }

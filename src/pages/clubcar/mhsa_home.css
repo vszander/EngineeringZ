@@ -513,6 +513,11 @@ body.mhsa-body {
   pointer-events: none; /* click handled by wrapper */
 }
 
+.mhsa-pin {
+  width: 70px;
+  height: 80px;
+}
+
 /* Anchor transforms */
 .mhsa-pin--bottom-center {
   transform: translate(-50%, -100%);

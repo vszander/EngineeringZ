@@ -6,6 +6,7 @@ import "../../components/mhsa.theme.clubcar.css"; // skin first
 import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
 import "./mhsa_mapping.css";
 import "./mhsa_hud_pulses.css";
+import "../../components/map/mhsa_hud_pins.js";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL;
 
@@ -371,6 +372,23 @@ export default function MhsaHud() {
     return () => cancelAnimationFrame(raf);
   }, [mapLayer?.id, setPoseById, setPrevPoseById]);
 
+  useEffect(() => {
+    function onSetInfoHtml(ev) {
+      const html = ev?.detail?.html ?? "";
+      const eventId = ev?.detail?.eventId ?? "(missing)";
+      console.log("[HUD] setInfoHtml received ✅", {
+        eventId,
+        htmlLen: html.length,
+      });
+
+      setInfoPanelHtml(html);
+    }
+
+    window.addEventListener("mhsa:hud:setInfoHtml", onSetInfoHtml);
+    return () =>
+      window.removeEventListener("mhsa:hud:setInfoHtml", onSetInfoHtml);
+  }, []);
+
   // Guards
   if (loading) return <div style={{ padding: 16 }}>Loading bootstrap…</div>;
   if (bootError)
@@ -497,25 +515,31 @@ export default function MhsaHud() {
                         ? `${e.icon_url}${String(e.icon_url).includes("?") ? "&" : "?"}v=${encodeURIComponent(String(e.id))}`
                         : null;
 
-                    // Keep using backend-driven sizing (recommended)
+                    // backend-driven sizing (recommended)
                     const iconW = Number(e.icon_w_px ?? 70);
-
+                    const iconH = Number(e.icon_h_px ?? 80);
                     return (
                       <div
                         key={e.id}
+                        // ✅ attributes used by mhsa_hud_pins.js
+                        className={isPin ? "mhsa-pin-hit" : undefined}
+                        data-mhsa-pin={isPin ? "1" : undefined}
+                        data-event-id={isPin ? String(e.id) : undefined}
                         title={e.label || e.event_type || "event"}
                         style={{
                           position: "absolute",
                           left: e.x_px,
                           top: e.y_px,
 
-                          // IMPORTANT:
-                          // - pulses are centered on (x,y)
-                          // - pins want bottom-center anchored at (x,y), so we DON'T center the wrapper for pins
-                          transform: isPin ? "none" : "translate(-50%, -50%)",
+                          // ✅ PULSES centered on (x,y)
+                          // ✅ PINS bottom-center anchored on (x,y) and wrapper HAS a real hitbox
+                          transform: isPin
+                            ? "translate(-50%, -100%)"
+                            : "translate(-50%, -50%)",
 
-                          width: isPin ? "auto" : size,
-                          height: isPin ? "auto" : size,
+                          // ✅ CRITICAL: give pins a real clickable box
+                          width: isPin ? `${iconW}px` : size,
+                          height: isPin ? `${iconH}px` : size,
 
                           zIndex: isPin ? 20 : 5,
                           pointerEvents: isPin ? "auto" : "none",
@@ -525,13 +549,30 @@ export default function MhsaHud() {
                           if (!isPin) return;
                           evt.preventDefault();
                           evt.stopPropagation();
-                          alert(e.label || "HUD pin clicked");
+                          // ✅ no alert; document handler in mhsa_hud_pins.js opens popover
                         }}
                         onMouseDown={(evt) => {
                           if (!isPin) return;
                           evt.stopPropagation();
                         }}
                       >
+                        {/* ✅ PINS (GIF) */}
+                        {isPin && iconUrl ? (
+                          <img
+                            src={iconUrl}
+                            alt=""
+                            draggable="false"
+                            className="mhsa-pin__img"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              display: "block",
+                              pointerEvents: "none", // click goes to wrapper
+                              userSelect: "none",
+                            }}
+                          />
+                        ) : null}
+
                         {/* ✅ PULSES / BLIPS (only when NOT a pin) */}
                         {!isPin && (
                           <>
