@@ -110,10 +110,10 @@ async function openPinPopover(el) {
 
   closeOpenPopover();
 
-  const backendBase =
-    window.__BACKEND_BASE__ ||
-    import.meta.env.VITE_BACKEND_URL ||
-    "http://localhost:8000";
+  //const backendBase =
+  // window.__BACKEND_BASE__ ||
+  //   import.meta.env.VITE_BACKEND_URL ||
+  //   "http://localhost:8000";
 
   const url = `${backendBase}/mhsa/api/events/pin-context/${encodeURIComponent(eventId)}/`;
 
@@ -240,10 +240,10 @@ document.addEventListener(
 
     console.log("[MHSA PINS] disposition button clicked", { eventId, key });
 
-    const backendBase =
-      window.__BACKEND_BASE__ ||
-      import.meta.env.VITE_BACKEND_URL ||
-      "http://localhost:8000";
+    // const backendBase =
+    //  window.__BACKEND_BASE__ ||
+    //    import.meta.env.VITE_BACKEND_URL ||
+    //    "http://localhost:8000";
 
     const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
 
