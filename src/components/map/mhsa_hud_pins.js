@@ -242,7 +242,7 @@ document.addEventListener(
 
     const backendBase =
       window.__BACKEND_BASE__ ||
-      import.meta.env.VITE_BACKEND_BASE ||
+      import.meta.env.VITE_BACKEND_URL ||
       "http://localhost:8000";
 
     const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
