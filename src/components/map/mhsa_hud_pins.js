@@ -22,17 +22,27 @@ function popTemplate() {
 
 function closeOpenPopover() {
   if (!openPopover) return;
-  try {
-    openPopover.hide();
-    openPopover.dispose();
-  } catch (e) {
-    console.warn("[MHSA PINS] closeOpenPopover error:", e);
-  }
+
+  const pop = openPopover;
   openPopover = null;
+
+  try {
+    // Avoid hide() → async complete() path (where tooltip.js blows up)
+    // Dispose is sufficient and avoids transition callbacks.
+    pop.dispose();
+  } catch (e) {
+    console.warn("[MHSA PINS] closeOpenPopover dispose error:", e);
+  }
+
+  // Extra safety: ensure tip removed if Bootstrap left it behind
+  try {
+    const tip = pop.tip || document.querySelector(".popover.mhsa-popover");
+    if (tip && tip.parentNode) tip.parentNode.removeChild(tip);
+  } catch (_) {}
 }
 
 async function fetchPinContext(eventId) {
-  const url = `${backendBase}/mhsa/api/events/pin-context/${encodeURIComponent(eventId)}/`;
+  const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
   //  const url = `/mhsa/api/events/pin-context/${encodeURIComponent(eventId)}/`;
   const res = await fetch(url, {
     method: "GET",
@@ -117,6 +127,7 @@ async function openPinPopover(el) {
     title: "Loading…",
     content: `<div class="mhsa-pop-v">Fetching…</div>`,
     sanitize: false,
+    animation: false, // ✅ prevents async transition cleanup in tooltip.js
   });
 
   pop.show();
@@ -212,68 +223,6 @@ function installPinPopovers() {
 // ---------------------------------------------
 // HUD Aside Ajax (Disposition button)
 // ---------------------------------------------
-document.addEventListener(
-  "click",
-  async (ev) => {
-    const btn = ev.target.closest("[data-disposition-key][data-event-id]");
-    if (!btn) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    const eventId = btn.getAttribute("data-event-id");
-    const key = btn.getAttribute("data-disposition-key");
-
-    console.log("[MHSA PINS] disposition button clicked", {
-      eventId,
-      key,
-    });
-
-    try {
-      const backendBase =
-        window.__BACKEND_BASE__ ||
-        import.meta.env.VITE_BACKEND_BASE ||
-        "http://localhost:8000";
-
-      const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
-
-      console.log("[MHSA PINS] calling aside endpoint:", url);
-
-      const res = await fetch(url, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-
-      console.log("[MHSA PINS] response status:", res.status);
-
-      const data = await res.json();
-
-      console.log("[MHSA PINS] response json:", data);
-
-      if (!res.ok || data?.ok === false) {
-        console.error("[MHSA PINS] aside error:", data);
-        return;
-      }
-
-      // For now: just log the returned HTML length
-      console.log("[MHSA PINS] aside HTML length:", data.html?.length);
-
-      // OPTIONAL: temporary test render directly into a known aside container
-      const aside = document.querySelector("#mhsa-hud-aside");
-      if (aside && data.html) {
-        aside.innerHTML = data.html;
-        console.log("[MHSA PINS] aside injected into #mhsa-hud-aside ✅");
-      } else {
-        console.warn("[MHSA PINS] #mhsa-hud-aside not found");
-      }
-    } catch (err) {
-      console.error("[MHSA PINS] fetch failed:", err);
-    }
-  },
-  true,
-);
-
 // ---------------------------------------------
 // Disposition button → fetch aside fragment → notify HUD
 // ---------------------------------------------
@@ -287,8 +236,9 @@ document.addEventListener(
     ev.stopPropagation();
 
     const eventId = btn.getAttribute("data-event-id");
+    const key = (btn.getAttribute("data-disposition-key") || "").trim();
 
-    console.log("[MHSA PINS] Disposition… clicked", { eventId });
+    console.log("[MHSA PINS] disposition button clicked", { eventId, key });
 
     const backendBase =
       window.__BACKEND_BASE__ ||
@@ -297,44 +247,30 @@ document.addEventListener(
 
     const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
 
-    console.log("[MHSA PINS] fetching aside:", url);
+    console.log("[MHSA PINS] calling aside endpoint:", url);
 
     try {
       const res = await fetch(url, {
         method: "GET",
-        headers: { Accept: "application/json" },
+        headers: { Accept: "text/html" },
         credentials: "include",
       });
 
-      console.log("[MHSA PINS] aside status:", res.status);
+      console.log("[MHSA PINS] response status:", res.status);
 
-      const data = await res.json();
-      console.log("[MHSA PINS] aside json:", data);
+      const html = await res.text(); // ✅ consume body ONCE
 
-      if (!res.ok || data?.ok === false) {
-        console.error("[MHSA PINS] aside error payload:", data);
-        return;
-      }
-
-      // Notify HUD to render server HTML in the info panel
       window.dispatchEvent(
         new CustomEvent("mhsa:hud:setInfoHtml", {
-          detail: {
-            eventId,
-            html: data.html || "",
-          },
+          detail: { eventId, html },
         }),
       );
 
-      console.log("[MHSA PINS] dispatched mhsa:hud:setInfoHtml ✅", {
-        eventId,
-        htmlLen: (data.html || "").length,
-      });
+      closeOpenPopover();
     } catch (err) {
       console.error("[MHSA PINS] aside fetch failed ❌", err);
     }
   },
   true,
 );
-
 installPinPopovers();

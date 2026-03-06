@@ -44,6 +44,8 @@ export default function MhsaHud() {
   const viewportRef = useRef(null);
   const [stageScale, setStageScale] = useState(1);
 
+  const infoCardRef = useRef(null);
+
   function pruneHudEvents(list) {
     const now = Date.now();
     return (list ?? []).filter((e) => {
@@ -372,15 +374,11 @@ export default function MhsaHud() {
     return () => cancelAnimationFrame(raf);
   }, [mapLayer?.id, setPoseById, setPrevPoseById]);
 
+  //Zander
   useEffect(() => {
-    function onSetInfoHtml(ev) {
-      const html = ev?.detail?.html ?? "";
-      const eventId = ev?.detail?.eventId ?? "(missing)";
-      console.log("[HUD] setInfoHtml received ✅", {
-        eventId,
-        htmlLen: html.length,
-      });
-
+    function onSetInfoHtml(e) {
+      const html = e?.detail?.html || "";
+      if (!html) return;
       setInfoPanelHtml(html);
     }
 
@@ -388,6 +386,49 @@ export default function MhsaHud() {
     return () =>
       window.removeEventListener("mhsa:hud:setInfoHtml", onSetInfoHtml);
   }, []);
+
+  useEffect(() => {
+    function onClick(e) {
+      const btn = e.target.closest(
+        ".mhsa-hud-aside-actions button[data-event-id]",
+      );
+      if (!btn) return;
+
+      const eventId = btn.dataset.eventId;
+      const mode = (btn.dataset.mode || btn.dataset.ui || "")
+        .trim()
+        .toLowerCase(); // supports your current template
+      loadAside(eventId, mode).catch(console.error);
+    }
+
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backendBase]);
+
+  async function loadAside(eventId, mode = "") {
+    const safeId = (eventId ?? "").toString().trim();
+    if (!safeId || safeId === "undefined" || safeId === "null") {
+      console.warn("[HUD] loadAside called with bad eventId", {
+        eventId,
+        mode,
+      });
+      return;
+    }
+
+    const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(safeId)}/?mode=${encodeURIComponent(mode)}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "text/html" },
+      credentials: "include",
+    });
+
+    if (!res.ok) throw new Error(`Aside HTTP ${res.status}`);
+    const html = await res.text();
+
+    setInfoPanelHtml(html);
+  }
 
   // Guards
   if (loading) return <div style={{ padding: 16 }}>Loading bootstrap…</div>;
@@ -549,7 +590,21 @@ export default function MhsaHud() {
                           if (!isPin) return;
                           evt.preventDefault();
                           evt.stopPropagation();
-                          // ✅ no alert; document handler in mhsa_hud_pins.js opens popover
+
+                          const eventId = evt.currentTarget?.dataset?.eventId;
+                          if (!eventId) {
+                            console.warn(
+                              "[HUD] pin click missing data-event-id",
+                              {
+                                rowId: e?.id,
+                                dataset: evt.currentTarget?.dataset,
+                              },
+                            );
+                            return;
+                          }
+
+                          // ✅ NEW CONTRACT: pin click loads server fragment
+                          loadAside(eventId, "").catch(console.error);
                         }}
                         onMouseDown={(evt) => {
                           if (!isPin) return;
@@ -743,71 +798,28 @@ export default function MhsaHud() {
 
           {/* INFO */}
           <aside style={styles.infoCard}>
-            <div className="mhsaHudInfoCard" style={styles.sticky}>
-              {infoPanelHtml ? (
-                // CART (or other) HTML fragment replaces the whole panel
-                <div dangerouslySetInnerHTML={{ __html: infoPanelHtml }} />
-              ) : (
-                // Default static panel
-                <>
-                  <h3 style={styles.h3}>Information Panel</h3>
-
-                  {!selectedAsset ? (
-                    <div style={{ opacity: 0.75 }}>No asset selected.</div>
-                  ) : (
-                    <div style={styles.infoBody}>
-                      <div style={styles.infoRow}>
-                        <strong>Selected Asset:</strong> {selectedAsset.name}
+            <div
+              className="mhsaHudInfoCard"
+              style={styles.sticky}
+              ref={infoCardRef} // <-- NEW
+            >
+              <div id="mhsaHudAsideMount">
+                {infoPanelHtml ? (
+                  <div dangerouslySetInnerHTML={{ __html: infoPanelHtml }} />
+                ) : (
+                  <>
+                    <h3 style={styles.h3}>Information Panel</h3>
+                    {!selectedAsset ? (
+                      <div style={{ opacity: 0.75 }}>No asset selected.</div>
+                    ) : (
+                      <div style={styles.infoBody}>
+                        {/* ... your existing static panel content ... */} This
+                        is the Information Panel.
                       </div>
-                      <div style={styles.infoRow}>
-                        <strong>Asset UUID:</strong>{" "}
-                        <span style={{ fontFamily: "monospace", fontSize: 12 }}>
-                          {selectedAsset.id}
-                        </span>
-                      </div>
-                      <div style={styles.infoRow}>
-                        <strong>Type:</strong> {selectedAsset.asset_type}
-                      </div>
-                      <div style={styles.infoRow}>
-                        <strong>Mode:</strong>{" "}
-                        {selectedAsset.operating_mode ?? "—"}
-                      </div>
-
-                      <hr style={styles.hr} />
-
-                      <div style={styles.infoRow}>
-                        <strong>Position (px):</strong>{" "}
-                        {selectedPose
-                          ? `${Math.round(selectedPose.x)}, ${Math.round(
-                              selectedPose.y,
-                            )}`
-                          : "—"}
-                      </div>
-                      <div style={styles.infoRow}>
-                        <strong>Heading:</strong>{" "}
-                        {selectedPose
-                          ? `${Math.round(selectedPose.heading)}°`
-                          : "—"}
-                      </div>
-
-                      <hr style={styles.hr} />
-
-                      <div style={styles.muted}>
-                        Next upgrades:
-                        <ul style={styles.ul}>
-                          <li>
-                            Render carts/pods from bootstrap train scaffold
-                          </li>
-                          <li>
-                            Apply events[] (attach/detach, UI instructions)
-                          </li>
-                          <li>SSE/WebSocket instead of polling</li>
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </aside>
         </div>
