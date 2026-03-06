@@ -8,7 +8,7 @@ import "./mhsa_mapping.css";
 import "./mhsa_hud_pulses.css";
 import "../../components/map/mhsa_hud_pins.js";
 
-const backendBase = import.meta.env.VITE_BACKEND_URL;
+const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
 export default function MhsaHud() {
   // Step 2 bootstrap state
