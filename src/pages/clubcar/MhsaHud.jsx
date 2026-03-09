@@ -7,6 +7,7 @@ import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
 import "./mhsa_mapping.css";
 import "./mhsa_hud_pulses.css";
 import "../../components/map/mhsa_hud_pins.js";
+import { initAiAsidePanel } from "../../components/map/mhsa_hud_ai_panel";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
@@ -18,6 +19,7 @@ export default function MhsaHud() {
   const [infoPanelHtml, setInfoPanelHtml] = useState(
     "<div style='opacity:0.7'>Click a cart to view details.</div>",
   );
+  const [activeAsideMode, setActiveAsideMode] = useState("");
 
   // Live pose state: current (rendered) + target (from backend)
   const [poseById, setPoseById] = useState({}); // { [id]: { x, y, heading } }
@@ -243,7 +245,7 @@ export default function MhsaHud() {
         if (!res.ok) throw new Error(`hud events HTTP ${res.status}`);
         const data = await res.json();
         if (cancelled) return;
-        console.log("fetch");
+        //  console.log("fetch");
 
         const rows = data?.rows ?? [];
 
@@ -256,7 +258,7 @@ export default function MhsaHud() {
 
           if (!isResolved) continue;
 
-          console.log("resolved");
+          //     console.log("resolved");
 
           // layer filter
           if (r.map_layer_id && String(r.map_layer_id) !== String(mapLayer.id))
@@ -264,11 +266,11 @@ export default function MhsaHud() {
 
           // must have coords
           if (r.x_px == null || r.y_px == null) continue;
-          console.log("coords");
+          //     console.log("coords");
           const stableId = r.id
             ? String(r.id)
             : `${r.created_at ?? "no-ts"}|${r.event_class ?? ""}|${r.event_type ?? ""}|${r.x_px ?? ""},${r.y_px ?? ""}|${r.label ?? ""}`;
-          console.log("HUD row", r.id, r.created_at, r.label, r.x_px, r.y_px);
+          //     console.log("HUD row", r.id, r.created_at, r.label, r.x_px, r.y_px);
           // ✅ Store the backend row shape (snake_case) because your renderer expects it
           addHudEvent({
             //id: String(r.id),
@@ -406,6 +408,26 @@ export default function MhsaHud() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendBase]);
 
+  useEffect(() => {
+    if (!infoPanelHtml) return;
+    if (!infoCardRef.current) return;
+
+    const mountEl = infoCardRef.current.querySelector("#mhsaHudAsideMount");
+    if (!mountEl) {
+      console.warn("[HUD] aside mount not found after render");
+      return;
+    }
+
+    console.log("[HUD] infoPanelHtml mounted", {
+      activeAsideMode,
+      mountFound: !!mountEl,
+      aiPanels: mountEl.querySelectorAll(".mhsa-ai-panel").length,
+      sliders: mountEl.querySelectorAll(".mhsa-ai-slider").length,
+    });
+
+    initAsideMode(activeAsideMode, mountEl);
+  }, [infoPanelHtml, activeAsideMode]);
+
   async function loadAside(eventId, mode = "") {
     const safeId = (eventId ?? "").toString().trim();
     if (!safeId || safeId === "undefined" || safeId === "null") {
@@ -416,7 +438,9 @@ export default function MhsaHud() {
       return;
     }
 
-    const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(safeId)}/?mode=${encodeURIComponent(mode)}`;
+    const safeMode = (mode ?? "").toString().trim().toLowerCase();
+
+    const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(safeId)}/?mode=${encodeURIComponent(safeMode)}`;
 
     const res = await fetch(url, {
       method: "GET",
@@ -425,11 +449,47 @@ export default function MhsaHud() {
     });
 
     if (!res.ok) throw new Error(`Aside HTTP ${res.status}`);
+
     const html = await res.text();
 
+    console.log("[HUD] aside html loaded", {
+      eventId: safeId,
+      mode: safeMode,
+      htmlLength: html?.length || 0,
+    });
+
+    setActiveAsideMode(safeMode);
     setInfoPanelHtml(html);
   }
 
+  function initAsideMode(mode, mountEl) {
+    const m = (mode || "").toLowerCase();
+
+    console.log("[HUD] initAsideMode", {
+      mode: m,
+      hasMountEl: !!mountEl,
+      aiInitImported: typeof initAiAsidePanel === "function",
+    });
+
+    if (!mountEl) return;
+
+    if (m === "ai") {
+      const panelRoot = mountEl.querySelector(".mhsa-ai-panel");
+      if (!panelRoot) {
+        console.warn("[HUD] AI panel root not found in mounted aside");
+        return;
+      }
+
+      console.log("[HUD] calling initAiAsidePanel", panelRoot);
+      initAiAsidePanel(panelRoot);
+      return;
+    }
+
+    // future modes:
+    // if (m === "assign") initAssignAsidePanel(...);
+    // if (m === "benign") initBenignAsidePanel(...);
+    // if (m === "snooze") initSnoozeAsidePanel(...);
+  }
   // Guards
   if (loading) return <div style={{ padding: 16 }}>Loading bootstrap…</div>;
   if (bootError)
