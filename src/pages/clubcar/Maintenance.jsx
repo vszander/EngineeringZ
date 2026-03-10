@@ -3,8 +3,8 @@
 import { useMemo, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./mhsa_home.css";
-import "./Search.css"; // reuse your styling
-import "./Maintenance.css"; // tiny add-ons (optional, below)
+//import "./Search.css"; // reuse your styling
+//import "./Maintenance.css"; // tiny add-ons (optional, below)
 import MoveCarts from "./MoveCarts";
 
 import Swal from "sweetalert2";
@@ -43,17 +43,15 @@ function playBeep(ok = true) {
   }
 }
 
-function saveDefaults(obj) {
-  localStorage.setItem(LS_KEY, JSON.stringify(obj));
-}
-
-function bumpTrailingNumber(s) {
-  const m = String(s || "").match(/^(.*?)(\d+)\s*$/);
-  if (!m) return s;
-  const prefix = m[1];
-  const digits = m[2];
-  const n = String(parseInt(digits, 10) + 1).padStart(digits.length, "0");
-  return `${prefix}${n}`;
+function getCsrfToken() {
+  const name = "csrftoken=";
+  const parts = document.cookie.split(";");
+  for (let part of parts) {
+    part = part.trim();
+    if (part.startsWith(name))
+      return decodeURIComponent(part.substring(name.length));
+  }
+  return "";
 }
 
 export default function Maintenance() {
@@ -65,6 +63,59 @@ export default function Maintenance() {
 
   const [statusHtml, setStatusHtml] = useState("");
   const [resultJson, setResultJson] = useState(null);
+  const [simBusy, setSimBusy] = useState(false);
+  const [simMsg, setSimMsg] = useState("");
+  const [preset, setPreset] = useState("demo_default");
+
+  async function startSimulation() {
+    try {
+      setSimBusy(true);
+      setSimMsg("Starting simulation...");
+
+      const res = await fetch(`${backendBase}/mhsa/api/simulation/start/`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          preset,
+          speed: 1.0,
+          loop: false,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      setSimMsg(data.message || "Simulation started.");
+
+      await Swal.fire({
+        icon: "success",
+        title: "Simulation started",
+        text: data.message || `Preset '${preset}' started.`,
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error("startSimulation failed:", err);
+      const msg = `Simulation failed: ${err.message}`;
+      setSimMsg(msg);
+
+      await Swal.fire({
+        icon: "error",
+        title: "Simulation failed",
+        text: String(err.message || err),
+      });
+    } finally {
+      setSimBusy(false);
+    }
+  }
 
   const hero = useMemo(() => {
     return (
@@ -103,22 +154,6 @@ export default function Maintenance() {
           )}
           {tool === "move-cart" && <MoveCarts />}
 
-          {tool !== "menu" && tool !== "create-cart" && (
-            <div className="mhsa-panel">
-              <div className="mhsa-panelhdr">
-                <h3>Coming Soon</h3>
-                <button
-                  className="mhsa-linkbtn"
-                  onClick={() => navigate("/clubcar/maintenance/menu")}
-                >
-                  ← Back
-                </button>
-              </div>
-              <div className="mhsa-dim">
-                Maintenance tool: <b>{tool}</b>
-              </div>
-            </div>
-          )}
           {tool !== "menu" &&
             tool !== "create-cart" &&
             tool !== "move-cart" && (
@@ -177,6 +212,14 @@ export default function Maintenance() {
             onPick={(picked) => navigate(`/clubcar/maintenance/${picked}`)}
             onGoHome={() => navigate("/clubcar/mhsa")}
           />
+
+          <SimulationCard
+            preset={preset}
+            setPreset={setPreset}
+            simBusy={simBusy}
+            simMsg={simMsg}
+            onStart={startSimulation}
+          />
         </aside>
       </main>
     </div>
@@ -206,7 +249,7 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
           }`}
           onClick={() => onPick("create-cart")}
         >
-          Create Cart + N Pods + Initial Location
+          Create Cart + Pods + Location
         </button>
 
         <button
@@ -215,7 +258,7 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
           }`}
           onClick={() => onPick("move-cart")}
         >
-          Move Cart to Location (under development)
+          Move Cart
         </button>
 
         <button
@@ -263,6 +306,55 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
           Preferences Helper
         </button>
       </div>
+    </div>
+  );
+}
+
+function SimulationCard({ preset, setPreset, simBusy, simMsg, onStart }) {
+  return (
+    <div className="maint-card">
+      <div className="maint-card__title">Simulation</div>
+
+      <div
+        className="maint-row"
+        style={{
+          display: "flex",
+          gap: "0.75rem",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <label htmlFor="sim-preset">Preset</label>
+
+        <select
+          id="sim-preset"
+          value={preset}
+          onChange={(e) => setPreset(e.target.value)}
+          disabled={simBusy}
+          className="mhsa-input"
+          style={{ maxWidth: 220 }}
+        >
+          <option value="demo_default">Demo Default</option>
+          <option value="demo_mes_heavy">MES Heavy</option>
+          <option value="demo_scan_heavy">Scan Heavy</option>
+          <option value="demo_tugger_loop">Tugger Loop</option>
+        </select>
+
+        <button
+          type="button"
+          className="mhsa-btn"
+          onClick={onStart}
+          disabled={simBusy}
+        >
+          {simBusy ? "Starting..." : "Start Simulation"}
+        </button>
+      </div>
+
+      {simMsg ? (
+        <div className="maint-help-text" style={{ marginTop: "0.75rem" }}>
+          {simMsg}
+        </div>
+      ) : null}
     </div>
   );
 }

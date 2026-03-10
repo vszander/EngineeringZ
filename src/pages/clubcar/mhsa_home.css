@@ -377,6 +377,55 @@ body.mhsa-body {
   margin-bottom: 10px;
 }
 
+/* Maintenance aside should stack cards vertically */
+.mhsa-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* In the aside, cards should size to content */
+.mhsa-aside .mhsa-panel {
+  height: auto;
+  flex: 0 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+/* Panels inside the aside should size to content */
+.mhsa-aside .mhsa-panel,
+.mhsa-aside .maint-card {
+  height: auto;
+  flex: 0 0 auto;
+}
+
+/* Simulation card styling if not already defined elsewhere */
+.maint-card {
+  border-radius: var(--mhsa-radius);
+  background: rgba(23, 26, 31, 0.72);
+  border: 1px solid var(--mhsa-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.maint-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.maint-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .mhsa-linkbtn {
   appearance: none;
   border: 1px solid var(--mhsa-border);
