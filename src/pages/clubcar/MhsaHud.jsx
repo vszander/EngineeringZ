@@ -585,6 +585,7 @@ export default function MhsaHud() {
                     draggable={false}
                     style={styles.mapImg}
                   />
+
                   {/* HUD Event Overlays (pulses/blips) */}
                   {hudEvents.map((e) => {
                     if (e.x_px == null || e.y_px == null) return null;
@@ -619,10 +620,10 @@ export default function MhsaHud() {
                     // backend-driven sizing (recommended)
                     const iconW = Number(e.icon_w_px ?? 70);
                     const iconH = Number(e.icon_h_px ?? 80);
+
                     return (
                       <div
                         key={e.id}
-                        // ✅ attributes used by mhsa_hud_pins.js
                         className={isPin ? "mhsa-pin-hit" : undefined}
                         data-mhsa-pin={isPin ? "1" : undefined}
                         data-event-id={isPin ? String(e.id) : undefined}
@@ -632,15 +633,14 @@ export default function MhsaHud() {
                           left: e.x_px,
                           top: e.y_px,
 
-                          // ✅ PULSES centered on (x,y)
-                          // ✅ PINS bottom-center anchored on (x,y) and wrapper HAS a real hitbox
+                          // outer wrapper owns anchor positioning
                           transform: isPin
                             ? "translate(-50%, -100%)"
                             : "translate(-50%, -50%)",
 
-                          // ✅ CRITICAL: give pins a real clickable box
-                          width: isPin ? `${iconW}px` : size,
-                          height: isPin ? `${iconH}px` : size,
+                          // real hitbox
+                          width: isPin ? `${iconW}px` : `${size}px`,
+                          height: isPin ? `${iconH}px` : `${size}px`,
 
                           zIndex: isPin ? 20 : 5,
                           pointerEvents: isPin ? "auto" : "none",
@@ -663,7 +663,6 @@ export default function MhsaHud() {
                             return;
                           }
 
-                          // ✅ NEW CONTRACT: pin click loads server fragment
                           loadAside(eventId, "").catch(console.error);
                         }}
                         onMouseDown={(evt) => {
@@ -671,23 +670,6 @@ export default function MhsaHud() {
                           evt.stopPropagation();
                         }}
                       >
-                        {/* ✅ PINS (GIF) */}
-                        {isPin && iconUrl ? (
-                          <img
-                            src={iconUrl}
-                            alt=""
-                            draggable="false"
-                            className="mhsa-pin__img"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              display: "block",
-                              pointerEvents: "none", // click goes to wrapper
-                              userSelect: "none",
-                            }}
-                          />
-                        ) : null}
-
                         {/* ✅ PULSES / BLIPS (only when NOT a pin) */}
                         {!isPin && (
                           <>
@@ -722,19 +704,16 @@ export default function MhsaHud() {
                         {/* ✅ STICKY PIN (only when pin) */}
                         {isPin && iconUrl ? (
                           <div
-                            className="mhsa-pin mhsa-pin--bottom-center"
+                            className="mhsa-pin"
                             style={{
                               position: "absolute",
                               left: 0,
                               top: 0,
-
-                              // hard demo sizing at this resolution
-                              width: "70px",
-                              height: "80px",
-
-                              // bottom-center anchor at (x_px,y_px)
-                              transform: "translate(-50%, -100%)",
+                              width: "26px",
+                              height: "34px",
                               pointerEvents: "none",
+                              userSelect: "none",
+                              overflow: "hidden",
                             }}
                           >
                             <img
@@ -743,10 +722,12 @@ export default function MhsaHud() {
                               draggable={false}
                               className="mhsa-pin__img"
                               style={{
-                                width: "70px",
-                                height: "80px",
+                                width: "100%",
+                                height: "100%",
                                 display: "block",
+                                objectFit: "contain",
                                 pointerEvents: "none",
+                                userSelect: "none",
                               }}
                             />
                           </div>
@@ -754,6 +735,7 @@ export default function MhsaHud() {
                       </div>
                     );
                   })}
+
                   {/* ... your hudEvents + assets overlays stay EXACTLY as-is ... */}
                   {/* Render all assets as overlays */}
                   {Object.keys(assetsById).map((id) => {
