@@ -45,7 +45,6 @@ export default function MhsaHud() {
   const HUD_TTL_MS = 70_000;
   const viewportRef = useRef(null);
   const [stageScale, setStageScale] = useState(1);
-  const [locallyViewedPins, setLocallyViewedPins] = useState(() => new Set());
 
   const infoCardRef = useRef(null);
 
@@ -611,17 +610,6 @@ export default function MhsaHud() {
 
                     const isPin = e.ui_kind === "pin";
 
-                    // normalize backend status
-                    const status = String(e.postprocess_status || "")
-                      .trim()
-                      .toLowerCase();
-
-                    // allow optimistic dimming when user clicks a pin
-                    const locallyViewed = locallyViewedPins.has(String(e.id));
-
-                    const isViewed = status === "viewed" || locallyViewed;
-                    const isPending = status === "" || status === "pending";
-
                     // Cache-bust GIF per pin instance so each one restarts its animation.
                     // e.id can include pipes/commas (your stableId), so encode it.
                     const iconUrl =
@@ -629,24 +617,9 @@ export default function MhsaHud() {
                         ? `${e.icon_url}${String(e.icon_url).includes("?") ? "&" : "?"}v=${encodeURIComponent(String(e.id))}`
                         : null;
 
-                    // backend-driven sizing
-                    const rawIconW = Number(e.icon_w_px ?? 70);
-                    const rawIconH = Number(e.icon_h_px ?? 80);
-
-                    const iconW = Number.isFinite(rawIconW)
-                      ? Math.min(rawIconW, 56)
-                      : 56;
-                    const iconH = Number.isFinite(rawIconH)
-                      ? Math.min(rawIconH, 60)
-                      : 60;
-
-                    // backend may provide pin_opacity; otherwise derive here
-                    const pinOpacity =
-                      typeof e.pin_opacity === "number"
-                        ? e.pin_opacity
-                        : isViewed
-                          ? 0.3
-                          : 1.0;
+                    // backend-driven sizing (recommended)
+                    const iconW = Number(e.icon_w_px ?? 70);
+                    const iconH = Number(e.icon_h_px ?? 80);
 
                     return (
                       <div
@@ -654,7 +627,6 @@ export default function MhsaHud() {
                         className={isPin ? "mhsa-pin-hit" : undefined}
                         data-mhsa-pin={isPin ? "1" : undefined}
                         data-event-id={isPin ? String(e.id) : undefined}
-                        data-postprocess-status={isPin ? status : undefined}
                         title={e.label || e.event_type || "event"}
                         style={{
                           position: "absolute",
@@ -690,11 +662,6 @@ export default function MhsaHud() {
                             );
                             return;
                           }
-                          setLocallyViewedPins((prev) => {
-                            const next = new Set(prev);
-                            next.add(String(eventId));
-                            return next;
-                          });
 
                           loadAside(eventId, "").catch(console.error);
                         }}
@@ -737,24 +704,16 @@ export default function MhsaHud() {
                         {/* ✅ STICKY PIN (only when pin) */}
                         {isPin && iconUrl ? (
                           <div
-                            className={[
-                              "mhsa-pin",
-                              isViewed ? "mhsa-pin--viewed" : "",
-                              isPending ? "mhsa-pin--pending" : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ")}
+                            className="mhsa-pin"
                             style={{
                               position: "absolute",
                               left: 0,
                               top: 0,
-                              width: `${iconW}px`,
-                              height: `${iconH}px`,
+                              width: "26px",
+                              height: "34px",
                               pointerEvents: "none",
                               userSelect: "none",
                               overflow: "hidden",
-                              opacity: pinOpacity,
-                              transition: "opacity 180ms ease",
                             }}
                           >
                             <img

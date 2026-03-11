@@ -41,29 +41,6 @@ function closeOpenPopover() {
   } catch (_) {}
 }
 
-async function fetchPinContext(eventId) {
-  const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(eventId)}/`;
-  //  const url = `/mhsa/api/events/pin-context/${encodeURIComponent(eventId)}/`;
-  const res = await fetch(url, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    credentials: "include",
-  });
-
-  // helpful debug if auth/403 etc
-  const text = await res.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(`pin-context returned non-JSON (HTTP ${res.status})`);
-  }
-  if (!res.ok || data?.ok === false) {
-    throw new Error(data?.error || `pin-context HTTP ${res.status}`);
-  }
-  return data;
-}
-
 function esc(s) {
   return String(s ?? "")
     .replaceAll("&", "&amp;")
@@ -71,37 +48,6 @@ function esc(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-}
-
-function buildBodyHtml(ctx) {
-  return `
-    <div class="mhsa-pop-row">
-      <div class="mhsa-pop-k">Alert</div>
-      <div class="mhsa-pop-v">${esc(ctx.action || "")}</div>
-
-      <div class="mhsa-pop-k">Cart</div>
-      <div class="mhsa-pop-v">${esc(ctx.cart_upc || "")}</div>
-
-      <div class="mhsa-pop-k">Qty</div>
-      <div class="mhsa-pop-v">${esc(ctx.qty_label ?? ctx.qty ?? "")}</div>
-
-      <div class="mhsa-pop-k">Station</div>
-      <div class="mhsa-pop-v">${esc(ctx.station_code || "")}</div>
-
-      <div class="mhsa-pop-k">Age</div>
-      <div class="mhsa-pop-v">${esc(ctx.age_label || "")}</div>
-    </div>
-
-    <div class="mhsa-pop-actions">
-      <button class="mhsa-btn mhsa-btn--primary"
-              data-disposition
-              data-event-id="${esc(ctx.id)}">
-        Disposition…
-      </button>
-      <button class="mhsa-btn" data-quick="SNOOZE" data-event-id="${esc(ctx.id)}">Snooze</button>
-      <button class="mhsa-btn" data-quick="BENIGN" data-event-id="${esc(ctx.id)}">Benign</button>
-    </div>
-  `;
 }
 
 async function openPinPopover(el) {

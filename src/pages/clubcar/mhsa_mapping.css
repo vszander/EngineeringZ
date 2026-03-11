@@ -791,6 +791,14 @@
   transform: translate(-50%, 0%);
 }
 
+.mhsa-pin--pending {
+  opacity: 1;
+}
+
+.mhsa-pin--viewed {
+  opacity: 0.3;
+}
+
 /* Optional: “needs ack” emphasis without changing the GIF */
 .mhsa-pin--ack {
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
