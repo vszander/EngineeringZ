@@ -363,6 +363,35 @@ body.mhsa-body {
   overflow: hidden;
 }
 
+.mhsa-ai-avatar-btn {
+  width: 100px;
+  height: 100px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  background-image: url("https://www.engineering-z.com/images/clubcar/AI_Avatar_default.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.mhsa-ai-avatar-btn:hover {
+  background-image: url("https://www.engineering-z.com/images/clubcar/AI_Avatar_hover.png");
+}
+
+.mhsa-ai-avatar-btn:active {
+  background-image: url("https://www.engineering-z.com/images/clubcar/AI_Avatar_press.png");
+}
+
+.mhsa-ai-avatar-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
 .mhsa-panel {
   height: 100%;
   padding: 16px;
