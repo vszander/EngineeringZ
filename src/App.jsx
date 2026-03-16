@@ -16,7 +16,6 @@ import LightsStore from "./pages/Lights_store";
 import MhsaHud from "./pages/clubcar/MhsaHud"; // <- your newly branded JSX component
 import Packages from "./pages/Packages";
 import ClubCarRouter from "./pages/clubcar/ClubCarRouter";
-import Maintenance from "./pages/clubcar/Maintenance";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 

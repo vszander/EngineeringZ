@@ -706,6 +706,121 @@
 }
 
 /* =========================================================
+   Deep-info / AI-style popover enhancements
+   ========================================================= */
+
+.mhsa-popover {
+  --bs-popover-max-width: 380px;
+}
+
+.mhsa-ai-pop {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mhsa-ai-pop-head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mhsa-ai-pop-title {
+  color: var(--mhsa-heading);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.15px;
+  text-transform: uppercase;
+}
+
+.mhsa-ai-pop-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mhsa-ai-pop-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.mhsa-ai-pop-refresh {
+  color: var(--mhsa-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mhsa-ai-pop-section {
+  border: 1px solid rgba(183, 154, 93, 0.14);
+  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  padding: 9px 10px;
+}
+
+.mhsa-ai-pop-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 6px 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mhsa-ai-pop-row:last-child {
+  margin-bottom: 0;
+}
+
+.mhsa-inline-load {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 18px;
+}
+
+.mhsa-mini-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid rgba(20, 141, 151, 0.22);
+  border-top-color: rgba(20, 141, 151, 0.95);
+  animation: mhsaSpin 0.85s linear infinite;
+  flex: 0 0 auto;
+}
+
+.mhsa-ai-pop-insight {
+  border-left: 3px solid rgba(20, 141, 151, 0.55);
+  padding: 8px 0 8px 10px;
+  color: var(--mhsa-text);
+  font-size: 12px;
+  line-height: 1.4;
+  background: linear-gradient(
+    90deg,
+    rgba(20, 141, 151, 0.08),
+    rgba(20, 141, 151, 0.01) 70%
+  );
+  border-radius: 6px;
+}
+
+.mhsa-badge--teal {
+  border-color: rgba(20, 141, 151, 0.45);
+  background: rgba(20, 141, 151, 0.12);
+  color: var(--mhsa-text);
+}
+
+@keyframes mhsaSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
    Legend overlay (unchanged)
    ========================================================= */
 .mhsa-map-legend {
@@ -919,6 +1034,206 @@
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 12px;
+}
+
+/* =========================================================
+   HUD Aside - Disposition redesign
+   ========================================================= */
+
+.mhsa-hud-aside-card--disposition {
+  position: relative;
+  padding: 12px 14px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 152, 43, 0.45);
+  background: linear-gradient(
+    180deg,
+    rgba(14, 21, 31, 0.96) 0%,
+    rgba(7, 16, 27, 0.97) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  color: #e8edf3;
+}
+
+/* top inverse pill */
+.mhsa-hud-aside-topbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.mhsa-hud-aside-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 22px;
+  border-radius: 8px 8px 10px 10px;
+  background: linear-gradient(180deg, #d6a32b 0%, #b8861e 100%);
+  color: #11161d;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+/* header */
+.mhsa-hud-aside-header {
+  margin-bottom: 10px;
+}
+
+.mhsa-hud-aside-titleline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mhsa-hud-aside-titletext {
+  color: #d6a32b;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.mhsa-hud-aside-meta {
+  margin-top: 4px;
+  padding-left: 38px; /* aligns under title after leading icon */
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.mhsa-hud-aside-meta-type {
+  color: #d6a32b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* create the rightward rail so future left-popovers feel natural */
+.mhsa-hud-aside-rail {
+  position: relative;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  padding-left: 38px;
+}
+
+/* subtle visual offset block */
+.mhsa-hud-aside-rail::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(214, 163, 43, 0.18) 0%,
+    rgba(214, 163, 43, 0.05) 100%
+  );
+}
+
+/* 2-column label/value grid */
+.mhsa-hud-aside-grid {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: center;
+}
+
+.mhsa-hud-aside-k {
+  color: rgba(232, 237, 243, 0.74);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mhsa-hud-aside-v {
+  color: #f4f6f8;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* labels that include a left icon */
+.mhsa-hud-aside-k--withicon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* icon buttons for future ajax popovers */
+.mhsa-hud-aside-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(214, 163, 43, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #d6a32b;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.mhsa-hud-aside-iconbtn .material-symbols-outlined {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mhsa-hud-aside-iconbtn:hover,
+.mhsa-hud-aside-iconbtn:focus-visible {
+  border-color: rgba(214, 163, 43, 0.42);
+  background: rgba(214, 163, 43, 0.08);
+  color: #f3c24d;
+  box-shadow: 0 0 0 3px rgba(214, 163, 43, 0.08);
+  outline: none;
+}
+
+.mhsa-hud-aside-iconbtn:active {
+  transform: translateY(1px);
+  background: rgba(214, 163, 43, 0.12);
+}
+
+/* subtitle matches your existing system but tightened */
+.mhsa-hud-aside-subtitle {
+  margin: 4px 0 10px;
+  color: rgba(232, 237, 243, 0.8);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* action buttons area */
+.mhsa-hud-aside-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 10px;
+}
+
+/* footer note */
+.mhsa-hud-aside-footer-note {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+/* optional: slightly stronger alignment to pin popover gold tone */
+.mhsa-hud-aside-card--disposition .mhsa-hud-muted {
+  color: rgba(232, 237, 243, 0.56);
 }
 
 /* =========================================================

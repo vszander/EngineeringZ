@@ -168,6 +168,10 @@ export default function MhsaHome() {
         section: "Usage / Statistics",
         items: [
           {
+            label: "MHSA Utilization Metrics",
+            path: "/clubcar/CostTable",
+          },
+          {
             label: "Fork Transactions",
             path: "/clubcar/stats/fork-transactions",
           },

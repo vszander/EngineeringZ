@@ -12,6 +12,7 @@ import Scoreboard from "./Scoreboard";
 import ScanEvents from "./ScanEvents"; // adjust path if needed
 import SignalsDashboard from "./SignalsDashboard";
 import CockpitPage from "./Cockpit";
+import MaterialHandlingCostTable from "./MaterialHandlingCostTable";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -40,6 +41,7 @@ export default function ClubcarRouter() {
         <Route path="scan-events" element={<ScanEvents />} />
 
         <Route path="maintenance" element={<Maintenance />} />
+        <Route path="CostTable" element={<MaterialHandlingCostTable />} />
         <Route path="maintenance/:tool" element={<Maintenance />} />
         <Route path="cart-move" element={<CartMoveMenu />} />
         <Route path="carts" element={<Carts />} />
