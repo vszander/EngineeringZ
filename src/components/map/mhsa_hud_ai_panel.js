@@ -264,6 +264,10 @@ export function initAiAsidePanel(root) {
 
   root.dataset.aiPanelBound = "1";
   log("binding panel", root);
+  console.log(
+    "help icons now in DOM =",
+    document.querySelectorAll(".mhsa-help-trigger").length,
+  );
 
   const keys = ["urgency", "efficiency", "handling", "footprint"];
   const total = clampInt(root.dataset.total || 10, 1, 100);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Link } from "react-router-dom";
+import { Popover } from "bootstrap";
 //import Navbar from "../../components/Navbar"; // uncomment when ready
 import "../../components/mhsa.theme.clubcar.css"; // skin first
 import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
@@ -65,6 +66,23 @@ export default function MhsaHud() {
     if (evt?.id) seenHudEventIdsRef.current.add(evt.id);
 
     setHudEvents((prev) => pruneHudEvents([...(prev ?? []), evt]));
+  }
+
+  function bindHelpPopovers() {
+    const helpTriggers = document.querySelectorAll(".mhsa-help-trigger");
+    console.log("binding help popovers:", helpTriggers.length);
+
+    helpTriggers.forEach((el) => {
+      if (!Popover.getInstance(el)) {
+        new Popover(el, {
+          html: true,
+          sanitize: false,
+          container: "body",
+          trigger: "click",
+          placement: "left",
+        });
+      }
+    });
   }
 
   // If you don’t yet have a location→px mapping, this is the safe fallback:
@@ -426,6 +444,11 @@ export default function MhsaHud() {
       sliders: mountEl.querySelectorAll(".mhsa-ai-slider").length,
     });
 
+    console.log(
+      "help icons now in DOM =",
+      document.querySelectorAll(".mhsa-help-trigger").length,
+    );
+    bindHelpPopovers();
     initAsideMode(activeAsideMode, mountEl);
   }, [infoPanelHtml, activeAsideMode]);
 

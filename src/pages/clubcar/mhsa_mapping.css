@@ -984,6 +984,89 @@
   background: rgba(183, 154, 93, 0.26);
 }
 
+.mhsa-help-trigger {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0 6px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  cursor: pointer;
+  color: #d6a32b;
+}
+
+.mhsa-help-trigger .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mhsa-help-trigger:hover,
+.mhsa-help-trigger:focus-visible {
+  color: #f3c24d;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.mhsa-popover--glam {
+  --bs-popover-max-width: 320px;
+}
+
+.mhsa-popover--glam .popover-header {
+  padding: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 24, 29, 0.98),
+    rgba(7, 16, 27, 0.98)
+  );
+  border-bottom: 1px solid rgba(214, 163, 43, 0.24);
+  overflow: hidden;
+}
+.mhsa-help-titlebar {
+  display: block;
+  width: 100%;
+}
+
+.mhsa-help-titlebar__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 84px;
+  object-fit: cover;
+}
+
+.mhsa-popover--info .popover-header {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mhsa-help-body {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+
+.mhsa-help-body p {
+  margin: 0 0 10px;
+}
+
+.mhsa-help-body p:last-child {
+  margin-bottom: 0;
+}
+
+.mhsa-help-list {
+  margin: 8px 0 0 16px;
+  padding: 0;
+}
+
+.mhsa-help-list li {
+  margin-bottom: 6px;
+}
+
 /* HUD Aside cards (server-rendered fragments) */
 .mhsa-hud-aside-card {
   background: var(--mhsa-panel, #171a1f);
@@ -1033,6 +1116,7 @@
 .mhsa-btn.mhsa-btn--small {
   padding: 6px 10px;
   border-radius: 10px;
+  color: var(--mhsa-text, rgba(51, 204, 255, 0.92));
   font-size: 12px;
 }
 

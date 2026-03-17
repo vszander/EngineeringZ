@@ -41,15 +41,6 @@ function closeOpenPopover() {
   } catch (_) {}
 }
 
-function esc(s) {
-  return String(s ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
 async function openPinPopover(el) {
   const eventId = el.getAttribute("data-event-id");
   if (!eventId) return;
@@ -133,6 +124,21 @@ async function openPinPopover(el) {
     }
   }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const helpTriggers = document.querySelectorAll(".mhsa-help-trigger");
+  console.log("event-loaded...", helpTriggers.length);
+
+  helpTriggers.forEach((el) => {
+    new Popover(el, {
+      html: true,
+      sanitize: false,
+      container: "body",
+      trigger: "click",
+      placement: "left",
+    });
+  });
+});
 
 function installPinPopovers() {
   if (window.__mhsaPinsInstalled) {
