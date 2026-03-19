@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Popover } from "bootstrap";
 import { Link } from "react-router-dom";
 import "../../components/mhsa.theme.clubcar.css";
@@ -8,124 +8,53 @@ import MhsaNav from "../../components/MhsaNav";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
-function HelpPopoverButton({
-  title,
-  content,
-  placement = "left",
-  className = "",
-}) {
-  const btnRef = useRef(null);
-
-  useEffect(() => {
-    if (!btnRef.current) return undefined;
-
-    const pop = new Popover(btnRef.current, {
-      trigger: "click",
-      html: true,
-      placement,
-      customClass: "mhsa-popover mhsa-popover--info",
-      sanitize: false,
-      title,
-      content,
-      container: "body",
-    });
-
-    return () => {
-      pop.dispose();
-    };
-  }, [title, content, placement]);
-
-  return (
-    <button
-      ref={btnRef}
-      type="button"
-      className={`mhsa-help-trigger ${className}`}
-      aria-label={`Help for ${title}`}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-    >
-      <span className="material-symbols-outlined">help</span>
-    </button>
-  );
-}
-
-function MenuItem({ item, depth }) {
-  const helpButton = item.help ? (
-    <HelpPopoverButton
-      title={item.help.title || item.label}
-      content={item.help.content}
-      placement={item.help.placement || "left"}
-    />
-  ) : null;
-
-  if (item.external) {
-    return (
-      <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
-        <div className="mhsa-tree-row">
-          <div className="mhsa-tree-main">
-            <a
-              className="mhsa-tree-link"
-              href={item.path}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {item.label}
-            </a>
-            {item.note ? <span className="mhsa-pill">{item.note}</span> : null}
-          </div>
-
-          {helpButton}
-        </div>
-
-        {item.children?.length ? (
-          <div className="mhsa-tree-children">
-            {item.children.map((c) => (
-              <MenuItem key={c.label} item={c} depth={depth + 1} />
-            ))}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
-  return (
-    <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
-      <div className="mhsa-tree-row">
-        <div className="mhsa-tree-main">
-          {item.path ? (
-            <Link className="mhsa-tree-link" to={item.path}>
-              {item.label}
-            </Link>
-          ) : (
-            <span className="mhsa-tree-text">{item.label}</span>
-          )}
-
-          {item.note ? <span className="mhsa-pill">{item.note}</span> : null}
-        </div>
-
-        {helpButton}
-      </div>
-
-      {item.children?.length ? (
-        <div className="mhsa-tree-children">
-          {item.children.map((c) => (
-            <MenuItem key={c.label} item={c} depth={depth + 1} />
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export default function MhsaHome() {
+  // Demo-quality local authStatus (keeps MHSA self-contained)
   const [authStatus, setAuthStatus] = useState({
     isAuthenticated: false,
     isStaff: false,
     username: null,
   });
 
+  useEffect(() => {
+    fetch(`${backendURL}/auth/status/`, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((auth) => {
+        setAuthStatus({
+          isAuthenticated: !!auth.isAuthenticated,
+          isStaff: !!auth.isStaff,
+          username: auth.username ?? null,
+        });
+      })
+      .catch(() => {
+        // stay unauthenticated on error (dev-friendly)
+      });
+  }, []);
+
+  useEffect(() => {
+    const nodes = Array.from(
+      document.querySelectorAll('[data-bs-toggle="popover"]'),
+    );
+
+    const popovers = nodes.map((el) => {
+      return new Popover(el, {
+        trigger: el.getAttribute("data-bs-trigger") || "click",
+        html: el.getAttribute("data-bs-html") === "true",
+        placement: el.getAttribute("data-bs-placement") || "left",
+        customClass: el.getAttribute("data-bs-custom-class") || "mhsa-popover",
+        sanitize: false,
+      });
+    });
+
+    return () => {
+      popovers.forEach((p) => p.dispose());
+    };
+  }, [menu]);
+
+  // Menu hierarchy based on your Excel sheet
   const menu = useMemo(
     () => [
       {
@@ -211,20 +140,31 @@ export default function MhsaHome() {
         section: "MITZO Map",
         items: [
           {
-            label: "Inventory Sensing",
-            path: `${backendURL}/mhsa/inventory-sensing`,
-            external: true,
-            note: "NEW",
-            help: {
-              title: "Inventory Sensing",
-              content: `
-                <div class="mhsa-help-body">
-                  <p>This is the primary screen a MITZO uses.  It allows frictionless, error-free 'signaling' of observed inventory levels.</p>
-                  <p>These are the source for HUD 'sticky pins'</p>
-                </div>
-              `,
-            },
-            children: [],
+            label: "Transactions HeatMap",
+            path: "/clubcar/mitzo/transactions-heatmap",
+            note: "Heat map",
+            html: `
+              <div class="mhsa-help-body">
+                <p>
+                  <strong>Transactions HeatMap</strong> shows where material
+                  handling activity is concentrated across the map.
+                </p>
+                <p>
+                  Useful for spotting congestion, idle zones, and workflow
+                  hotspots.
+                </p>
+              </div>
+            `,
+          },
+          {
+            label: "Material Handling Scoreboard",
+            path: `/clubcar/scoreboard`,
+          },
+          {
+            label: "CCDC Signals Dashboard",
+
+            path: `/clubcar/signals`,
+            note: "NEW,",
           },
           {
             label: "Fill Cart (Scanner)",
@@ -233,37 +173,27 @@ export default function MhsaHome() {
             path: `${backendURL}/mhsa/fillcart/`,
             note: "Operator barcode workflow",
           },
-
           {
-            label: "Material Handling Scoreboard",
-            path: "/clubcar/scoreboard",
-          },
-          {
-            label: "CCDC Signals Dashboard",
-            path: "/clubcar/signals",
-
-            help: {
-              title: "Signals Dashboard",
-              content: `
-                <div class="mhsa-help-body">
-                  <p><strong>The Signals Dashboard</strong> allows teams to monitor order fulfillment 'signals' throughout the lifecycle.</p>
-                  <p>Intended to be displayed on a large, publicly viewable monitor.</p>
-                </div>
-              `,
-            },
-          },
-          {
-            label: "Transactions HeatMap",
-            path: "/clubcar/mitzo/transactions-heatmap",
-            help: {
-              title: "Transactions HeatMap",
-              content: `
-                <div class="mhsa-help-body">
-                  <p><strong>Transactions HeatMap</strong> shows where material handling activity (intermodal) is concentrated.</p>
-                  <p>Useful for spotting congestion, idle zones, and workflow hotspots.</p>
-                </div>
-              `,
-            },
+            label: "Inventory Sensing",
+            path: `${backendURL}/mhsa/inventory-sensing`, // ← backend-served page
+            external: true, // ← IMPORTANT (iframe / full-page)
+            children: [
+              {
+                label: "Signals (Live)",
+                path: "/mhsa/inventory-sensing",
+                external: true,
+              },
+              {
+                label: "Red Count (soon)",
+                path: "/mhsa/inventory-sensing#red-count",
+                disabled: true,
+              },
+              {
+                label: "Input Count (soon)",
+                path: "/mhsa/inventory-sensing#input-count",
+                disabled: true,
+              },
+            ],
           },
         ],
       },
@@ -307,27 +237,10 @@ export default function MhsaHome() {
     [],
   );
 
-  useEffect(() => {
-    fetch(`${backendURL}/auth/status/`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((auth) => {
-        setAuthStatus({
-          isAuthenticated: !!auth.isAuthenticated,
-          isStaff: !!auth.isStaff,
-          username: auth.username ?? null,
-        });
-      })
-      .catch(() => {
-        // stay unauthenticated on error
-      });
-  }, []);
-
   return (
     <div className="mhsa-dark">
       <div className="mhsa-home">
+        {/* Single topbar source of truth */}
         <MhsaNav authStatus={authStatus} />
 
         <section className="mhsa-hero">
@@ -367,18 +280,12 @@ export default function MhsaHome() {
                 Heads-Up Display
               </Link>
 
-              <button
+              <Link
                 className="mhsa-btn mhsa-btn-secondary"
-                onClick={() => {
-                  window.open(
-                    `${backendURL}/mhsa/inventory-sensing`,
-                    "_blank",
-                    "width=1200,height=800,resizable=yes,scrollbars=yes",
-                  );
-                }}
+                to="/clubcar/relationships"
               >
-                Inventory Scanning
-              </button>
+                View ERD (login)
+              </Link>
             </div>
           </div>
 
@@ -414,6 +321,59 @@ export default function MhsaHome() {
           </div>
         </footer>
       </div>
+    </div>
+  );
+}
+
+function MenuItem({ item, depth }) {
+  // Demo-quality: external links open new tab if external/popout
+  if (item.external) {
+    return (
+      <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
+        <div className="mhsa-tree-row">
+          <a
+            className="mhsa-tree-link"
+            href={item.path}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {item.label}
+          </a>
+          {item.note ? <span className="mhsa-pill">{item.note}</span> : null}
+        </div>
+
+        {item.children?.length ? (
+          <div className="mhsa-tree-children">
+            {item.children.map((c) => (
+              <MenuItem key={c.label} item={c} depth={depth + 1} />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mhsa-tree-item" style={{ marginLeft: depth * 14 }}>
+      <div className="mhsa-tree-row">
+        {item.path ? (
+          <Link className="mhsa-tree-link" to={item.path}>
+            {item.label}
+          </Link>
+        ) : (
+          <span className="mhsa-tree-text">{item.label}</span>
+        )}
+
+        {item.note ? <span className="mhsa-pill">{item.note}</span> : null}
+      </div>
+
+      {item.children?.length ? (
+        <div className="mhsa-tree-children">
+          {item.children.map((c) => (
+            <MenuItem key={c.label} item={c} depth={depth + 1} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

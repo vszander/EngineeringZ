@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import "./mhsa_home.css";
 import "./mhsa_mapping.css";
 
@@ -236,7 +237,15 @@ function CockpitInner() {
         <aside className="mhsa-aside">
           <div className="mhsa-card">
             <div className="mhsa-card__header">
-              <div style={{ opacity: 0.7, fontSize: 12 }}>Cockpit</div>
+              <div style={{ opacity: 0.7, fontSize: 12 }}>
+                Cockpit
+                <Link
+                  to="/clubcar"
+                  style={{ textDecoration: "none", fontSize: 14 }}
+                >
+                  ← MHSA Home
+                </Link>
+              </div>
               <div style={{ fontSize: 18, fontWeight: 700 }}>
                 {selection?.kind ? `${selection.kind}` : "No selection"}
               </div>

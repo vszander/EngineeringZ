@@ -1022,6 +1022,8 @@
     rgba(7, 16, 27, 0.98)
   );
   border-bottom: 1px solid rgba(214, 163, 43, 0.24);
+  max-width: 320px; /* 🔥 key fix */
+  width: 320px; /* 🔥 hard constraint */
   overflow: hidden;
 }
 .mhsa-help-titlebar {
@@ -1031,9 +1033,10 @@
 
 .mhsa-help-titlebar__img {
   display: block;
-  width: 100%;
+  width: 100%; /* 🔥 critical change */
+  max-width: 100%; /* prevents overflow */
   height: auto;
-  max-height: 84px;
+  max-height: 284px;
   object-fit: cover;
 }
 

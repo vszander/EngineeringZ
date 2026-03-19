@@ -552,17 +552,9 @@ export default function MhsaHud() {
           </div>
 
           <div style={styles.headerRight}>
-            <Link to="/" style={styles.link}>
-              ← Home
+            <Link to="/clubcar" style={styles.link}>
+              ← MHSA Home
             </Link>
-            <a
-              href={backendBase}
-              target="_blank"
-              rel="noreferrer"
-              style={styles.link}
-            >
-              Backend
-            </a>
           </div>
         </div>
 
