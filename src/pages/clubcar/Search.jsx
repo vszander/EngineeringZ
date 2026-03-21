@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./mhsa_home.css";
 import "./mhsa_mapping.css";
+import "./Search.css";
 
 import { ItemLookupInput } from "/src/components/ItemLookupInput";
 import { useParams, useNavigate } from "react-router-dom";

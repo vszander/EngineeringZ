@@ -7,6 +7,7 @@ import "../../components/mhsa.theme.clubcar.css"; // skin first
 import "./mhsa_home.css"; // rename later to mhsa_base.css when you refactor
 import "./mhsa_mapping.css";
 import "./mhsa_hud_pulses.css";
+import "./mhsa_hud_queue_cards.css";
 import "../../components/map/mhsa_hud_pins.js";
 import { initAiAsidePanel } from "../../components/map/mhsa_hud_ai_panel";
 
@@ -50,6 +51,19 @@ export default function MhsaHud() {
 
   const infoCardRef = useRef(null);
 
+  // --- Queue HUD cards ---
+  const [queueCards, setQueueCards] = useState([]);
+
+  const dragQueueRef = useRef({
+    active: false,
+    cardId: null,
+    pointerId: null,
+    startClientX: 0,
+    startClientY: 0,
+    startX: 0,
+    startY: 0,
+  });
+
   function pruneHudEvents(list) {
     const now = Date.now();
     return (list ?? []).filter((e) => {
@@ -85,14 +99,101 @@ export default function MhsaHud() {
     });
   }
 
-  // If you don’t yet have a location→px mapping, this is the safe fallback:
-  // place the pulse at the selected tugger position (still useful for FillCart demos).
-  function fallbackXY() {
-    const p = selectedPose ?? {
-      x: mapLayer.widthPx * 0.5,
-      y: mapLayer.heightPx * 0.5,
+  function clampQueueCardPosition(x, y) {
+    const maxX = Math.max(12, mapLayer.widthPx - 260);
+    const maxY = Math.max(12, mapLayer.heightPx - 150);
+
+    return {
+      x: Math.max(12, Math.min(maxX, x)),
+      y: Math.max(12, Math.min(maxY, y)),
     };
-    return { x: p.x, y: p.y };
+  }
+
+  function beginQueueCardDrag(e, cardId) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const card = queueCards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    dragQueueRef.current = {
+      active: true,
+      cardId,
+      pointerId: e.pointerId,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startX: card.x,
+      startY: card.y,
+    };
+
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch (_) {
+      // no-op
+    }
+  }
+
+  function onQueueCardPointerMove(e) {
+    const drag = dragQueueRef.current;
+    if (!drag.active || !drag.cardId) return;
+
+    const dx = e.clientX - drag.startClientX;
+    const dy = e.clientY - drag.startClientY;
+
+    const next = clampQueueCardPosition(drag.startX + dx, drag.startY + dy);
+
+    setQueueCards((prev) =>
+      prev.map((card) =>
+        card.id === drag.cardId
+          ? {
+              ...card,
+              x: next.x,
+              y: next.y,
+            }
+          : card,
+      ),
+    );
+  }
+
+  function endQueueCardDrag(e) {
+    const drag = dragQueueRef.current;
+    if (!drag.active) return;
+
+    try {
+      if (drag.pointerId != null) {
+        e.currentTarget?.releasePointerCapture?.(drag.pointerId);
+      }
+    } catch (_) {
+      // no-op
+    }
+
+    dragQueueRef.current = {
+      active: false,
+      cardId: null,
+      pointerId: null,
+      startClientX: 0,
+      startClientY: 0,
+      startX: 0,
+      startY: 0,
+    };
+  }
+
+  function handleQueueScopeToggle(cardId) {
+    setQueueCards((prev) =>
+      prev.map((card) =>
+        card.id === cardId
+          ? {
+              ...card,
+              scope: card.scope === "mine" ? "all" : "mine",
+            }
+          : card,
+      ),
+    );
+  }
+
+  function openQueueWindow(href) {
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
   }
 
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -446,6 +547,92 @@ export default function MhsaHud() {
     return () => document.removeEventListener("click", onClick);
   }, [backendBase]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadQueueCard() {
+      try {
+        const res = await fetch(`${backendBase}/mhsa/api/queue-card/`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error(`queue-card HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        const card = data?.card;
+        if (!card) {
+          setQueueCards([]);
+          return;
+        }
+
+        setQueueCards((prev) => {
+          const incoming = {
+            id: String(card.id),
+            queueName: card.queueName || "Queue",
+            waitingCount: Number(card.waitingCount ?? 0),
+            stagedCount: Number(card.stagedCount ?? 0),
+            href: card.href
+              ? `${backendBase}${card.href}`
+              : `${backendBase}/mhsa/queues/${card.id}/`,
+          };
+
+          if (!prev.length) {
+            return [
+              {
+                ...incoming,
+                scope: card.scope || "mine",
+                x: Number(card.x ?? 24),
+                y: Number(card.y ?? 24),
+              },
+            ];
+          }
+
+          const existing = prev.find((c) => String(c.id) === incoming.id);
+
+          if (!existing) {
+            return [
+              ...prev,
+              {
+                ...incoming,
+                scope: card.scope || "mine",
+                x: Number(card.x ?? 24),
+                y: Number(card.y ?? 24),
+              },
+            ];
+          }
+
+          return prev.map((c) =>
+            String(c.id) === incoming.id
+              ? {
+                  ...c,
+                  queueName: incoming.queueName,
+                  waitingCount: incoming.waitingCount,
+                  stagedCount: incoming.stagedCount,
+                  href: incoming.href,
+                }
+              : c,
+          );
+        });
+      } catch (err) {
+        console.warn("queue card tick failed:", err);
+      }
+    }
+
+    loadQueueCard();
+    const intervalId = window.setInterval(loadQueueCard, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [backendBase]);
+
   const infoPanelRef = useRef(null);
 
   useEffect(() => {
@@ -480,6 +667,59 @@ export default function MhsaHud() {
     bindHelpPopovers();
     initAsideMode(activeAsideMode, mountEl);
   }, [infoPanelHtml, activeAsideMode]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function tickQueueCounts() {
+      try {
+        const res = await fetch(`${backendBase}/mhsa/api/queue-card/`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
+
+        if (!res.ok) return; // fail soft for sprint 1
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+
+        setQueueCards((prev) =>
+          prev.map((card) => {
+            const match = rows.find(
+              (r) =>
+                String(r.queue_name || "")
+                  .trim()
+                  .toLowerCase() ===
+                String(card.queueName || "")
+                  .trim()
+                  .toLowerCase(),
+            );
+
+            if (!match) return card;
+
+            return {
+              ...card,
+              waitingCount: Number(match.waiting_count ?? card.waitingCount),
+              stagedCount: Number(match.staged_count ?? card.stagedCount),
+            };
+          }),
+        );
+      } catch (err) {
+        console.warn("queue summary poll skipped:", err);
+      }
+    }
+
+    tickQueueCounts();
+    const id = setInterval(tickQueueCounts, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [backendBase]);
 
   async function loadAside(eventId, mode = "") {
     const safeId = (eventId ?? "").toString().trim();
@@ -730,6 +970,91 @@ export default function MhsaHud() {
                     draggable={false}
                     style={styles.mapImg}
                   />
+
+                  {/* Queue HUD Cards */}
+                  {queueCards.map((card) => (
+                    <div
+                      key={card.id}
+                      className="mhsaQueueCard"
+                      style={{
+                        left: card.x,
+                        top: card.y,
+                      }}
+                      onPointerMove={onQueueCardPointerMove}
+                      onPointerUp={endQueueCardDrag}
+                      onPointerCancel={endQueueCardDrag}
+                    >
+                      <div
+                        className="mhsaQueueCard__banner"
+                        onPointerDown={(e) => beginQueueCardDrag(e, card.id)}
+                      >
+                        <button
+                          type="button"
+                          className="mhsaQueueCard__title"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openQueueWindow(card.href);
+                          }}
+                          title={`Open ${card.queueName} queue manager`}
+                        >
+                          {card.queueName}
+                        </button>
+
+                        <div className="mhsaQueueCard__dragCue">⋮⋮</div>
+                      </div>
+
+                      <div className="mhsaQueueCard__body">
+                        <div className="mhsaQueueCard__metric">
+                          <div className="mhsaQueueCard__label">Waiting</div>
+                          <div className="mhsaQueueCard__value">
+                            {card.waitingCount}
+                          </div>
+                        </div>
+
+                        <div className="mhsaQueueCard__metric">
+                          <div className="mhsaQueueCard__label">Staged</div>
+                          <div className="mhsaQueueCard__value">
+                            {card.stagedCount}
+                          </div>
+                        </div>
+
+                        <div className="mhsaQueueCard__toggleRow">
+                          <span className="mhsaQueueCard__toggleLabel">
+                            Scope
+                          </span>
+
+                          <button
+                            type="button"
+                            className="mhsaQueueCard__toggle"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleQueueScopeToggle(card.id);
+                            }}
+                            title="Toggle mine vs all"
+                          >
+                            <span
+                              className={
+                                card.scope === "mine"
+                                  ? "mhsaQueueCard__toggleOpt is-active"
+                                  : "mhsaQueueCard__toggleOpt"
+                              }
+                            >
+                              Mine
+                            </span>
+                            <span
+                              className={
+                                card.scope === "all"
+                                  ? "mhsaQueueCard__toggleOpt is-active"
+                                  : "mhsaQueueCard__toggleOpt"
+                              }
+                            >
+                              All
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
 
                   {/* HUD Event Overlays (pulses/blips) */}
                   {hudEvents.map((e) => {

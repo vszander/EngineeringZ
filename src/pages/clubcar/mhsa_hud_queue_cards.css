@@ -1,0 +1,147 @@
+.mhsaQueueCard {
+  position: absolute;
+  width: 180px;
+  min-height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 18;
+
+  background: linear-gradient(
+    180deg,
+    rgba(11, 20, 30, 0.92),
+    rgba(7, 13, 20, 0.9)
+  );
+
+  border: 1px solid rgba(20, 141, 151, 0.22);
+
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+
+  color: #eef7f8;
+  user-select: none;
+}
+
+/* --- Banner (draggable) --- */
+.mhsaQueueCard__banner {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 8px 0 10px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(20, 141, 151, 0.22),
+    rgba(20, 141, 151, 0.12)
+  );
+
+  border-bottom: 1px solid rgba(20, 141, 151, 0.18);
+
+  cursor: grab;
+}
+
+.mhsaQueueCard__banner:active {
+  cursor: grabbing;
+}
+
+.mhsaQueueCard__title {
+  border: none;
+  background: transparent;
+
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 12px;
+
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mhsaQueueCard__title:hover {
+  text-decoration: underline;
+}
+
+.mhsaQueueCard__dragCue {
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+/* --- Body --- */
+.mhsaQueueCard__body {
+  padding: 6px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* --- Inline Metrics --- */
+.mhsaQueueCard__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 11px;
+  line-height: 1.2;
+
+  padding: 2px 4px;
+}
+
+.mhsaQueueCard__label {
+  opacity: 0.7;
+}
+
+.mhsaQueueCard__value {
+  font-weight: 800;
+  font-size: 13px;
+  color: #dff9fb;
+}
+
+/* --- Toggle --- */
+.mhsaQueueCard__toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 2px;
+}
+
+.mhsaQueueCard__toggleLabel {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.mhsaQueueCard__toggle {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+
+  border-radius: 999px;
+  padding: 2px;
+
+  display: inline-flex;
+  gap: 2px;
+
+  cursor: pointer;
+}
+
+.mhsaQueueCard__toggleOpt {
+  min-width: 40px;
+  text-align: center;
+
+  padding: 4px 6px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mhsaQueueCard__toggleOpt.is-active {
+  background: rgba(20, 141, 151, 0.9);
+  color: white;
+
+  box-shadow: 0 0 8px rgba(20, 141, 151, 0.25);
+}
