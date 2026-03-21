@@ -409,21 +409,6 @@ export default function MhsaHud() {
   }, []);
 
   useEffect(() => {
-    function normalizeMode(btn) {
-      const ui = (btn.dataset.ui || "").trim().toLowerCase();
-      if (ui) return ui;
-
-      const key = (btn.dataset.dispositionKey || "").trim().toLowerCase();
-
-      // 🔥 THIS IS THE FIX
-      if (key === "assign") return "assign";
-      if (key === "ai") return "ai";
-      if (key === "benign") return "benign";
-      if (key === "snooze") return "snooze";
-
-      return "";
-    }
-
     function onClick(e) {
       const btn = e.target.closest(
         ".mhsa-hud-aside-actions button[data-event-id]",
@@ -431,30 +416,16 @@ export default function MhsaHud() {
       if (!btn) return;
 
       const eventId = btn.dataset.eventId;
-      const mode = normalizeMode(btn);
-
-      console.log("[HUD] disposition click", {
-        key: btn.dataset.dispositionKey,
-        ui: btn.dataset.ui,
-        resolvedMode: mode,
-      });
-
+      const mode = (btn.dataset.mode || btn.dataset.ui || "")
+        .trim()
+        .toLowerCase(); // supports your current template
       loadAside(eventId, mode).catch(console.error);
     }
 
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendBase]);
-
-  const infoPanelRef = useRef(null);
-
-  useEffect(() => {
-    const mountEl = infoPanelRef.current;
-    if (!mountEl) return;
-    if (!infoPanelHtml) return;
-
-    initAsideMode(activeAsideMode, mountEl);
-  }, [infoPanelHtml, activeAsideMode]);
 
   useEffect(() => {
     if (!infoPanelHtml) return;
@@ -493,10 +464,7 @@ export default function MhsaHud() {
 
     const safeMode = (mode ?? "").toString().trim().toLowerCase();
 
-    const url =
-      safeMode === "assign"
-        ? `${backendBase}/mhsa/api/events/pin-aside-assign/${encodeURIComponent(safeId)}/`
-        : `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(safeId)}/?mode=${encodeURIComponent(safeMode)}`;
+    const url = `${backendBase}/mhsa/api/events/pin-aside/${encodeURIComponent(safeId)}/?mode=${encodeURIComponent(safeMode)}`;
 
     const res = await fetch(url, {
       method: "GET",
@@ -512,7 +480,6 @@ export default function MhsaHud() {
       eventId: safeId,
       mode: safeMode,
       htmlLength: html?.length || 0,
-      url,
     });
 
     setActiveAsideMode(safeMode);
@@ -548,93 +515,8 @@ export default function MhsaHud() {
         hasForm: !!form,
       });
 
-      if (!form) {
-        console.warn("[HUD] assign form not found in mounted aside");
-        return;
-      }
-
-      if (form.dataset.assignBound === "1") {
-        console.log("[HUD] assign form already bound");
-        return;
-      }
-      form.dataset.assignBound = "1";
-
-      const apiPath = (
-        form.dataset.apiPath ||
-        form.getAttribute("action") ||
-        ""
-      ).trim();
-
-      if (!apiPath || apiPath === "#") {
-        console.warn("[HUD] assign form missing data-api-path");
-        return;
-      }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const submitBtn =
-          form.querySelector('button[type="submit"], input[type="submit"]') ||
-          null;
-
-        const originalBtnText =
-          submitBtn?.textContent || submitBtn?.value || "Save Assignment";
-
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          if ("textContent" in submitBtn) submitBtn.textContent = "Saving...";
-        }
-
-        try {
-          const formData = new FormData(form);
-
-          const res = await fetch(`${backendBase}${apiPath}`, {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-            headers: {
-              Accept: "application/json",
-            },
-          });
-
-          let data = {};
-          const contentType = res.headers.get("content-type") || "";
-
-          if (contentType.includes("application/json")) {
-            data = await res.json();
-          } else {
-            const text = await res.text();
-            throw new Error(
-              text || `Assign POST failed with HTTP ${res.status}`,
-            );
-          }
-
-          if (!res.ok || !data.ok) {
-            throw new Error(
-              data.error || `Assign POST failed with HTTP ${res.status}`,
-            );
-          }
-
-          console.log("[HUD] assignment created", data);
-
-          // close aside after success
-          setInfoPanelHtml("");
-          setActiveAsideMode("");
-
-          // optional: optimistic refresh cue for future sprint
-          // you could also trigger a toast here later
-        } catch (err) {
-          console.error("[HUD] assignment create failed", err);
-          window.alert(err.message || "Failed to create assignment.");
-        } finally {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            if ("textContent" in submitBtn)
-              submitBtn.textContent = originalBtnText;
-          }
-        }
-      });
-
+      // phase 1: render only
+      // phase 2: attach ajax submit here
       return;
     }
 
@@ -1024,14 +906,13 @@ export default function MhsaHud() {
           </section>
 
           {/* INFO */}
-          {/* INFO */}
           <aside style={styles.infoCard}>
             <div
               className="mhsaHudInfoCard"
               style={styles.sticky}
-              ref={infoCardRef}
+              ref={infoCardRef} // <-- NEW
             >
-              <div id="mhsaHudAsideMount" ref={infoPanelRef}>
+              <div id="mhsaHudAsideMount">
                 {infoPanelHtml ? (
                   <div dangerouslySetInnerHTML={{ __html: infoPanelHtml }} />
                 ) : (
@@ -1041,8 +922,8 @@ export default function MhsaHud() {
                       <div style={{ opacity: 0.75 }}>No asset selected.</div>
                     ) : (
                       <div style={styles.infoBody}>
-                        {/* ... your existing static panel content ... */}
-                        This is the Information Panel.
+                        {/* ... your existing static panel content ... */} This
+                        is the Information Panel.
                       </div>
                     )}
                   </>

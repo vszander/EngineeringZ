@@ -172,6 +172,20 @@ function installPinPopovers() {
   );
 }
 
+function normalizeDispositionMode(btn) {
+  const ui = (btn?.dataset?.ui || "").trim().toLowerCase();
+  if (ui) return ui;
+
+  const key = (btn?.dataset?.dispositionKey || "").trim().toLowerCase();
+
+  if (key === "assign") return "assign";
+  if (key === "ai") return "ai";
+  if (key === "benign") return "benign";
+  if (key === "snooze") return "snooze";
+
+  return "";
+}
+
 // ---------------------------------------------
 // HUD Aside Ajax (Disposition button)
 // ---------------------------------------------
