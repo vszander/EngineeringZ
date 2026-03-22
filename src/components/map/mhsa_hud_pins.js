@@ -139,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
-
 function installPinPopovers() {
   if (window.__mhsaPinsInstalled) {
     console.log("[MHSA PINS] already installed; skipping");
@@ -152,6 +151,12 @@ function installPinPopovers() {
   document.addEventListener(
     "click",
     (ev) => {
+      const noPinZone = ev.target.closest("[data-no-pin='1']");
+      if (noPinZone) {
+        console.log("[MHSA PINS] ignoring click inside data-no-pin zone");
+        return;
+      }
+
       const pin = ev.target.closest("[data-mhsa-pin]");
       const insidePop = ev.target.closest(".mhsa-popover");
 

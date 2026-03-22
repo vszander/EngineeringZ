@@ -180,16 +180,14 @@ export default function MhsaHud() {
   }
 
   function handleQueueScopeToggle(cardId) {
-    setQueueCards((prev) =>
-      prev.map((card) =>
-        card.id === cardId
-          ? {
-              ...card,
-              scope: card.scope === "mine" ? "all" : "mine",
-            }
-          : card,
-      ),
-    );
+    setQueueCards((prev) => {
+      if (!prev.length) return prev;
+
+      const rootCard = prev[0];
+      const nextScope = rootCard.scope === "mine" ? "all" : "mine";
+
+      return buildQueueCardsFromCatalog(queueCatalog, nextScope, prev);
+    });
   }
 
   function buildQueueCardsFromCatalog(rows, scope = "mine", prevCards = []) {
@@ -201,16 +199,21 @@ export default function MhsaHud() {
     const visibleRows = scope === "all" ? rows : [first];
 
     return visibleRows.map((row, idx) => {
-      const existing = previousById.get(String(row.id));
+      const queueId = String(row.id);
+      const existing = previousById.get(queueId);
 
       return {
-        id: String(row.id),
+        id: queueId,
+        queueId,
         queueName: row.queueName || "Queue",
         waitingCount: Number(row.waitingCount ?? 0),
         stagedCount: Number(row.stagedCount ?? 0),
-        href: row.href
-          ? `${backendBase}${row.href}`
-          : `${backendBase}/mhsa/queues/${row.id}/`,
+
+        // Open the new QueueManager page in a new tab
+        //        href: `${backendBase}/clubcar/queue-manager?queue_id=${encodeURIComponent(queueId)}`,
+        // FRONTEND React route
+        href: `/clubcar/queue-manager?queue_id=${encodeURIComponent(queueId)}`,
+
         scope: idx === 0 ? scope : "all",
         x: existing ? existing.x : 24 + idx * 196,
         y: existing ? existing.y : 24,
@@ -218,20 +221,34 @@ export default function MhsaHud() {
     });
   }
 
-  function handleQueueScopeToggle(cardId) {
-    setQueueCards((prev) => {
-      if (!prev.length) return prev;
-
-      const rootCard = prev[0];
-      const nextScope = rootCard.scope === "mine" ? "all" : "mine";
-
-      return buildQueueCardsFromCatalog(queueCatalog, nextScope, prev);
-    });
-  }
-
   function openQueueWindow(href) {
-    if (!href) return;
-    window.open(href, "_blank", "noopener,noreferrer");
+    console.log("[QueueCard] openQueueWindow called", { href });
+
+    let url;
+
+    if (href) {
+      try {
+        const parsed = new URL(href, window.location.origin);
+
+        // 🔥 FORCE FRONTEND ORIGIN (fixes backend redirect issue)
+        url = parsed.pathname + parsed.search;
+      } catch (err) {
+        console.warn("[QueueCard] Failed to parse href, using fallback", err);
+        url = "/clubcar/queue-manager";
+      }
+    } else {
+      url = "/clubcar/queue-manager";
+    }
+
+    console.log("[QueueCard] Final FRONTEND URL:", url);
+
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+
+    console.log("[QueueCard] window.open result:", !!win);
+
+    if (!win) {
+      console.warn("[QueueCard] window.open was blocked or failed");
+    }
   }
 
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -970,6 +987,7 @@ export default function MhsaHud() {
                     <div
                       key={card.id}
                       className="mhsaQueueCard"
+                      data-no-pin="1"
                       style={{
                         left: card.x,
                         top: card.y,
@@ -978,15 +996,23 @@ export default function MhsaHud() {
                       onPointerUp={endQueueCardDrag}
                       onPointerCancel={endQueueCardDrag}
                     >
-                      <div
-                        className="mhsaQueueCard__banner"
-                        onPointerDown={(e) => beginQueueCardDrag(e, card.id)}
-                      >
+                      <div className="mhsaQueueCard__banner">
                         <button
                           type="button"
                           className="mhsaQueueCard__title"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
+
+                            console.log("[QueueCard] CLICK detected", {
+                              id: card.id,
+                              queueName: card.queueName,
+                              href: card.href,
+                            });
+
+                            console.log(
+                              "[QueueCard] Calling openQueueWindow...",
+                            );
                             openQueueWindow(card.href);
                           }}
                           title={`Open ${card.queueName} queue manager`}
@@ -994,7 +1020,21 @@ export default function MhsaHud() {
                           {card.queueName}
                         </button>
 
-                        <div className="mhsaQueueCard__dragCue">⋮⋮</div>
+                        <div
+                          className="mhsaQueueCard__dragCue"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log("[QueueCard] Drag start", {
+                              id: card.id,
+                              queueName: card.queueName,
+                            });
+                            beginQueueCardDrag(e, card.id);
+                          }}
+                          title={`Drag ${card.queueName} card`}
+                        >
+                          ⋮⋮
+                        </div>
                       </div>
 
                       <div className="mhsaQueueCard__body">
