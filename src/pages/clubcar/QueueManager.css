@@ -197,6 +197,145 @@
   gap: 10px;
 }
 
+.qm-chip-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.qm-part-name--primary {
+  margin-top: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f4fbfc;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.qm-part-number--secondary {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(234, 244, 247, 0.62);
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+.qm-chip-detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.qm-chip-label {
+  flex: 0 0 auto;
+  color: rgba(234, 244, 247, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.qm-chip-value {
+  min-width: 0;
+  color: rgba(234, 244, 247, 0.86);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.qm-chip-footer {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.qm-chip-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.qm-chip-footer-right {
+  flex: 0 0 auto;
+}
+
+.qm-chip-timer {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dceef2;
+  white-space: nowrap;
+}
+
+.qm-chip-timer--none {
+  color: rgba(234, 244, 247, 0.58);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.qm-chip-timer--normal {
+  background: rgba(20, 141, 151, 0.18);
+  border-color: rgba(20, 141, 151, 0.34);
+  color: #c9fbff;
+}
+
+.qm-chip-timer--soon {
+  background: rgba(255, 214, 10, 0.14);
+  border-color: rgba(255, 214, 10, 0.3);
+  color: #fff2b2;
+}
+
+.qm-chip-timer--urgent {
+  background: rgba(242, 132, 78, 0.16);
+  border-color: rgba(242, 132, 78, 0.38);
+  color: #ffd5c5;
+}
+
+.qm-chip-timer--overdue {
+  background: rgba(180, 50, 50, 0.2);
+  border-color: rgba(255, 120, 120, 0.38);
+  color: #ffd0d0;
+}
+
+.qm-note-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f8fa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  cursor: help;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.qm-note-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 141, 151, 0.42);
+  background: rgba(20, 141, 151, 0.14);
+}
+
+.qm-note-btn:focus-visible {
+  outline: 2px solid rgba(93, 201, 165, 0.55);
+  outline-offset: 2px;
+}
+
 .qm-part-number {
   font-weight: 800;
   font-size: 0.95rem;
@@ -258,6 +397,208 @@
 .qm-loading {
   background: rgba(20, 141, 151, 0.16);
   border: 1px solid rgba(20, 141, 151, 0.3);
+}
+
+.qm-topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.qm-board-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.qm-topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.qm-board-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.qm-rules-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.qm-rules-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(234, 244, 247, 0.82);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.qm-rules-pill strong {
+  color: #f4fbfc;
+  font-weight: 800;
+}
+
+.qm-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.qm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.qm-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.qm-btn--primary {
+  background: rgba(20, 141, 151, 0.2);
+  border-color: rgba(20, 141, 151, 0.38);
+  color: #d9fbff;
+}
+
+.qm-btn--secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #eef8fb;
+}
+
+.qm-btn--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(234, 244, 247, 0.9);
+}
+
+.qm-btn--danger {
+  background: rgba(180, 50, 50, 0.16);
+  border-color: rgba(255, 120, 120, 0.28);
+  color: #ffd6d6;
+}
+
+.qm-flight-header {
+  align-items: flex-start;
+}
+
+.qm-flight-header-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.qm-flight-header-right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.qm-flight-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px 0;
+}
+
+.qm-flight-meta-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(234, 244, 247, 0.82);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.qm-flight-timer {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dceef2;
+}
+
+.qm-flight-timer--none {
+  color: rgba(234, 244, 247, 0.58);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.qm-flight-timer--normal {
+  background: rgba(20, 141, 151, 0.18);
+  border-color: rgba(20, 141, 151, 0.34);
+  color: #c9fbff;
+}
+
+.qm-flight-timer--soon {
+  background: rgba(255, 214, 10, 0.14);
+  border-color: rgba(255, 214, 10, 0.3);
+  color: #fff2b2;
+}
+
+.qm-flight-timer--urgent {
+  background: rgba(242, 132, 78, 0.16);
+  border-color: rgba(242, 132, 78, 0.38);
+  color: #ffd5c5;
+}
+
+.qm-flight-timer--overdue {
+  background: rgba(180, 50, 50, 0.2);
+  border-color: rgba(255, 120, 120, 0.38);
+  color: #ffd0d0;
+}
+
+.qm-flight-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+@media (max-width: 980px) {
+  .qm-topbar-right {
+    align-items: stretch;
+  }
+
+  .qm-board-actions {
+    justify-content: flex-start;
+  }
+
+  .qm-flight-header {
+    flex-direction: column;
+  }
+
+  .qm-flight-header-right {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 1400px) {
