@@ -53,6 +53,7 @@ export default function MhsaHud() {
 
   // --- Queue HUD cards ---
   const [queueCards, setQueueCards] = useState([]);
+  const [queueCatalog, setQueueCatalog] = useState([]);
 
   const dragQueueRef = useRef({
     active: false,
@@ -189,6 +190,43 @@ export default function MhsaHud() {
           : card,
       ),
     );
+  }
+
+  function buildQueueCardsFromCatalog(rows, scope = "mine", prevCards = []) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+
+    const previousById = new Map(prevCards.map((c) => [String(c.id), c]));
+    const first = rows[0];
+
+    const visibleRows = scope === "all" ? rows : [first];
+
+    return visibleRows.map((row, idx) => {
+      const existing = previousById.get(String(row.id));
+
+      return {
+        id: String(row.id),
+        queueName: row.queueName || "Queue",
+        waitingCount: Number(row.waitingCount ?? 0),
+        stagedCount: Number(row.stagedCount ?? 0),
+        href: row.href
+          ? `${backendBase}${row.href}`
+          : `${backendBase}/mhsa/queues/${row.id}/`,
+        scope: idx === 0 ? scope : "all",
+        x: existing ? existing.x : 24 + idx * 196,
+        y: existing ? existing.y : 24,
+      };
+    });
+  }
+
+  function handleQueueScopeToggle(cardId) {
+    setQueueCards((prev) => {
+      if (!prev.length) return prev;
+
+      const rootCard = prev[0];
+      const nextScope = rootCard.scope === "mine" ? "all" : "mine";
+
+      return buildQueueCardsFromCatalog(queueCatalog, nextScope, prev);
+    });
   }
 
   function openQueueWindow(href) {
@@ -550,7 +588,7 @@ export default function MhsaHud() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadQueueCard() {
+    async function loadQueueCatalog() {
       try {
         const res = await fetch(`${backendBase}/mhsa/api/queue-card/`, {
           method: "GET",
@@ -565,71 +603,27 @@ export default function MhsaHud() {
         const data = await res.json();
         if (cancelled) return;
 
-        const card = data?.card;
-        if (!card) {
-          setQueueCards([]);
-          return;
-        }
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+
+        setQueueCatalog(rows);
 
         setQueueCards((prev) => {
-          const incoming = {
-            id: String(card.id),
-            queueName: card.queueName || "Queue",
-            waitingCount: Number(card.waitingCount ?? 0),
-            stagedCount: Number(card.stagedCount ?? 0),
-            href: card.href
-              ? `${backendBase}${card.href}`
-              : `${backendBase}/mhsa/queues/${card.id}/`,
-          };
-
-          if (!prev.length) {
-            return [
-              {
-                ...incoming,
-                scope: card.scope || "mine",
-                x: Number(card.x ?? 24),
-                y: Number(card.y ?? 24),
-              },
-            ];
-          }
-
-          const existing = prev.find((c) => String(c.id) === incoming.id);
-
-          if (!existing) {
-            return [
-              ...prev,
-              {
-                ...incoming,
-                scope: card.scope || "mine",
-                x: Number(card.x ?? 24),
-                y: Number(card.y ?? 24),
-              },
-            ];
-          }
-
-          return prev.map((c) =>
-            String(c.id) === incoming.id
-              ? {
-                  ...c,
-                  queueName: incoming.queueName,
-                  waitingCount: incoming.waitingCount,
-                  stagedCount: incoming.stagedCount,
-                  href: incoming.href,
-                }
-              : c,
-          );
+          const currentScope = prev[0]?.scope || "mine";
+          return buildQueueCardsFromCatalog(rows, currentScope, prev);
         });
       } catch (err) {
-        console.warn("queue card tick failed:", err);
+        console.warn("queue card load failed:", err);
+        if (!cancelled) {
+          setQueueCatalog([]);
+          setQueueCards([]);
+        }
       }
     }
 
-    loadQueueCard();
-    const intervalId = window.setInterval(loadQueueCard, 5000);
+    loadQueueCatalog();
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
     };
   }, [backendBase]);
 
@@ -1018,40 +1012,42 @@ export default function MhsaHud() {
                           </div>
                         </div>
 
-                        <div className="mhsaQueueCard__toggleRow">
-                          <span className="mhsaQueueCard__toggleLabel">
-                            Scope
-                          </span>
+                        {queueCards[0]?.id === card.id ? (
+                          <div className="mhsaQueueCard__toggleRow">
+                            <span className="mhsaQueueCard__toggleLabel">
+                              Scope
+                            </span>
 
-                          <button
-                            type="button"
-                            className="mhsaQueueCard__toggle"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQueueScopeToggle(card.id);
-                            }}
-                            title="Toggle mine vs all"
-                          >
-                            <span
-                              className={
-                                card.scope === "mine"
-                                  ? "mhsaQueueCard__toggleOpt is-active"
-                                  : "mhsaQueueCard__toggleOpt"
-                              }
+                            <button
+                              type="button"
+                              className="mhsaQueueCard__toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQueueScopeToggle(card.id);
+                              }}
+                              title="Toggle mine vs all"
                             >
-                              Mine
-                            </span>
-                            <span
-                              className={
-                                card.scope === "all"
-                                  ? "mhsaQueueCard__toggleOpt is-active"
-                                  : "mhsaQueueCard__toggleOpt"
-                              }
-                            >
-                              All
-                            </span>
-                          </button>
-                        </div>
+                              <span
+                                className={
+                                  card.scope === "mine"
+                                    ? "mhsaQueueCard__toggleOpt is-active"
+                                    : "mhsaQueueCard__toggleOpt"
+                                }
+                              >
+                                Mine
+                              </span>
+                              <span
+                                className={
+                                  card.scope === "all"
+                                    ? "mhsaQueueCard__toggleOpt is-active"
+                                    : "mhsaQueueCard__toggleOpt"
+                                }
+                              >
+                                All
+                              </span>
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ))}
