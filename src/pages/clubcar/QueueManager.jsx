@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./QueueManager.css";
+import { Link } from "react-router-dom";
 
 function getCsrfToken() {
   const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
@@ -668,6 +669,9 @@ export default function QueueManager() {
             <div className="qm-stat">
               <span className="qm-stat-label">Capacity</span>
               <span className="qm-stat-value">{data.capacity}</span>
+            </div>
+            <div>
+              <Link to="/clubcar">← MHSA Home</Link>
             </div>
           </div>
 

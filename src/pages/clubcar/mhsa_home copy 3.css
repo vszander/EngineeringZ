@@ -1,0 +1,525 @@
+/* Dark charcoal + brushed gold vibe */
+
+:root {
+  --mhsa-bg: #121417; /* charcoal */
+  --mhsa-panel: #171a1f; /* slightly lighter */
+  --mhsa-card: #14181d;
+  --mhsa-border: rgba(255, 255, 255, 0.1);
+
+  --mhsa-text: rgba(255, 255, 255, 0.92);
+  --mhsa-muted: rgba(255, 255, 255, 0.68);
+
+  --mhsa-gold: #b79a5d; /* brushed gold */
+  --mhsa-gold-dim: rgba(183, 154, 93, 0.2);
+  --mhsa-link: rgba(183, 154, 93, 0.95);
+
+  --mhsa-accent: #b79a5d;
+  --mhsa-accent-2: #148d97;
+}
+
+.mhsa-home {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      1200px 800px at 20% 0%,
+      rgba(183, 154, 93, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 600px at 80% 30%,
+      rgba(183, 154, 93, 0.06),
+      transparent 55%
+    ),
+    var(--mhsa-bg);
+  color: var(--mhsa-text);
+}
+
+/* MHSA dark theme only within MHSA pages */
+.mhsa-dark {
+  color: var(--mhsa-text);
+}
+
+/* Full-bleed charcoal behind MHSA pages only */
+.mhsa-dark::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--mhsa-bg);
+  z-index: -1;
+}
+
+/* Optional: if you want MHSA panels to default dark */
+.mhsa-dark .mhsa-panel,
+.mhsa-dark .mhsa-search-left,
+.mhsa-dark .mhsa-search-aside,
+.mhsa-dark .mhsa-left,
+.mhsa-dark .mhsa-aside {
+  background: rgba(18, 19, 22, 0.55);
+}
+
+/* Ensure the page establishes a scrollable height */
+.mhsa-page {
+  height: 100vh;     /* critical */
+  overflow: hidden;  /* keep scroll inside panels */
+}
+
+/* Main layout must be constrained too */
+.mhsa-main {
+  height: 100%;
+  min-height: 0;     /* critical for flex children overflow */
+  display: flex;
+}
+
+/* Left panel should be the scroll container */
+.mhsa-left {
+  overflow: auto !important;  /* Search.css sets hidden */
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Right rail also should not break flex overflow */
+.mhsa-aside {
+  flex: 0 0 420px;   /* or whatever your sidebar is */
+  min-height: 0;
+  overflow: auto;
+}
+/* --- Cockpit map scrolling --- */
+.mhsa-leftold {
+  /* make the map panel scrollable */
+  overflow: auto;
+  /* ensure it can actually shrink inside flex layouts */
+  min-width: 0;
+  min-height: 0;
+}
+/* MapOverlay wrapper should size to image content */
+.mi-wrap {
+  position: relative;
+  /* allow content to define scrollable area */
+  display: inline-block;
+}
+
+/* Image should render at natural size by default (so scrolling exists) */
+.mi-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  user-select: none;
+}
+
+
+
+
+/* Active state */
+.mhsa-link--active {
+  border-bottom: 2px solid var(--mhsa-accent, #5dc9a5);
+  padding-bottom: 2px;
+}
+
+.mhsa-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--mhsa-border);
+  background: rgba(18, 20, 23, 0.75);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.mhsa-hdr-sep {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  margin: 0 12px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+
+.mhsa-brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--mhsa-gold);
+}
+.mhsa-brand-subtitle {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+
+.mhsa-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.mhsa-link {
+  color: var(--mhsa-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+.mhsa-link:hover {
+  text-decoration: underline;
+}
+
+.mhsa-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+  padding: 22px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mhsa-hero-left {
+  background:
+    linear-gradient(180deg, rgba(183, 154, 93, 0.06), transparent 40%),
+    var(--mhsa-panel);
+  border: 1px solid var(--mhsa-border);
+  border-radius: 16px;
+  padding: 18px 18px 16px 18px;
+}
+
+.mhsa-hero-right {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--mhsa-border);
+  background: var(--mhsa-panel);
+}
+
+.mhsa-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.02) saturate(0.98);
+}
+
+.mhsa-h1 {
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--mhsa-text, rgba(197, 147, 40, 0.95));
+}
+
+.mhsa-h2 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  color: var(--mhsa-gold);
+  letter-spacing: 0.03em;
+}
+
+.mhsa-p {
+  margin: 10px 0;
+  color: var(--mhsa-text);
+  line-height: 1.45;
+}
+
+.mhsa-em {
+  color: var(--mhsa-gold);
+  font-weight: 700;
+}
+
+.mhsa-code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mhsa-cta-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.mhsa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid var(--mhsa-border);
+}
+
+.mhsa-btn-primary {
+  background: rgba(183, 154, 93, 0.12);
+  border-color: rgba(183, 154, 93, 0.4);
+  color: var(--mhsa-text);
+}
+.mhsa-btn-primary:hover {
+  background: rgba(183, 154, 93, 0.18);
+}
+
+.mhsa-btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--mhsa-text);
+}
+.mhsa-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mhsa-menu {
+  padding: 8px 22px 26px 22px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mhsa-muted {
+  color: var(--mhsa-muted);
+  margin: 0 0 14px 0;
+}
+
+.mhsa-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mhsa-aside-title {
+  text-align: left;
+  margin-top: 6px;
+}
+
+.mhsa-card {
+  background: var(--mhsa-card);
+  border: 1px solid var(--mhsa-border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.mhsa-card-title {
+  color: var(--mhsa-gold);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.mhsa-tree-item {
+  margin: 6px 0;
+}
+
+.mhsa-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mhsa-tree-link {
+  color: var(--mhsa-text);
+  text-decoration: none;
+  font-weight: 650;
+}
+.mhsa-tree-link:hover {
+  color: var(--mhsa-gold);
+}
+
+.mhsa-tree-text {
+  color: var(--mhsa-text);
+  font-weight: 650;
+}
+
+.mhsa-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(183, 154, 93, 0.35);
+  background: rgba(183, 154, 93, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mhsa-footer {
+  padding: 18px 22px 26px 22px;
+  border-top: 1px solid var(--mhsa-border);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 980px) {
+  .mhsa-hero {
+    grid-template-columns: 1fr;
+  }
+  .mhsa-menu-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Force MHSA background only when body has mhsa-body */
+body.mhsa-body {
+  background: var(--mhsa-bg) !important;
+}
+
+/* Optional: also keep Material Dashboard from painting html */
+body.mhsa-body {
+  background: var(--mhsa-bg) !important;
+}
+
+.mhsaHudPage {
+  min-height: 100vh;
+  background: #0b0f14;   /* dark jet */
+  color: #e6f1ff;
+}
+
+.mhsaHudPage section,
+.mhsaHudPage aside {
+  background: rgba(255,255,255,0.06);   /* glass */
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+
+.mhsaHudPage a { color: #7ee7ff; }
+
+/* --- MHSA HUD Info Panel (dark charcoal) --- */
+.mhsaHudInfoCard,
+.mhsaHudInfoCard * {
+  background-color: transparent;
+}
+
+.mhsaHudInfoCard {
+  background: linear-gradient(180deg, #141a21 0%, #0f141a 100%);
+}
+.mhsaHudInfoCard {
+  background: linear-gradient(
+    180deg,
+    #141a21 0%,
+    #0f141a 100%
+  );
+  color: #a4b4c9;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Headings */
+.mhsaHudInfoCard h3 {
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+/* Labels vs values */
+.mhsaHudInfoCard strong {
+  color: #9fdfff;        /* cyan label */
+  font-weight: 600;
+}
+
+/* Body text */
+.mhsaHudInfoCard {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Muted / secondary text */
+.mhsaHudInfoCard .muted,
+.mhsaHudInfoCard hr {
+  opacity: 0.65;
+}
+
+
+/* --- HUD pulses --- */
+.hudPulse,
+.hudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  opacity: 0.9;
+  animation: hudPulse 1.6s ease-out forwards;
+  border: 2px solid rgba(20, 141, 151, 0.9); /* default = your primary */
+  box-shadow: 0 0 12px rgba(20, 141, 151, 0.35);
+}
+
+.mhsaHudPulse,
+.mhsaHudPulseAck {
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+.hudPulseAck {
+  border-color: rgba(242, 132, 78, 0.95); /* your orange */
+  box-shadow: 0 0 16px rgba(242, 132, 78, 0.4);
+  animation-duration: 2.0s;
+}
+
+@keyframes hudPulse {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.0);
+    opacity: 0.0;
+  }
+}
+
+/* HUD pulse: normal scan blip */
+/* HUD pulse: normal scan blip */
+.mhsaHudPulse {
+  position: absolute;
+  inset: 0;                 /* fill the wrapper div */
+  border-radius: 999px;
+
+  border: 2px solid var(--pulse-color, rgba(20, 141, 151, 0.95));
+  box-shadow:
+    0 0 0 2px rgba(20, 141, 151, 0.25),
+    0 0 14px rgba(20, 141, 151, 0.35);
+
+  animation: mhsaPulse var(--pulse-speed, 1.2s) ease-out forwards;
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+/* HUD pulse: ack-worthy event (more intense) */
+.mhsaHudPulseAck {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  border: 2px solid var(--pulse-color, rgba(242, 132, 78, 0.95));
+  box-shadow:
+    0 0 0 3px rgba(242, 132, 78, 0.25),
+    0 0 20px rgba(242, 132, 78, 0.4);
+
+  animation: mhsaPulse var(--pulse-speed, 0.9s) ease-out forwards;
+  animation-iteration-count: var(--pulse-count, infinite);
+}
+
+.mhsaHudGhost {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+
+  /* 🔍 DEBUG / IDENTIFY GHOST */
+  border: 2px dashed rgba(255, 255, 0, 0.9);   /* yellow dashed */
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+
+
+
+
+@keyframes mhsaPulse {
+  0% {
+    transform: scale(0.15);
+    opacity: 0.95;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+}
+
+
+import "./mhsa.theme.clubcar.css";

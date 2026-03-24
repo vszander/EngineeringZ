@@ -125,7 +125,7 @@
   --mhsa-pill-bg: rgba(183, 154, 93, 0.1);
   --mhsa-pill-text: rgba(255, 255, 255, 0.9);
 
-  /* tables */
+  /* gradient   tables #2   -- check this */
   --mhsa-table-wrap-bg:
     linear-gradient(
       180deg,
@@ -161,43 +161,6 @@
   --mhsa-table-hover-bg: rgba(20, 141, 151, 0.1);
   --mhsa-table-striped-bg: rgba(255, 255, 255, 0.025);
 
-  /* ------------------ table density / font sizes ------------------ */
-  .mhsa-table--lg {
-    font-size: 0.98rem;
-  }
-
-  .mhsa-table--md {
-    font-size: 0.88rem; /* close to Search.jsx default feel */
-  }
-
-  .mhsa-table--sm {
-    font-size: 0.78rem; /* good for ScanEvents */
-  }
-
-  .mhsa-table--xs {
-    font-size: 0.7rem; /* very dense / many columns */
-  }
-
-  .mhsa-table--lg thead th,
-  .mhsa-table--lg tbody td {
-    padding: 0.85rem 0.8rem;
-  }
-
-  .mhsa-table--md thead th,
-  .mhsa-table--md tbody td {
-    padding: 0.62rem 0.65rem;
-  }
-
-  .mhsa-table--sm thead th,
-  .mhsa-table--sm tbody td {
-    padding: 0.42rem 0.45rem;
-  }
-
-  .mhsa-table--xs thead th,
-  .mhsa-table--xs tbody td {
-    padding: 0.28rem 0.35rem;
-  }
-
   /* shell panels / asides */
   --mhsa-shell-panel-bg: rgba(23, 26, 31, 0.72);
 
@@ -216,14 +179,10 @@
   --mhsa-heading: rgba(197, 147, 40, 0.95);
 
   --mhsa-card-header-bg:
-    linear-gradient(90deg, rgba(20, 141, 151, 0.18), rgba(20, 141, 151, 0.08)),
+    linear-gradient(180deg, rgba(20, 141, 151, 0.18), rgba(20, 141, 151, 0.08)),
     linear-gradient(90deg, rgba(26, 45, 66, 0.99), rgba(18, 34, 52, 0.99));
   --mhsa-card-header-text: rgba(238, 247, 252, 0.98);
   --mhsa-card-header-subtext: rgba(210, 230, 234, 0.8);
-
-  --mhsa-card-header-bg: #125e66;
-  --mhsa-card-header-text: #b7c1c8;
-  --mhsa-card-header-subtext: #97a2aa;
 
   --mhsa-card-body-bg:
     linear-gradient(
@@ -235,6 +194,8 @@
   --mhsa-card-body-text: rgba(245, 249, 255, 0.97);
   --mhsa-card-body-muted: rgba(212, 224, 236, 0.76);
 
+  /* what kind of    tables is  this  #3  -- check this */
+
   --mhsa-table-wrap-bg:
     linear-gradient(
       180deg,
@@ -242,20 +203,9 @@
       rgba(255, 255, 255, 0.004)
     ),
     rgba(8, 14, 22, 0.92);
-
-  --mhsa-card-title:
-    linear-gradient(
-      180deg,
-      rgba(118, 168, 210, 0.12),
-      rgba(118, 168, 210, 0.05)
-    ),
-    rgba(20, 28, 38, 0.96);
-  --mhsa-card-body-text: rgba(245, 249, 255, 0.97);
-  --mhsa-card-body-muted: rgba(212, 224, 236, 0.76);
-
   --mhsa-table-head-bg:
     linear-gradient(
-      180deg,
+      90deg,
       rgba(20, 141, 151, 0.28) 0%,
       rgba(122, 184, 255, 0.26) 55%,
       rgba(181, 156, 255, 0.22) 100%
@@ -263,14 +213,14 @@
     linear-gradient(180deg, rgba(25, 38, 53, 0.99), rgba(15, 24, 35, 0.99));
   --mhsa-table-head-text: rgba(242, 248, 255, 0.99);
   --mhsa-table-row-bg: linear-gradient(
-    180deg,
+    90deg,
     rgba(35, 52, 69, 0.99),
     rgba(28, 44, 59, 0.99)
   );
   --mhsa-table-row-bg-alt: linear-gradient(
-    180deg,
-    rgba(25, 40, 60, 0.9),
-    rgba(20, 35, 45, 0.99)
+    90deg,
+    rgba(29, 45, 60, 0.99),
+    rgba(24, 38, 52, 0.99)
   );
   --mhsa-table-row-text: rgba(242, 248, 252, 0.98);
   --mhsa-table-row-hover: linear-gradient(
@@ -278,178 +228,6 @@
     rgba(20, 141, 151, 0.24),
     rgba(122, 184, 255, 0.18)
   );
-}
-
-/* Ice theme wrapper: flat rows, subtle alt rows, light teal headers */
-.mhsa-ice {
-  --mhsa-bg: #f4f7f9;
-  --mhsa-panel: #ffffff;
-  --mhsa-card: #ffffff;
-  --mhsa-card-soft: rgba(255, 255, 255, 0.96);
-  --mhsa-shell-panel: rgba(255, 255, 255, 0.96);
-  --mhsa-shell-scrim: rgba(0, 0, 0, 0.03);
-  --mhsa-surface-strong: rgba(255, 255, 255, 0.98);
-  --mhsa-surface-soft: rgba(248, 250, 252, 0.98);
-  --mhsa-surface-glass: rgba(255, 255, 255, 0.92);
-  --mhsa-surface-black-25: rgba(0, 0, 0, 0.08);
-
-  --mhsa-text: rgba(24, 36, 48, 0.96);
-  --mhsa-muted: rgba(70, 86, 102, 0.76);
-  --mhsa-heading: rgba(19, 88, 96, 0.96);
-  --mhsa-link: rgba(19, 88, 96, 0.92);
-
-  --mhsa-border: rgba(20, 40, 60, 0.12);
-  --mhsa-border2: rgba(20, 40, 60, 0.08);
-  --mhsa-border-soft: rgba(20, 40, 60, 0.06);
-  --mhsa-border-strong: rgba(20, 40, 60, 0.16);
-  --mhsa-border-bright: rgba(20, 40, 60, 0.22);
-
-  --mhsa-white-02: rgba(0, 0, 0, 0.02);
-  --mhsa-white-03: rgba(0, 0, 0, 0.03);
-  --mhsa-white-04: rgba(0, 0, 0, 0.04);
-  --mhsa-white-05: rgba(0, 0, 0, 0.05);
-  --mhsa-white-06: rgba(0, 0, 0, 0.06);
-  --mhsa-white-10: rgba(0, 0, 0, 0.1);
-  --mhsa-white-85: rgba(20, 36, 48, 0.85);
-
-  --mhsa-shadow-lg: 0 20px 60px rgba(23, 43, 77, 0.12);
-  --mhsa-shadow-md: 0 20px 60px rgba(23, 43, 77, 0.1);
-  --mhsa-card-shadow: 0 12px 28px rgba(23, 43, 77, 0.1);
-  --mhsa-shell-shadow: 0 16px 40px rgba(23, 43, 77, 0.12);
-
-  --mhsa-home-glow-1: rgba(20, 141, 151, 0.05);
-  --mhsa-home-glow-2: rgba(122, 184, 255, 0.05);
-  --mhsa-home-overlay-top: rgba(255, 255, 255, 0.18);
-  --mhsa-home-overlay-bottom: rgba(244, 247, 249, 0.92);
-
-  --mhsa-topbar-bg: rgba(255, 255, 255, 0.9);
-  --mhsa-code-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-code-border: rgba(19, 35, 52, 0.1);
-  --mhsa-btn-border: rgba(19, 35, 52, 0.12);
-  --mhsa-btn-primary-bg: rgba(20, 141, 151, 0.12);
-  --mhsa-btn-primary-bg-hover: rgba(20, 141, 151, 0.18);
-  --mhsa-btn-primary-border: rgba(20, 141, 151, 0.28);
-  --mhsa-btn-secondary-bg: rgba(122, 184, 255, 0.1);
-  --mhsa-btn-secondary-bg-hover: rgba(122, 184, 255, 0.16);
-  --mhsa-btn-secondary-border: rgba(122, 184, 255, 0.28);
-
-  --mhsa-card-bg: rgba(255, 255, 255, 0.97);
-  --mhsa-card-title-bg: #f4fafb;
-  --mhsa-card-title-text: rgba(18, 48, 56, 0.96);
-  --mhsa-card-header-bg: #dff4f5;
-  --mhsa-card-header-text: rgba(19, 71, 79, 0.98);
-  --mhsa-card-header-subtext: rgba(42, 95, 103, 0.82);
-  --mhsa-card-body-bg: #ffffff;
-  --mhsa-card-body-text: rgba(24, 36, 48, 0.96);
-  --mhsa-card-body-muted: rgba(78, 94, 110, 0.76);
-
-  --mhsa-pill-border: rgba(20, 141, 151, 0.22);
-  --mhsa-pill-bg: rgba(20, 141, 151, 0.08);
-  --mhsa-pill-text: rgba(19, 71, 79, 0.94);
-
-  --mhsa-table-wrap-bg: #ffffff;
-  --mhsa-table-head-bg: #e8f6f7;
-  --mhsa-table-head-text: rgba(20, 63, 70, 0.98);
-  --mhsa-table-row-bg: #ffffff;
-  --mhsa-table-row-bg-alt: #f3f5f7;
-  --mhsa-table-row-text: rgba(28, 40, 52, 0.98);
-  --mhsa-table-row-hover: #dff1f3;
-  --mhsa-table-hover-bg: rgba(20, 141, 151, 0.06);
-  --mhsa-table-striped-bg: #f3f5f7;
-
-  --mhsa-shell-panel-bg: rgba(255, 255, 255, 0.96);
-
-  --mhsa-linkbtn-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-linkbtn-bg-hover: rgba(19, 35, 52, 0.08);
-  --mhsa-tab-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-tab-active-bg: rgba(20, 141, 151, 0.1);
-  --mhsa-tab-active-border: rgba(20, 141, 151, 0.24);
-}
-
-/* Light theme wrapper: flat rows, subtle alt rows, light teal headers */
-.mhsa-light {
-  --mhsa-bg: #f4f7f9;
-  --mhsa-panel: #ffffff;
-  --mhsa-card: #ffffff;
-  --mhsa-card-soft: rgba(255, 255, 255, 0.96);
-  --mhsa-shell-panel: rgba(255, 255, 255, 0.96);
-  --mhsa-shell-scrim: rgba(0, 0, 0, 0.03);
-  --mhsa-surface-strong: rgba(255, 255, 255, 0.98);
-  --mhsa-surface-soft: rgba(248, 250, 252, 0.98);
-  --mhsa-surface-glass: rgba(255, 255, 255, 0.92);
-  --mhsa-surface-black-25: rgba(0, 0, 0, 0.08);
-
-  --mhsa-text: rgba(24, 36, 48, 0.96);
-  --mhsa-muted: rgba(70, 86, 102, 0.76);
-  --mhsa-heading: rgba(19, 88, 96, 0.96);
-  --mhsa-link: rgba(19, 88, 96, 0.92);
-
-  --mhsa-border: rgba(20, 40, 60, 0.12);
-  --mhsa-border2: rgba(20, 40, 60, 0.08);
-  --mhsa-border-soft: rgba(20, 40, 60, 0.06);
-  --mhsa-border-strong: rgba(20, 40, 60, 0.16);
-  --mhsa-border-bright: rgba(20, 40, 60, 0.22);
-
-  --mhsa-white-02: rgba(0, 0, 0, 0.02);
-  --mhsa-white-03: rgba(0, 0, 0, 0.03);
-  --mhsa-white-04: rgba(0, 0, 0, 0.04);
-  --mhsa-white-05: rgba(0, 0, 0, 0.05);
-  --mhsa-white-06: rgba(0, 0, 0, 0.06);
-  --mhsa-white-10: rgba(0, 0, 0, 0.1);
-  --mhsa-white-85: rgba(20, 36, 48, 0.85);
-
-  --mhsa-shadow-lg: 0 20px 60px rgba(23, 43, 77, 0.12);
-  --mhsa-shadow-md: 0 20px 60px rgba(23, 43, 77, 0.1);
-  --mhsa-card-shadow: 0 12px 28px rgba(23, 43, 77, 0.1);
-  --mhsa-shell-shadow: 0 16px 40px rgba(23, 43, 77, 0.12);
-
-  --mhsa-home-glow-1: rgba(20, 141, 151, 0.05);
-  --mhsa-home-glow-2: rgba(122, 184, 255, 0.05);
-  --mhsa-home-overlay-top: rgba(255, 255, 255, 0.18);
-  --mhsa-home-overlay-bottom: rgba(244, 247, 249, 0.92);
-
-  --mhsa-topbar-bg: rgba(255, 255, 255, 0.9);
-  --mhsa-code-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-code-border: rgba(19, 35, 52, 0.1);
-  --mhsa-btn-border: rgba(19, 35, 52, 0.12);
-  --mhsa-btn-primary-bg: rgba(20, 141, 151, 0.12);
-  --mhsa-btn-primary-bg-hover: rgba(20, 141, 151, 0.18);
-  --mhsa-btn-primary-border: rgba(20, 141, 151, 0.28);
-  --mhsa-btn-secondary-bg: rgba(122, 184, 255, 0.1);
-  --mhsa-btn-secondary-bg-hover: rgba(122, 184, 255, 0.16);
-  --mhsa-btn-secondary-border: rgba(122, 184, 255, 0.28);
-
-  --mhsa-card-bg: rgba(255, 255, 255, 0.97);
-  --mhsa-card-title-bg: #f4fafb;
-  --mhsa-card-title-text: rgba(18, 48, 56, 0.96);
-  --mhsa-card-header-bg: #dff4f5;
-  --mhsa-card-header-text: rgba(19, 71, 79, 0.98);
-  --mhsa-card-header-subtext: rgba(42, 95, 103, 0.82);
-  --mhsa-card-body-bg: #ffffff;
-  --mhsa-card-body-text: rgba(24, 36, 48, 0.96);
-  --mhsa-card-body-muted: rgba(78, 94, 110, 0.76);
-
-  --mhsa-pill-border: rgba(20, 141, 151, 0.22);
-  --mhsa-pill-bg: rgba(20, 141, 151, 0.08);
-  --mhsa-pill-text: rgba(19, 71, 79, 0.94);
-
-  --mhsa-table-wrap-bg: #ffffff;
-  --mhsa-table-head-bg: #e8f6f7;
-  --mhsa-table-head-text: rgba(20, 63, 70, 0.98);
-  --mhsa-table-row-bg: #ffffff;
-  --mhsa-table-row-bg-alt: #f3f5f7;
-  --mhsa-table-row-text: rgba(28, 40, 52, 0.98);
-  --mhsa-table-row-hover: #dff1f3;
-  --mhsa-table-hover-bg: rgba(20, 141, 151, 0.06);
-  --mhsa-table-striped-bg: #f3f5f7;
-
-  --mhsa-shell-panel-bg: rgba(255, 255, 255, 0.96);
-
-  --mhsa-linkbtn-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-linkbtn-bg-hover: rgba(19, 35, 52, 0.08);
-  --mhsa-tab-bg: rgba(19, 35, 52, 0.04);
-  --mhsa-tab-active-bg: rgba(20, 141, 151, 0.1);
-  --mhsa-tab-active-border: rgba(20, 141, 151, 0.24);
 }
 
 html,
@@ -463,7 +241,7 @@ body.mhsa-body {
   background: var(--mhsa-bg) !important;
 }
 
-/* ------------------ MHSA Home wrapper ------this is much like mhsa-dark  ------------ */
+/* ------------------ MHSA Home wrapper ------------------ */
 .mhsa-home {
   min-height: 100vh;
   color: var(--mhsa-text);
@@ -679,6 +457,7 @@ body.mhsa-body {
   gap: 14px;
 }
 
+/* base card shell */
 .mhsa-card {
   border-radius: 16px;
   border: 1px solid var(--mhsa-border);
@@ -687,7 +466,7 @@ body.mhsa-body {
   overflow: hidden;
 }
 
-/* direct-title cards (home/menu pattern) */
+/* direct-title cards (home/menu pattern only) */
 .mhsa-card > .mhsa-card-title {
   margin: 0;
   padding: 12px 12px 10px;
@@ -698,7 +477,7 @@ body.mhsa-body {
   letter-spacing: 0.01em;
 }
 
-/* search / results / detail cards using Bootstrap card-header */
+/* Bootstrap card-header pattern (search/results/detail cards) */
 .card.mhsa-card > .card-header.mhsa-card-header {
   margin: 0;
   padding: 12px 14px 11px;
@@ -744,16 +523,10 @@ body.mhsa-body {
   opacity: 1;
 }
 
-/* optional utility body if used elsewhere */
+/* optional standalone body utility, only if you use it elsewhere */
 .mhsa-card__body {
   background: var(--mhsa-card-body-bg);
   color: var(--mhsa-card-body-text);
-}
-
-.mhsa-card__body .mhsa-dim,
-.mhsa-card__body .text-muted {
-  color: var(--mhsa-card-body-muted);
-  opacity: 1;
 }
 
 .mhsa-tree {
@@ -807,7 +580,7 @@ body.mhsa-body {
 }
 
 /* ==============================
-   Shared MHSA Table Theme
+   Shared MHSA Table Theme    #4
    ============================== */
 
 .mhsa-table-wrap {

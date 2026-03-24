@@ -196,9 +196,9 @@ export default function Search() {
       </div>
     );
   }, [heroTitle]);
-  //    what   <div className="mhsa-page mhsa-home">
+
   return (
-    <div className="mhsa-page mhsa-dark">
+    <div className="mhsa-page mhsa-home">
       <main className="mhsa-main">
         <section className="mhsa-left">
           {resultsModel ? (

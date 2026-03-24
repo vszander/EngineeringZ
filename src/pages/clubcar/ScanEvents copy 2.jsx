@@ -1,8 +1,7 @@
 // src/pages/mhsa/ScanEvents.jsx
 import React, { useEffect, useState } from "react";
 //import "./mhsa_home.css";
-//import "bootstrap/dist/css/bootstrap.min.css";
-import { Link } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
@@ -67,16 +66,20 @@ export default function ScanEvents() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, limit]);
 
+  //   was;     <div className="container-fluid py-3">
+
   return (
-    <div className="mhsa-page mhsa-home">
-      <div className="card mhsa-card">
+    <div className="mhsa-page mhsa-dark">
+      <div className="card">
         <div className="card-body">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
             <div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900 }}>
-                Event Ledger
+                Scan Events - try 2
               </div>
-              <div className="mhsa-em">Newest first • showing last {limit}</div>
+              <div className="text-muted">
+                Newest first • showing last {limit}
+              </div>
             </div>
 
             <div className="d-flex align-items-center gap-2">
@@ -111,17 +114,17 @@ export default function ScanEvents() {
                   Auto
                 </label>
               </div>
-              <div>
-                <Link to="/clubcar">← MHSA Home</Link>
-              </div>
             </div>
           </div>
 
           {err ? <div className="alert alert-danger">{err}</div> : null}
 
-          <div className="table-responsive mhsa-table-wrap">
-            <table className="table table-sm table-hover mb-0 mhsa-table mhsa-table--sm align-middle">
-              <thead>
+          <div className="table-responsive">
+            <table
+              className="table table-sm table-striped table-hover align-middle"
+              style={{ fontSize: "0.78rem" }}
+            >
+              <thead className="table-light">
                 <tr>
                   <th style={{ whiteSpace: "nowrap" }}>Time</th>
                   <th>Action</th>
