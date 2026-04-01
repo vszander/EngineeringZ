@@ -203,6 +203,7 @@ function AssignmentChip({ assignment, onDragStart }) {
     null;
 
   const note = assignment.note ?? assignment.meta_json?.note ?? "";
+
   const workstation =
     assignment.workstation_future_csmr ??
     assignment.meta_json?.workstation_future_csmr ??
@@ -216,59 +217,72 @@ function AssignmentChip({ assignment, onDragStart }) {
 
   return (
     <div
-      className="qm-assignment-chip"
+      className="qm-assignment-chip qm-assignment-chip--compact"
       draggable
       onDragStart={(e) => onDragStart(e, assignment)}
       title={`${assignment.part_number}${displayPartName ? ` • ${displayPartName}` : ""}`}
     >
-      <div className="qm-assignment-top">
-        <div className="qm-chip-title-wrap">
-          <div className="qm-part-name qm-part-name--primary">
-            {displayPartName}
+      <div className="qm-chip-main">
+        <div className="qm-chip-row-top">
+          <div className="qm-chip-title-wrap">
+            <div className="qm-chip-title-line">
+              <div className="qm-part-name qm-part-name--primary">
+                {displayPartName}
+              </div>
+
+              <div className="qm-part-number qm-part-number--secondary">
+                {assignment.part_number}
+              </div>
+            </div>
+
+            <div className="qm-chip-detail-row">
+              <span className="qm-chip-label">POU</span>
+              <span className="qm-chip-value">
+                {workstation || "Not assigned"}
+              </span>
+            </div>
           </div>
-          <div className="qm-part-number qm-part-number--secondary">
-            {assignment.part_number}
-          </div>
-        </div>
 
-        {urgency !== null && (
-          <span
-            className={`qm-urgency qm-urgency--${Number(urgency) >= 4 ? "high" : Number(urgency) >= 2 ? "med" : "low"}`}
-          >
-            U{urgency}
-          </span>
-        )}
-      </div>
-
-      <div className="qm-chip-detail-row">
-        <span className="qm-chip-label">POU</span>
-        <span className="qm-chip-value">{workstation || "Not assigned"}</span>
-      </div>
-
-      <div className="qm-chip-footer">
-        <div className="qm-chip-footer-left">
-          <AssignmentCountdown
-            expectedStageTime={assignment.expected_stage_time}
-          />
-
-          {assignment.qty ? (
-            <span className="qm-chip-meta">Qty: {assignment.qty}</span>
-          ) : null}
-        </div>
-
-        <div className="qm-chip-footer-right">
-          {note ? (
-            <button
-              type="button"
-              className="qm-note-btn"
-              title={note}
-              aria-label="Assignment note"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
+          {urgency !== null && (
+            <span
+              className={`qm-urgency qm-urgency--${
+                Number(urgency) >= 4
+                  ? "high"
+                  : Number(urgency) >= 2
+                    ? "med"
+                    : "low"
+              }`}
             >
-              🗒
-            </button>
-          ) : null}
+              U{urgency}
+            </span>
+          )}
+        </div>
+
+        <div className="qm-chip-footer">
+          <div className="qm-chip-footer-left">
+            <AssignmentCountdown
+              expectedStageTime={assignment.expected_stage_time}
+            />
+
+            {assignment.qty ? (
+              <span className="qm-chip-meta">Qty: {assignment.qty}</span>
+            ) : null}
+          </div>
+
+          <div className="qm-chip-footer-right">
+            {note ? (
+              <button
+                type="button"
+                className="qm-note-btn"
+                title={note}
+                aria-label="Assignment note"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                🗒
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
@@ -290,25 +304,46 @@ function EmptySlot({ flightId, position, onDrop, onDragOver }) {
   );
 }
 
-function FilledSlot({
-  assignment,
-  flightId,
-  position,
-  onDrop,
-  onDragOver,
-  onDragStart,
-}) {
+function SlotCartButton({ assignment, cart }) {
+  const iconUri =
+    cart?.icon_uri ||
+    assignment?.cart_icon_uri ||
+    assignment?.meta_json?.cart_icon_uri ||
+    assignment?.meta_json?.cart?.icon_uri ||
+    "";
+
+  const cartCategory = Number(
+    cart?.cart_category ??
+      assignment?.cart_category ??
+      assignment?.meta_json?.cart_category ??
+      assignment?.meta_json?.cart?.cart_category ??
+      0,
+  );
+
+  const isSmallPartsCart = cartCategory === 7;
+
   return (
-    <div
-      className="qm-flight-slot qm-flight-slot--filled"
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, flightId, position)}
-      data-flight-id={flightId}
-      data-position={position}
+    <button
+      type="button"
+      className={`qm-slot-cart-btn ${isSmallPartsCart ? "qm-slot-cart-btn--interactive" : ""}`}
+      aria-label={isSmallPartsCart ? "Small parts cart" : "Cart"}
+      title={isSmallPartsCart ? "Small parts cart" : "Cart"}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="qm-slot-label">Spot {position}</div>
-      <AssignmentChip assignment={assignment} onDragStart={onDragStart} />
-    </div>
+      {iconUri ? (
+        <img
+          src={iconUri}
+          alt=""
+          className="qm-slot-cart-icon"
+          draggable="false"
+        />
+      ) : (
+        <span className="qm-slot-cart-fallback">🛒</span>
+      )}
+
+      {isSmallPartsCart ? <span className="qm-slot-cart-badge">12</span> : null}
+    </button>
   );
 }
 
@@ -369,14 +404,20 @@ function FlightCard({
             >
               <div className="qm-slot-label">Pos {position}</div>
 
-              {assignment ? (
-                <AssignmentChip
-                  assignment={assignment}
-                  onDragStart={onDragStart}
-                />
-              ) : (
-                <div className="qm-slot-placeholder">Drop assignment here</div>
-              )}
+              <div className="qm-slot-row">
+                <SlotCartButton assignment={assignment} />
+
+                {assignment ? (
+                  <AssignmentChip
+                    assignment={assignment}
+                    onDragStart={onDragStart}
+                  />
+                ) : (
+                  <div className="qm-slot-placeholder">
+                    Drop assignment here
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
