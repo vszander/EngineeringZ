@@ -1084,6 +1084,136 @@
   border-radius: 12px;
 }
 
+/* --- small parts cart pod expansion --- */
+
+.qm-flight-card,
+.qm-flight-slots,
+.qm-flight-slot {
+  overflow: visible;
+}
+
+.qm-flight-slot--pods-open {
+  position: relative;
+  z-index: 12;
+}
+
+.qm-slot-cart-btn--open {
+  border-color: rgba(20, 141, 151, 0.55);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
+}
+
+.qm-cart-pods-panel {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(100% - 6px);
+  z-index: 20;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(13, 22, 34, 0.98),
+    rgba(16, 32, 43, 0.98)
+  );
+  border: 1px solid rgba(20, 141, 151, 0.28);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  animation: qmPodsReveal 0.18s ease-out;
+}
+
+@keyframes qmPodsReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.qm-cart-pods-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.qm-cart-pods-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #f4fbfc;
+}
+
+.qm-cart-pods-subtitle {
+  font-size: 0.72rem;
+  color: rgba(234, 244, 247, 0.68);
+}
+
+.qm-cart-pods-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.qm-cart-pod {
+  min-width: 0;
+  min-height: 68px;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.qm-cart-pod--filled {
+  border: 1px solid rgba(20, 141, 151, 0.26);
+  background: rgba(20, 141, 151, 0.09);
+}
+
+.qm-cart-pod--empty {
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.qm-cart-pod-label {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(234, 244, 247, 0.58);
+  margin-bottom: 5px;
+}
+
+.qm-cart-pod-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #f4fbfc;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qm-cart-pod-meta {
+  margin-top: 3px;
+  font-size: 0.64rem;
+  color: rgba(234, 244, 247, 0.68);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qm-cart-pod-empty {
+  font-size: 0.68rem;
+  color: rgba(234, 244, 247, 0.42);
+  line-height: 1.1;
+}
+
+@media (max-width: 1200px) {
+  .qm-cart-pods-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   .qm-chip-pods-grid {
     grid-template-columns: 1fr;

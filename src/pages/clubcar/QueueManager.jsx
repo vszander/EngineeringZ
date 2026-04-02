@@ -304,31 +304,45 @@ function EmptySlot({ flightId, position, onDrop, onDragOver }) {
   );
 }
 
-function SlotCartButton({ assignment, cart }) {
+function SlotCartButton({ assignment, cart, isExpanded, onToggle }) {
+  const resolvedCart =
+    cart || assignment?.cart || assignment?.meta_json?.cart || null;
+
   const iconUri =
-    cart?.icon_uri ||
+    resolvedCart?.icon_uri ||
     assignment?.cart_icon_uri ||
     assignment?.meta_json?.cart_icon_uri ||
-    assignment?.meta_json?.cart?.icon_uri ||
     "";
 
   const cartCategory = Number(
-    cart?.cart_category ??
+    resolvedCart?.cart_category ??
       assignment?.cart_category ??
       assignment?.meta_json?.cart_category ??
-      assignment?.meta_json?.cart?.cart_category ??
       0,
   );
 
   const isSmallPartsCart = cartCategory === 7;
+  const cartId = resolvedCart?.id || assignment?.cart_id || null;
+  const podsUsed = resolvedCart?.pods_used ?? (isSmallPartsCart ? 1 : 0);
+  const podCapacity = resolvedCart?.pod_capacity ?? (isSmallPartsCart ? 12 : 1);
+
+  function handleClick(e) {
+    e.stopPropagation();
+    if (!isSmallPartsCart) return;
+    if (typeof onToggle === "function") {
+      onToggle(cartId);
+    }
+  }
 
   return (
     <button
       type="button"
-      className={`qm-slot-cart-btn ${isSmallPartsCart ? "qm-slot-cart-btn--interactive" : ""}`}
+      className={`qm-slot-cart-btn ${
+        isSmallPartsCart ? "qm-slot-cart-btn--interactive" : ""
+      } ${isExpanded ? "qm-slot-cart-btn--open" : ""}`}
       aria-label={isSmallPartsCart ? "Small parts cart" : "Cart"}
       title={isSmallPartsCart ? "Small parts cart" : "Cart"}
-      onClick={(e) => e.stopPropagation()}
+      onClick={handleClick}
       onMouseDown={(e) => e.stopPropagation()}
     >
       {iconUri ? (
@@ -342,8 +356,54 @@ function SlotCartButton({ assignment, cart }) {
         <span className="qm-slot-cart-fallback">🛒</span>
       )}
 
-      {isSmallPartsCart ? <span className="qm-slot-cart-badge">12</span> : null}
+      {isSmallPartsCart ? (
+        <span className="qm-slot-cart-badge">
+          {podsUsed}/{podCapacity}
+        </span>
+      ) : null}
     </button>
+  );
+}
+
+function CartPodsPanel({ cart }) {
+  const pods = cart?.pods || [];
+
+  return (
+    <div className="qm-cart-pods-panel">
+      <div className="qm-cart-pods-header">
+        <div className="qm-cart-pods-title">Small Parts Cart</div>
+        <div className="qm-cart-pods-subtitle">
+          {cart?.pods_used ?? 0}/{cart?.pod_capacity ?? 12} pods used
+        </div>
+      </div>
+
+      <div className="qm-cart-pods-grid">
+        {pods.map((pod) => (
+          <div
+            key={pod.pod_number}
+            className={`qm-cart-pod ${
+              pod.is_filled ? "qm-cart-pod--filled" : "qm-cart-pod--empty"
+            }`}
+          >
+            <div className="qm-cart-pod-label">Pod {pod.pod_number}</div>
+
+            {pod.is_filled ? (
+              <>
+                <div className="qm-cart-pod-name">
+                  {pod.part_name || pod.part_number || "Assigned part"}
+                </div>
+                <div className="qm-cart-pod-meta">{pod.part_number || "—"}</div>
+                <div className="qm-cart-pod-meta">
+                  POU {pod.workstation_future_csmr || "—"}
+                </div>
+              </>
+            ) : (
+              <div className="qm-cart-pod-empty">Empty</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -355,6 +415,8 @@ function FlightCard({
   onDragStart,
   onDelayFlight,
   onCancelFlight,
+  expandedCartIds,
+  toggleCartExpanded,
 }) {
   const assignedCount = (flight.assignments || []).length;
   const remaining = Math.max(0, (capacity || 0) - assignedCount);
@@ -393,19 +455,34 @@ function FlightCard({
             (a) => Number(a.position) === position,
           );
 
+          const slotCart = assignment?.cart || null;
+          const slotCartId = slotCart?.id || assignment?.cart_id || null;
+
+          const isSmallPartsCart =
+            Number(
+              slotCart?.cart_category ?? assignment?.cart_category ?? 0,
+            ) === 7;
+
+          const isExpanded = !!expandedCartIds[slotCartId];
+
           return (
             <div
               key={position}
               className={`qm-flight-slot ${
                 assignment ? "qm-flight-slot--filled" : "qm-flight-slot--empty"
-              }`}
+              } ${isExpanded ? "qm-flight-slot--pods-open" : ""}`}
               onDragOver={onDragOver}
               onDrop={(e) => onDrop(e, flight.id, position)}
             >
               <div className="qm-slot-label">Pos {position}</div>
 
               <div className="qm-slot-row">
-                <SlotCartButton assignment={assignment} />
+                <SlotCartButton
+                  assignment={assignment}
+                  cart={slotCart}
+                  isExpanded={isExpanded}
+                  onToggle={toggleCartExpanded}
+                />
 
                 {assignment ? (
                   <AssignmentChip
@@ -418,6 +495,10 @@ function FlightCard({
                   </div>
                 )}
               </div>
+
+              {assignment && isSmallPartsCart && isExpanded ? (
+                <CartPodsPanel cart={slotCart} />
+              ) : null}
             </div>
           );
         })}
@@ -517,6 +598,17 @@ export default function QueueManager() {
     }
   }
 
+  const [expandedCartIds, setExpandedCartIds] = useState({});
+
+  function toggleCartExpanded(cartId) {
+    if (!cartId) return;
+
+    setExpandedCartIds((prev) => ({
+      ...prev,
+      [cartId]: !prev[cartId],
+    }));
+  }
+
   useEffect(() => {
     loadBoard();
   }, [queueId]);
@@ -566,7 +658,8 @@ export default function QueueManager() {
     }
   }
 
-  const preferences = data?.preferences?.group_7 || null;
+  const preferences = data?.preferences || null;
+  //const preferences = data?.preferences?.group_7 || null;
 
   async function onAddFlight() {
     try {
@@ -778,6 +871,8 @@ export default function QueueManager() {
               onDragStart={onDragStart}
               onDelayFlight={onDelayFlight}
               onCancelFlight={onCancelFlight}
+              expandedCartIds={expandedCartIds}
+              toggleCartExpanded={toggleCartExpanded}
             />
           ))}
         </div>
