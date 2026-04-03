@@ -846,6 +846,12 @@ export default function QueueManager() {
   const backendBase = import.meta.env.VITE_BACKEND_URL;
 
   async function postFlightAction(path, payload = {}) {
+    console.log("[CSRF debug]", {
+      cookieString: document.cookie,
+      csrfFromCookieHelper: getCsrfToken(),
+      targetUrl: `${backendBase}/mhsa/api/queue-manager/move-assignment/`,
+      origin: window.location.origin,
+    });
     const response = await fetch(`${backendBase}${path}`, {
       method: "POST",
       credentials: "include",
