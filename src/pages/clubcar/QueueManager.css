@@ -1208,6 +1208,22 @@
   line-height: 1.1;
 }
 
+.qm-btn--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.qm-btn--secondary {
+  border: 1px solid rgba(20, 141, 151, 0.45);
+  background: rgba(20, 141, 151, 0.12);
+  color: #155157;
+}
+
+.qm-btn--secondary:hover {
+  background: rgba(20, 141, 151, 0.18);
+}
+
 @media (max-width: 1200px) {
   .qm-cart-pods-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

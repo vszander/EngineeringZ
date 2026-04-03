@@ -86,6 +86,294 @@ function formatTimeOnly(isoValue) {
   });
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatManifestQty(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return String(value);
+}
+
+function buildManifestPreviewHtml(manifest) {
+  const rows = Array.isArray(manifest?.rows) ? manifest.rows : [];
+  const pouGroups = Array.isArray(manifest?.pou_groups)
+    ? manifest.pou_groups
+    : [];
+  const flight = manifest?.flight || {};
+  const queue = manifest?.queue || {};
+  const summary = manifest?.summary || {};
+
+  const generatedAt = new Date().toLocaleString([], {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const groupsHtml = (
+    pouGroups.length
+      ? pouGroups
+      : [
+          {
+            pou: "ALL",
+            rows,
+          },
+        ]
+  )
+    .map((group) => {
+      const groupRows = Array.isArray(group?.rows) ? group.rows : [];
+
+      const bodyHtml = groupRows
+        .map((row) => {
+          return `
+        <tr>
+          <td class="col-pou">${escapeHtml(row.pou || "")}</td>
+          <td class="col-desc">${escapeHtml(row.description || "")}</td>
+          <td class="col-part">${escapeHtml(row.part_number || "")}</td>
+          <td class="col-qty">${escapeHtml(formatManifestQty(row.qty))}</td>
+        </tr>
+      `;
+        })
+        .join("");
+
+      return `
+      <section class="ep-group">
+        <div class="ep-group-title">${escapeHtml(group.pou || "UNASSIGNED")}</div>
+        <table class="ep-table">
+          <thead>
+            <tr>
+              <th class="col-pou">POU</th>
+              <th class="col-desc">Description</th>
+              <th class="col-part">Part Number</th>
+              <th class="col-qty">Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              bodyHtml ||
+              `
+              <tr>
+                <td colspan="4" class="ep-empty">No rows</td>
+              </tr>
+            `
+            }
+          </tbody>
+        </table>
+      </section>
+    `;
+    })
+    .join("");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(flight.name || "Flight Manifest")}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --ep-black: #111;
+      --ep-red: #b00020;
+      --ep-white: #ffffff;
+      --ep-line: #1f1f1f;
+      --ep-soft: #f4f4f4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #d7d7d7;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ep-black);
+      padding: 24px;
+    }
+
+    .device {
+      width: 480px;
+      min-height: 800px;
+      margin: 0 auto;
+      background: var(--ep-white);
+      border: 2px solid var(--ep-black);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    .ep-header {
+      padding: 18px 18px 12px 18px;
+      border-bottom: 3px solid var(--ep-black);
+    }
+
+    .ep-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ep-red);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .ep-title {
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+    }
+
+    .ep-subtitle {
+      font-size: 14px;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .ep-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 2px solid var(--ep-black);
+      background: var(--ep-soft);
+    }
+
+    .ep-summary-card {
+      border: 1px solid var(--ep-black);
+      padding: 8px;
+      background: var(--ep-white);
+    }
+
+    .ep-summary-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ep-red);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .ep-summary-value {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .ep-content {
+      padding: 12px 14px 18px 14px;
+    }
+
+    .ep-group {
+      margin-bottom: 14px;
+      border: 1px solid var(--ep-black);
+    }
+
+    .ep-group-title {
+      padding: 8px 10px;
+      background: var(--ep-red);
+      color: var(--ep-white);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .ep-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .ep-table th,
+    .ep-table td {
+      border-top: 1px solid var(--ep-line);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    .ep-table th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #ededed;
+    }
+
+    .ep-table td {
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .col-pou  { width: 19%; font-weight: 700; }
+    .col-desc { width: 44%; }
+    .col-part { width: 22%; font-size: 11px !important; }
+    .col-qty  { width: 15%; text-align: right; font-weight: 800; }
+
+    .ep-empty {
+      text-align: center;
+      color: #555;
+      padding: 18px 8px !important;
+    }
+
+    .ep-footer {
+      padding: 10px 18px 16px 18px;
+      border-top: 2px solid var(--ep-black);
+      font-size: 11px;
+      color: #444;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .device {
+        box-shadow: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="device">
+    <header class="ep-header">
+      <div class="ep-kicker">MHSA Flight Manifest</div>
+      <h1 class="ep-title">${escapeHtml(flight.name || "Flight")}</h1>
+      <p class="ep-subtitle">
+        Queue: <strong>${escapeHtml(queue.name || "")}</strong><br/>
+        Departure: <strong>${escapeHtml(formatTimeOnly(flight.planned_departure_time) || "--:--")}</strong>
+        ${flight.status_label ? `&nbsp;&nbsp;•&nbsp;&nbsp;Status: <strong>${escapeHtml(flight.status_label)}</strong>` : ""}
+      </p>
+    </header>
+
+    <section class="ep-summary">
+      <div class="ep-summary-card">
+        <div class="ep-summary-label">Assignments</div>
+        <div class="ep-summary-value">${escapeHtml(summary.staged_assignment_count ?? 0)}</div>
+      </div>
+      <div class="ep-summary-card">
+        <div class="ep-summary-label">Carts</div>
+        <div class="ep-summary-value">${escapeHtml(summary.cart_count ?? 0)}</div>
+      </div>
+      <div class="ep-summary-card">
+        <div class="ep-summary-label">Rows</div>
+        <div class="ep-summary-value">${escapeHtml(summary.row_count ?? 0)}</div>
+      </div>
+    </section>
+
+    <main class="ep-content">
+      ${groupsHtml}
+    </main>
+
+    <footer class="ep-footer">
+      Generated ${escapeHtml(generatedAt)}
+    </footer>
+  </div>
+</body>
+</html>`;
+}
+
 function FlightCountdown({ plannedDepartureTime }) {
   const [, setTick] = useState(0);
 
@@ -415,8 +703,10 @@ function FlightCard({
   onDragStart,
   onDelayFlight,
   onCancelFlight,
+  onOpenManifest,
   expandedCartIds,
   toggleCartExpanded,
+  busy,
 }) {
   const assignedCount = (flight.assignments || []).length;
   const remaining = Math.max(0, (capacity || 0) - assignedCount);
@@ -507,8 +797,20 @@ function FlightCard({
       <div className="qm-flight-card-actions">
         <button
           type="button"
+          className="qm-btn qm-btn--secondary qm-btn--icon"
+          onClick={() => onOpenManifest(flight)}
+          disabled={busy}
+          title="Open e-paper manifest preview"
+          aria-label="Open e-paper manifest preview"
+        >
+          📄 Manifest
+        </button>
+
+        <button
+          type="button"
           className="qm-btn qm-btn--ghost"
           onClick={() => onDelayFlight(flight)}
+          disabled={busy}
         >
           Delay +5m
         </button>
@@ -517,6 +819,7 @@ function FlightCard({
           type="button"
           className="qm-btn qm-btn--danger"
           onClick={() => onCancelFlight(flight)}
+          disabled={busy}
         >
           Cancel Flight
         </button>
@@ -733,6 +1036,17 @@ export default function QueueManager() {
     }
   }
 
+  function onOpenManifest(flight) {
+    if (!flight?.id) {
+      window.alert("Flight id is missing.");
+      return;
+    }
+
+    const previewUrl = `/clubcar/flight-manifest-preview?flight_id=${encodeURIComponent(flight.id)}`;
+
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  }
+
   async function onDropToFlight(e, flightId, position) {
     e.preventDefault();
     const assignmentId = e.dataTransfer.getData("text/plain");
@@ -871,8 +1185,10 @@ export default function QueueManager() {
               onDragStart={onDragStart}
               onDelayFlight={onDelayFlight}
               onCancelFlight={onCancelFlight}
+              onOpenManifest={onOpenManifest}
               expandedCartIds={expandedCartIds}
               toggleCartExpanded={toggleCartExpanded}
+              busy={busy}
             />
           ))}
         </div>
