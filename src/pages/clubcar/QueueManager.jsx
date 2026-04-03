@@ -3,8 +3,15 @@ import "./QueueManager.css";
 import { Link } from "react-router-dom";
 
 function getCsrfToken() {
-  const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : "";
+  const cookies = document.cookie.split(";").map((c) => c.trim());
+  const csrfCookies = cookies.filter((c) => c.startsWith("csrftoken="));
+
+  console.log("[getCsrfToken] csrf cookies found", csrfCookies);
+
+  if (!csrfCookies.length) return "";
+
+  const last = csrfCookies[csrfCookies.length - 1];
+  return decodeURIComponent(last.substring("csrftoken=".length));
 }
 
 //const backendBase = import.meta.env.VITE_BACKEND_URL;
