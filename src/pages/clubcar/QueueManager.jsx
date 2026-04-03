@@ -7,6 +7,8 @@ function getCsrfToken() {
   return match ? decodeURIComponent(match[1]) : "";
 }
 
+//const backendBase = import.meta.env.VITE_BACKEND_URL;
+
 function formatCountdownParts(targetIso) {
   if (!targetIso) {
     return {
