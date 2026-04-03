@@ -6,12 +6,13 @@ function getCsrfToken() {
   const cookies = document.cookie.split(";").map((c) => c.trim());
   const csrfCookies = cookies.filter((c) => c.startsWith("csrftoken="));
 
-  console.log("[getCsrfToken] csrf cookies found", csrfCookies);
+  console.log("[getCsrfToken] csrfCookies", csrfCookies);
 
   if (!csrfCookies.length) return "";
 
-  const last = csrfCookies[csrfCookies.length - 1];
-  return decodeURIComponent(last.substring("csrftoken=".length));
+  return decodeURIComponent(
+    csrfCookies[csrfCookies.length - 1].slice("csrftoken=".length),
+  );
 }
 
 //const backendBase = import.meta.env.VITE_BACKEND_URL;
