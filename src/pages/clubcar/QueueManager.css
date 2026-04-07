@@ -1084,6 +1084,82 @@
   border-radius: 12px;
 }
 
+.qm-available-carts-card {
+  background: rgba(18, 24, 31, 0.92);
+  border: 1px solid rgba(183, 154, 93, 0.22);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.qm-available-cart-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(183, 154, 93, 0.16);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: grab;
+}
+
+.qm-available-cart-chip:last-child {
+  margin-bottom: 0;
+}
+
+.qm-available-cart-chip:active {
+  cursor: grabbing;
+}
+
+.qm-available-cart-chip__main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qm-available-cart-chip__row-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.qm-available-cart-chip__cart {
+  flex: 0 0 auto;
+}
+
+.qm-available-cart-chip__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.qm-available-cart-chip__title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.qm-available-cart-chip__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.qm-available-cart-chip__right {
+  flex: 0 0 auto;
+}
+
+.qm-available-cart-chip__footer {
+  padding-left: 72px;
+}
+
+.qm-empty-state {
+  padding: 10px 4px;
+  opacity: 0.72;
+  font-style: italic;
+}
+
 /* --- small parts cart pod expansion --- */
 
 .qm-flight-card,

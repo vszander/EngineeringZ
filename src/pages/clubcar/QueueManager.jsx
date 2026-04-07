@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Popover } from "bootstrap";
 import "./QueueManager.css";
 import { Link } from "react-router-dom";
 
@@ -572,8 +573,13 @@ function AssignmentChip({ assignment, onDragStart }) {
               <button
                 type="button"
                 className="qm-note-btn"
-                title={note}
                 aria-label="Assignment note"
+                data-qm-note-popover="1"
+                data-bs-toggle="popover"
+                data-bs-trigger="hover focus"
+                data-bs-placement="left"
+                data-bs-title="Assignment note"
+                data-bs-content={note}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
               >
@@ -621,8 +627,8 @@ function SlotCartButton({ assignment, cart, isExpanded, onToggle }) {
 
   const isSmallPartsCart = cartCategory === 7;
   const cartId = resolvedCart?.id || assignment?.cart_id || null;
-  const podsUsed = resolvedCart?.pods_used ?? (isSmallPartsCart ? 1 : 0);
-  const podCapacity = resolvedCart?.pod_capacity ?? (isSmallPartsCart ? 12 : 1);
+  const podsUsed = Number(resolvedCart?.pods_used ?? 0);
+  const podCapacity = Number(resolvedCart?.pod_capacity ?? 0);
 
   function handleClick(e) {
     e.stopPropagation();
@@ -632,14 +638,17 @@ function SlotCartButton({ assignment, cart, isExpanded, onToggle }) {
     }
   }
 
+  const buttonTitle =
+    resolvedCart?.name || (isSmallPartsCart ? "Small parts cart" : "Cart");
+
   return (
     <button
       type="button"
       className={`qm-slot-cart-btn ${
         isSmallPartsCart ? "qm-slot-cart-btn--interactive" : ""
       } ${isExpanded ? "qm-slot-cart-btn--open" : ""}`}
-      aria-label={isSmallPartsCart ? "Small parts cart" : "Cart"}
-      title={isSmallPartsCart ? "Small parts cart" : "Cart"}
+      aria-label={buttonTitle}
+      title={buttonTitle}
       onClick={handleClick}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -654,7 +663,7 @@ function SlotCartButton({ assignment, cart, isExpanded, onToggle }) {
         <span className="qm-slot-cart-fallback">🛒</span>
       )}
 
-      {isSmallPartsCart ? (
+      {isSmallPartsCart && podCapacity > 0 ? (
         <span className="qm-slot-cart-badge">
           {podsUsed}/{podCapacity}
         </span>
@@ -664,14 +673,42 @@ function SlotCartButton({ assignment, cart, isExpanded, onToggle }) {
 }
 
 function CartPodsPanel({ cart }) {
-  const pods = cart?.pods || [];
+  const podCapacity = Number(cart?.pod_capacity ?? 0);
+  const rawPods = Array.isArray(cart?.pods) ? cart.pods : [];
+
+  const podMap = new Map(
+    rawPods
+      .filter((pod) => pod && Number(pod.pod_number) > 0)
+      .map((pod) => [Number(pod.pod_number), pod]),
+  );
+
+  const pods =
+    podCapacity > 0
+      ? Array.from({ length: podCapacity }, (_, idx) => {
+          const podNumber = idx + 1;
+          return (
+            podMap.get(podNumber) || {
+              pod_number: podNumber,
+              is_filled: false,
+              part_number: "",
+              part_name: "",
+              workstation_future_csmr: "",
+              qty: null,
+              container_uid: "",
+              container_label: "",
+            }
+          );
+        })
+      : rawPods;
 
   return (
     <div className="qm-cart-pods-panel">
       <div className="qm-cart-pods-header">
-        <div className="qm-cart-pods-title">Small Parts Cart</div>
+        <div className="qm-cart-pods-title">
+          {cart?.name || "Small Parts Cart"}
+        </div>
         <div className="qm-cart-pods-subtitle">
-          {cart?.pods_used ?? 0}/{cart?.pod_capacity ?? 12} pods used
+          {Number(cart?.pods_used ?? 0)}/{podCapacity} pods used
         </div>
       </div>
 
@@ -682,24 +719,126 @@ function CartPodsPanel({ cart }) {
             className={`qm-cart-pod ${
               pod.is_filled ? "qm-cart-pod--filled" : "qm-cart-pod--empty"
             }`}
+            title={
+              pod.is_filled
+                ? [
+                    pod.part_name || pod.container_label || "Loaded pod",
+                    pod.part_number || "",
+                    pod.workstation_future_csmr
+                      ? `POU ${pod.workstation_future_csmr}`
+                      : "",
+                    pod.qty !== null && pod.qty !== undefined && pod.qty !== ""
+                      ? `Qty ${pod.qty}`
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")
+                : `Pod ${pod.pod_number} empty`
+            }
           >
             <div className="qm-cart-pod-label">Pod {pod.pod_number}</div>
 
             {pod.is_filled ? (
               <>
                 <div className="qm-cart-pod-name">
-                  {pod.part_name || pod.part_number || "Assigned part"}
+                  {pod.part_name ||
+                    pod.container_label ||
+                    pod.part_number ||
+                    "Loaded pod"}
                 </div>
-                <div className="qm-cart-pod-meta">{pod.part_number || "—"}</div>
+
+                <div className="qm-cart-pod-meta">
+                  {pod.part_number || pod.container_uid || "—"}
+                </div>
+
                 <div className="qm-cart-pod-meta">
                   POU {pod.workstation_future_csmr || "—"}
                 </div>
+
+                {pod.qty !== null && pod.qty !== undefined && pod.qty !== "" ? (
+                  <div className="qm-cart-pod-meta">Qty {pod.qty}</div>
+                ) : null}
               </>
             ) : (
               <div className="qm-cart-pod-empty">Empty</div>
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function AvailableCartChip({ cart, onDragStart, isExpanded, onToggle }) {
+  const cartId = cart?.id || null;
+  const isSmallPartsCart = Number(cart?.cart_category ?? 0) === 7;
+  const podsUsed = Number(cart?.pods_used ?? 0);
+  const podCapacity = Number(cart?.pod_capacity ?? 0);
+
+  function handleDragStart(e) {
+    if (!cartId) return;
+    if (typeof onDragStart === "function") {
+      onDragStart(e, cart);
+    }
+  }
+
+  return (
+    <div
+      className="qm-available-cart-chip"
+      draggable={!!cartId}
+      onDragStart={handleDragStart}
+      title={`${cart?.name || "Cart"}${cart?.location_name ? ` • ${cart.location_name}` : ""}`}
+    >
+      <div className="qm-available-cart-chip__main">
+        <div className="qm-available-cart-chip__row-top">
+          <div className="qm-available-cart-chip__cart">
+            <SlotCartButton
+              assignment={null}
+              cart={cart}
+              isExpanded={isExpanded}
+              onToggle={onToggle}
+            />
+          </div>
+
+          <div className="qm-available-cart-chip__body">
+            <div className="qm-available-cart-chip__title">
+              {cart?.name || "Available Cart"}
+            </div>
+
+            <div className="qm-available-cart-chip__meta">
+              <span className="qm-chip-label">Staged At</span>
+              <span className="qm-chip-value">
+                {cart?.location_name || "Queue staging"}
+              </span>
+            </div>
+
+            <div className="qm-available-cart-chip__meta">
+              <span className="qm-chip-label">Status</span>
+              <span className="qm-chip-value">
+                {cart?.ready_reason ||
+                  (isSmallPartsCart && podCapacity > 0
+                    ? `${podsUsed}/${podCapacity} pods loaded`
+                    : "Ready for dispatch")}
+              </span>
+            </div>
+          </div>
+
+          <div className="qm-available-cart-chip__right">
+            <span className="qm-flight-meta-pill">
+              {isSmallPartsCart
+                ? `Pods ${podsUsed}/${podCapacity || 0}`
+                : "Ready"}
+            </span>
+          </div>
+        </div>
+
+        {cart?.cart_type_code ? (
+          <div className="qm-available-cart-chip__footer">
+            <span className="qm-chip-meta">Type: {cart.cart_type_code}</span>
+          </div>
+        ) : null}
+
+        {isSmallPartsCart && isExpanded ? <CartPodsPanel cart={cart} /> : null}
       </div>
     </div>
   );
@@ -760,10 +899,13 @@ function FlightCard({
 
           const isSmallPartsCart =
             Number(
-              slotCart?.cart_category ?? assignment?.cart_category ?? 0,
+              slotCart?.cart_category ??
+                assignment?.cart_category ??
+                assignment?.meta_json?.cart_category ??
+                0,
             ) === 7;
 
-          const isExpanded = !!expandedCartIds[slotCartId];
+          const isExpanded = !!(slotCartId && expandedCartIds[slotCartId]);
 
           return (
             <div
@@ -845,6 +987,7 @@ export default function QueueManager() {
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [draggingCart, setDraggingCart] = useState(null);
 
   const queueId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -929,12 +1072,39 @@ export default function QueueManager() {
   }
 
   useEffect(() => {
+    const elements = Array.from(
+      document.querySelectorAll('[data-qm-note-popover="1"]'),
+    );
+
+    const popovers = elements.map((el) => {
+      return new Popover(el, {
+        trigger: "hover focus",
+        placement: "left",
+        html: false,
+        sanitize: true,
+        container: "body",
+      });
+    });
+
+    return () => {
+      popovers.forEach((popover) => popover.dispose());
+    };
+  }, [data]);
+
+  useEffect(() => {
     loadBoard();
   }, [queueId]);
 
   function onDragStart(e, assignment) {
     setDraggingAssignment(assignment);
     e.dataTransfer.setData("text/plain", assignment.id);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function onCartDragStart(e, cart) {
+    setDraggingCart(cart);
+    e.dataTransfer.setData("application/x-qm-cart-id", cart.id);
+    e.dataTransfer.setData("text/plain", cart.id);
     e.dataTransfer.effectAllowed = "move";
   }
 
@@ -974,6 +1144,7 @@ export default function QueueManager() {
     } finally {
       setSaving(false);
       setDraggingAssignment(null);
+      setDraggingCart(null);
     }
   }
 
@@ -1187,6 +1358,44 @@ export default function QueueManager() {
                 onDragStart={onDragStart}
               />
             ))}
+          </div>
+
+          <div className="qm-inline-section-divider" />
+
+          <div className="qm-lane-header qm-lane-header--subsection">
+            <div>
+              <div className="qm-lane-title">Available Carts</div>
+              <div className="qm-lane-subtitle">
+                Prepared carts staged in queue and ready for dispatch
+              </div>
+            </div>
+
+            <div className="qm-flight-meta-pill">
+              {(data.available_carts || []).length}
+            </div>
+          </div>
+
+          <div className="qm-waiting-list">
+            {(data.available_carts || []).length ? (
+              (data.available_carts || []).map((cart) => {
+                const cartId = cart?.id || null;
+                const isExpanded = !!(cartId && expandedCartIds?.[cartId]);
+
+                return (
+                  <AvailableCartChip
+                    key={cart.id}
+                    cart={cart}
+                    onDragStart={onCartDragStart}
+                    isExpanded={isExpanded}
+                    onToggle={toggleCartExpanded}
+                  />
+                );
+              })
+            ) : (
+              <div className="qm-empty-state">
+                No carts currently staged and ready.
+              </div>
+            )}
           </div>
         </section>
 
