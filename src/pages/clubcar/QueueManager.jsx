@@ -838,7 +838,11 @@ function AvailableCartChip({ cart, onDragStart, isExpanded, onToggle }) {
           </div>
         ) : null}
 
-        {isSmallPartsCart && isExpanded ? <CartPodsPanel cart={cart} /> : null}
+        {isSmallPartsCart && isExpanded ? (
+          <div className="qm-available-cart-chip__pods">
+            <CartPodsPanel cart={cart} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1097,12 +1101,18 @@ export default function QueueManager() {
 
   function onDragStart(e, assignment) {
     setDraggingAssignment(assignment);
+    setDraggingCart(null);
+    e.dataTransfer.setData("application/x-qm-drag-kind", "assignment");
+    e.dataTransfer.setData("application/x-qm-assignment-id", assignment.id);
     e.dataTransfer.setData("text/plain", assignment.id);
     e.dataTransfer.effectAllowed = "move";
   }
 
   function onCartDragStart(e, cart) {
+    if (!cart?.id) return;
     setDraggingCart(cart);
+    setDraggingAssignment(null);
+    e.dataTransfer.setData("application/x-qm-drag-kind", "cart");
     e.dataTransfer.setData("application/x-qm-cart-id", cart.id);
     e.dataTransfer.setData("text/plain", cart.id);
     e.dataTransfer.effectAllowed = "move";
@@ -1141,6 +1151,41 @@ export default function QueueManager() {
     } catch (err) {
       console.error(err);
       setError(err.message || "Unable to move assignment.");
+    } finally {
+      setSaving(false);
+      setDraggingAssignment(null);
+      setDraggingCart(null);
+    }
+  }
+
+  async function moveCartToFlight(payload) {
+    try {
+      setSaving(true);
+      setError("");
+
+      const res = await fetch(
+        `${backendBase}/mhsa/api/queue-manager/move-cart-to-flight/`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || `Move cart failed (${res.status})`);
+      }
+
+      setData(json.board);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Unable to move cart.");
     } finally {
       setSaving(false);
       setDraggingAssignment(null);
@@ -1236,7 +1281,26 @@ export default function QueueManager() {
 
   async function onDropToFlight(e, flightId, position) {
     e.preventDefault();
-    const assignmentId = e.dataTransfer.getData("text/plain");
+
+    const dragKind =
+      e.dataTransfer.getData("application/x-qm-drag-kind") || "assignment";
+
+    if (dragKind === "cart") {
+      const cartId = e.dataTransfer.getData("application/x-qm-cart-id");
+      if (!cartId) return;
+
+      await moveCartToFlight({
+        cart_id: cartId,
+        flight_id: flightId,
+        position,
+      });
+      return;
+    }
+
+    const assignmentId =
+      e.dataTransfer.getData("application/x-qm-assignment-id") ||
+      e.dataTransfer.getData("text/plain");
+
     if (!assignmentId) return;
 
     await moveAssignment({

@@ -1160,6 +1160,38 @@
   font-style: italic;
 }
 
+.qm-available-cart-chip {
+  overflow: visible;
+}
+
+.qm-available-cart-chip__main {
+  overflow: visible;
+}
+
+.qm-available-cart-chip__pods {
+  position: static;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.qm-available-cart-chip__pods .qm-cart-pods-panel {
+  position: static;
+  inset: auto;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  z-index: auto;
+}
+
+.qm-available-cart-chip__pods .qm-cart-pods-header {
+  margin-bottom: 8px;
+}
+
 /* --- small parts cart pod expansion --- */
 
 .qm-flight-card,
