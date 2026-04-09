@@ -848,6 +848,42 @@ function AvailableCartChip({ cart, onDragStart, isExpanded, onToggle }) {
   );
 }
 
+function SubQueueTargetCard({
+  subQueue,
+  isActive,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+}) {
+  return (
+    <div
+      className={`qm-subqueue-target ${
+        isActive ? "qm-subqueue-target--active" : ""
+      } qm-subqueue-target--${subQueue.tone || "default"}`}
+      onDragOver={(e) => onDragOver(e, subQueue.id)}
+      onDragLeave={() => onDragLeave(subQueue.id)}
+      onDrop={(e) => onDrop(e, subQueue)}
+    >
+      <div className="qm-subqueue-target__orb" aria-hidden="true">
+        <span>{subQueue.icon || "◉"}</span>
+      </div>
+
+      <div className="qm-subqueue-target__body">
+        <div className="qm-subqueue-target__title-row">
+          <div className="qm-subqueue-target__title">{subQueue.name}</div>
+          <div className="qm-subqueue-target__badge">
+            {subQueue.uncarted_count || 0}
+          </div>
+        </div>
+
+        <div className="qm-subqueue-target__subtitle">
+          {subQueue.description || "Drag assignment here"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FlightCard({
   flight,
   capacity,
@@ -992,6 +1028,10 @@ export default function QueueManager() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [draggingCart, setDraggingCart] = useState(null);
+  const [localWaitingAssignments, setLocalWaitingAssignments] = useState([]);
+  const [subQueueCards, setSubQueueCards] = useState([]);
+  const [dispatchingAssignmentId, setDispatchingAssignmentId] = useState(null);
+  const [activeSubQueueId, setActiveSubQueueId] = useState(null);
 
   const queueId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1074,6 +1114,11 @@ export default function QueueManager() {
       [cartId]: !prev[cartId],
     }));
   }
+
+  useEffect(() => {
+    setLocalWaitingAssignments(data?.waiting_assignments || []);
+    setSubQueueCards(data?.sub_queues || []);
+  }, [data]);
 
   useEffect(() => {
     const elements = Array.from(
@@ -1195,6 +1240,43 @@ export default function QueueManager() {
 
   const preferences = data?.preferences || null;
   //const preferences = data?.preferences?.group_7 || null;
+
+  function onSubQueueDragOver(e, subQueueId) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setActiveSubQueueId(subQueueId);
+  }
+
+  function onSubQueueDragLeave(subQueueId) {
+    setActiveSubQueueId((prev) => (prev === subQueueId ? null : prev));
+  }
+
+  async function onDropToSubQueue(e, subQueue) {
+    e.preventDefault();
+    setActiveSubQueueId(null);
+
+    const dragKind =
+      e.dataTransfer.getData("application/x-qm-drag-kind") || "assignment";
+
+    if (dragKind !== "assignment") return;
+
+    const assignmentId =
+      e.dataTransfer.getData("application/x-qm-assignment-id") ||
+      e.dataTransfer.getData("text/plain");
+
+    if (!assignmentId) return;
+
+    setDispatchingAssignmentId(assignmentId);
+
+    try {
+      await moveAssignment({
+        assignment_id: assignmentId,
+        target_queue_id: subQueue.id,
+      });
+    } finally {
+      setDispatchingAssignmentId(null);
+    }
+  }
 
   async function onAddFlight() {
     try {
@@ -1415,15 +1497,53 @@ export default function QueueManager() {
           </div>
 
           <div className="qm-waiting-list">
-            {(data.waiting_assignments || []).map((assignment) => (
-              <AssignmentChip
-                key={assignment.id}
-                assignment={assignment}
-                onDragStart={onDragStart}
+            {(localWaitingAssignments || []).length ? (
+              (localWaitingAssignments || []).map((assignment) => (
+                <div
+                  key={assignment.id}
+                  className={`qm-dispatch-shell ${
+                    String(dispatchingAssignmentId) === String(assignment.id)
+                      ? "qm-dispatch-shell--vanishing"
+                      : ""
+                  }`}
+                >
+                  <AssignmentChip
+                    assignment={assignment}
+                    onDragStart={onDragStart}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="qm-empty-state">
+                No waiting assignments currently displayed.
+              </div>
+            )}
+          </div>
+          <div className="qm-inline-section-divider" />
+
+          <div className="qm-lane-header qm-lane-header--subsection">
+            <div>
+              <div className="qm-lane-title">Sub-Queue Dispatch</div>
+              <div className="qm-lane-subtitle">
+                Drag assignments into a specialist preparation lane
+              </div>
+            </div>
+
+            <div className="qm-flight-meta-pill">{subQueueCards.length}</div>
+          </div>
+
+          <div className="qm-subqueue-grid">
+            {subQueueCards.map((subQueue) => (
+              <SubQueueTargetCard
+                key={subQueue.id}
+                subQueue={subQueue}
+                isActive={activeSubQueueId === subQueue.id}
+                onDragOver={onSubQueueDragOver}
+                onDragLeave={onSubQueueDragLeave}
+                onDrop={onDropToSubQueue}
               />
             ))}
           </div>
-
           <div className="qm-inline-section-divider" />
 
           <div className="qm-lane-header qm-lane-header--subsection">
