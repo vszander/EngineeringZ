@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
@@ -315,6 +316,33 @@ function MetricCard({ label, value, subvalue, tone = "normal" }) {
   );
 }
 
+const styles = {
+  page: { padding: 16, minHeight: "100vh", boxSizing: "border-box" },
+
+  headerRow: {
+    marginBottom: 12,
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    minWidth: 320,
+  },
+  headerRight: {
+    marginLeft: "auto",
+    display: "flex",
+    gap: 12,
+    alignItems: "center",
+  },
+
+  h2: { margin: 0, fontSize: 20 },
+  h3: { margin: "0 0 10px 0", fontSize: 16 },
+};
+
 export default function AnticipationPage() {
   const [forecastLength, setForecastLength] = useState("2 hr");
   const [partsToTrack, setPartsToTrack] = useState("My Favorites");
@@ -347,6 +375,32 @@ export default function AnticipationPage() {
         row.id === id ? { ...row, selected: !row.selected } : row,
       ),
     );
+  }
+
+  function handleGenerateAssignmentsFile() {
+    const generationPrefs = {
+      create_assignments: createAssignments,
+      generate_assignments_file: generateCommandFile,
+    };
+
+    console.log(
+      "Generate Assignments File clicked with prefs:",
+      generationPrefs,
+    );
+
+    // later:
+    // fetch("/mhsa/api/anticipation/generate-assignments-file/", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "X-CSRFToken": getCsrfTokenSomehow(),
+    //   },
+    //   body: JSON.stringify(generationPrefs),
+    // });
+
+    if (generateCommandFile) {
+      // current placeholder behavior
+    }
   }
 
   function toggleAll() {
@@ -924,12 +978,14 @@ export default function AnticipationPage() {
               and shape-of-model review before dynamic charting.
             </div>
 
-            <button className="mhsa-linkbtn" type="button">
+            <button className="mhsa-btn mhsa-btn-primary" type="button">
               Manage Lineup Preferences
             </button>
-            <a className="mhsa-linkbtn" href="#back">
-              Back to MHSA
-            </a>
+            <div style={styles.headerRight}>
+              <Link to="/clubcar" style={styles.link}>
+                ← MHSA Home
+              </Link>
+            </div>
           </div>
         </div>
         <div className="anticipation-toolbar">
@@ -1006,10 +1062,10 @@ export default function AnticipationPage() {
 
             <div className="anticipation-toolbar-actions">
               <div className="anticipation-toolbar-links">
-                <button className="mhsa-linkbtn" type="button">
+                <button className="mhsa-btn mhsa-btn-primary" type="button">
                   MITZO Tasking
                 </button>
-                <button className="mhsa-linkbtn" type="button">
+                <button className="mhsa-btn mhsa-btn-primary" type="button">
                   ERP Query
                 </button>
               </div>
@@ -1040,41 +1096,41 @@ export default function AnticipationPage() {
                 style={{ gridColumn: "span 2" }}
               >
                 <label>Planner Toggles</label>
+
                 <div className="anticipation-switch-row">
-                  <span className="anticipation-switch">
-                    <button
-                      type="button"
-                      onClick={() => setCreateAssignments((v) => !v)}
-                    >
+                  <label
+                    className="mhsa-switch"
+                    htmlFor="CreateAssignmentsPref"
+                  >
+                    <span className="mhsa-switch__label">
                       Create Assignments
-                    </button>
-                    <span
-                      className={
-                        createAssignments
-                          ? "anticipation-pill-on"
-                          : "anticipation-pill-off"
-                      }
-                    >
-                      {createAssignments ? "On" : "Off"}
                     </span>
-                  </span>
-                  <span className="anticipation-switch">
-                    <button
-                      type="button"
-                      onClick={() => setGenerateCommandFile((v) => !v)}
-                    >
+                    <input
+                      id="CreateAssignmentsPref"
+                      className="mhsa-switch__input"
+                      type="checkbox"
+                      checked={createAssignments}
+                      onChange={(e) => setCreateAssignments(e.target.checked)}
+                    />
+                    <span className="mhsa-switch__slider" aria-hidden="true" />
+                  </label>
+
+                  <label
+                    className="mhsa-switch"
+                    htmlFor="GenerateAssignmentsFilePref"
+                  >
+                    <span className="mhsa-switch__label">
                       Generate Assignments File
-                    </button>
-                    <span
-                      className={
-                        generateCommandFile
-                          ? "anticipation-pill-on"
-                          : "anticipation-pill-off"
-                      }
-                    >
-                      {generateCommandFile ? "On" : "Off"}
                     </span>
-                  </span>
+                    <input
+                      id="GenerateAssignmentsFilePref"
+                      className="mhsa-switch__input"
+                      type="checkbox"
+                      checked={generateCommandFile}
+                      onChange={(e) => setGenerateCommandFile(e.target.checked)}
+                    />
+                    <span className="mhsa-switch__slider" aria-hidden="true" />
+                  </label>
                 </div>
               </div>
             </div>
@@ -1113,35 +1169,121 @@ export default function AnticipationPage() {
                   </div>
                 ) : null}
               </div>
-              <button
-                className="mhsa-linkbtn"
-                type="button"
-                onClick={toggleAll}
-              >
-                Toggle All
-              </button>
             </div>
 
             <div className="anticipation-table-wrap mhsa-table-wrap">
               <table className="table mhsa-table mhsa-table--sm anticipation-table mb-0 align-middle">
                 <thead>
                   <tr>
-                    <th className="cell-checkbox">✓</th>
-                    <th>In House</th>
-                    <th>POU Qty</th>
+                    <th className="cell-checkbox">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all rows"
+                        checked={
+                          rows.length > 0 && rows.every((row) => !!row.selected)
+                        }
+                        onChange={toggleAll}
+                      />
+                    </th>
+
                     <th>Incoming</th>
-                    <th>Default Queue</th>
-                    <th>Lead</th>
-                    <th>Resupply</th>
+                    <th>In House</th>
+                    <th>Part Number</th>
+
+                    <th
+                      style={{
+                        minWidth: "220px",
+                        maxWidth: "220px",
+                        whiteSpace: "normal",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      Description
+                    </th>
+
                     <th>POU</th>
                     <th>Zone</th>
-                    <th>Part Number</th>
-                    <th>Description</th>
+                    <th
+                      style={{
+                        minWidth: "50px",
+                        maxWidth: "50px",
+                        whiteSpace: "normal",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      POU Qty
+                    </th>
+
+                    <th
+                      style={{
+                        minWidth: "150px",
+                        maxWidth: "150px",
+                        whiteSpace: "normal",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      Default Queue
+                    </th>
+
+                    <th
+                      style={{
+                        minWidth: "68px",
+                        maxWidth: "78px",
+                        whiteSpace: "normal",
+                        lineHeight: "1.05",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      <span
+                        tabIndex={0}
+                        role="button"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="top"
+                        data-bs-html="true"
+                        title="Lead Time"
+                        data-bs-content="Estimated minutes needed to respond before the part is needed at the point of use."
+                        style={{ cursor: "help" }}
+                      >
+                        Lead Time
+                      </span>
+                    </th>
+
+                    <th
+                      style={{
+                        minWidth: "68px",
+                        maxWidth: "78px",
+                        whiteSpace: "normal",
+                        lineHeight: "1.05",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      <span
+                        tabIndex={0}
+                        role="button"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="top"
+                        data-bs-html="true"
+                        title="Resupply Quantity"
+                        data-bs-content="Typical replenishment quantity suggested when this part requires attention."
+                        style={{ cursor: "help" }}
+                      >
+                        Resup Qty
+                      </span>
+                    </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {rows.map((row) => {
                     const tone = row.row_tone || getRowTone(row);
+
                     return (
                       <tr
                         key={row.id}
@@ -1155,9 +1297,27 @@ export default function AnticipationPage() {
                             type="checkbox"
                             checked={!!row.selected}
                             onChange={() => toggleRow(row.id)}
+                            aria-label={`Select ${row.part_number}`}
                           />
                         </td>
+
+                        <td>{fmtQty(row.estimated_incoming_qty)}</td>
                         <td>{fmtQty(row.estimated_total_maplayer_qty)}</td>
+                        <td>{row.part_number}</td>
+
+                        <td
+                          style={{
+                            minWidth: "220px",
+                            maxWidth: "220px",
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          {row.description_snapshot}
+                        </td>
+
+                        <td>{row.pou_code}</td>
+                        <td>{row.zone || "—"}</td>
+
                         <td>
                           <div className="anticipation-qty-badges">
                             <span>{fmtQty(row.estimated_pou_qty)}</span>
@@ -1173,14 +1333,10 @@ export default function AnticipationPage() {
                             ) : null}
                           </div>
                         </td>
-                        <td>{fmtQty(row.estimated_incoming_qty)}</td>
+
                         <td>{row.default_queue_label || "—"}</td>
                         <td>{row.lead_time_minutes} min</td>
                         <td>{fmtQty(row.resupply_qty)}</td>
-                        <td>{row.pou_code}</td>
-                        <td>{row.zone || "—"}</td>
-                        <td>{row.part_number}</td>
-                        <td>{row.description_snapshot}</td>
                       </tr>
                     );
                   })}
@@ -1216,7 +1372,7 @@ export default function AnticipationPage() {
 
         <aside className="anticipation-plan-panel">
           <div className="anticipation-plan-card">
-            <h3>Release Schedule Preview</h3>
+            <h3>Material Handling Release Schedule Graph</h3>
             <div className="anticipation-note" style={{ marginTop: 6 }}>
               Grouped by queue, then by release window. Conflict highlighting is
               based on queue + flight window versus concurrent assignment limit.
