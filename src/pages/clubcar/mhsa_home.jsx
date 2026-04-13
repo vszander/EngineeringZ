@@ -160,8 +160,9 @@ export default function MhsaHome() {
             path: "/clubcar/line/tlv-look-ahead",
             children: [
               {
-                label: "Next Hour",
-                path: "/clubcar/line/tlv-look-ahead/next-hour",
+                label: "Anticipation",
+                path: "/clubcar/anticipation",
+                note: "NEW",
               },
               {
                 label: "SwitchOver",

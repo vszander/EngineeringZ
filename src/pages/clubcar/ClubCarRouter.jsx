@@ -15,6 +15,7 @@ import CockpitPage from "./Cockpit";
 import MaterialHandlingCostTable from "./MaterialHandlingCostTable";
 import QueueManager from "./QueueManager";
 import FlightManifestPreview from "./Flight_Manifest_preview";
+import AnticipationPage from "./Anticipation";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -50,6 +51,7 @@ export default function ClubcarRouter() {
         <Route path="workflows" element={<MhsaWorkflowMenu />} />
         <Route path="signals" element={<SignalsDashboard />} />
         <Route path="queue-manager" element={<QueueManager />} />
+        <Route path="anticipation" element={<AnticipationPage />} />
         <Route
           path="flight-manifest-preview"
           element={<FlightManifestPreview />}
