@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
@@ -316,6 +316,51 @@ function MetricCard({ label, value, subvalue, tone = "normal" }) {
   );
 }
 
+function minutesToForecastLabel(minutes) {
+  const num = Number(minutes);
+  if (!Number.isFinite(num) || num <= 0) return "2 hr";
+  const hours = num / 60;
+  return `${hours} hr`;
+}
+
+function forecastLabelToMinutes(label) {
+  const match = String(label || "").match(/(\d+)/);
+  if (!match) return 120;
+  return Number(match[1]) * 60;
+}
+
+function minutesToReleaseLabel(minutes) {
+  const num = Number(minutes);
+  if (!Number.isFinite(num) || num <= 0) return "40 min";
+  return `${num} min`;
+}
+
+function releaseLabelToMinutes(label) {
+  const match = String(label || "").match(/(\d+)/);
+  if (!match) return 40;
+  return Number(match[1]);
+}
+
+function partsListCodeToLabel(value) {
+  const v = String(value || "")
+    .toLowerCase()
+    .trim();
+  if (v.includes("favorite")) return "My Favorites";
+  if (v.includes("high")) return "High Risk";
+  return "All Tracked";
+}
+
+function sortBackendToUi(value) {
+  const v = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (v === "startqty" || v === "start_qty") return "StartQty";
+  if (v === "pouqty" || v === "pou_qty") return "POUQty";
+  if (v === "leadtime" || v === "lead_time") return "LeadTime";
+  if (v === "queue") return "Queue";
+  return "sort_rank";
+}
+
 const styles = {
   page: { padding: 16, minHeight: "100vh", boxSizing: "border-box" },
 
@@ -345,13 +390,34 @@ const styles = {
 
 export default function AnticipationPage() {
   const [forecastLength, setForecastLength] = useState("2 hr");
+  const [forecastLengthOptions, setForecastLengthOptions] = useState([
+    { value_hours: 2, value_minutes: 120, label: "2 hr" },
+    { value_hours: 4, value_minutes: 240, label: "4 hr" },
+    { value_hours: 6, value_minutes: 360, label: "6 hr" },
+  ]);
+
   const [partsToTrack, setPartsToTrack] = useState("My Favorites");
+
   const [releaseHorizon, setReleaseHorizon] = useState("40 min");
+  const [releaseHorizonOptions, setReleaseHorizonOptions] = useState([
+    { value_minutes: 40, label: "40 min" },
+    { value_minutes: 60, label: "60 min" },
+    { value_minutes: 90, label: "90 min" },
+  ]);
+
   const [previewWindow, setPreviewWindow] = useState("10");
   const [partsWindow, setPartsWindow] = useState("8");
-  const [defaultSort, setDefaultSort] = useState("StartQty");
+  const [defaultSort, setDefaultSort] = useState("sort_rank");
   const [createAssignments, setCreateAssignments] = useState(true);
   const [generateCommandFile, setGenerateCommandFile] = useState(false);
+
+  const [pageLoadLoading, setPageLoadLoading] = useState(false);
+  const [pageLoadError, setPageLoadError] = useState("");
+  const [resolvedPreferenceId, setResolvedPreferenceId] = useState("");
+  const [concurrentAssignmentsLimit, setConcurrentAssignmentsLimit] =
+    useState("2");
+  const [startTime, setStartTime] = useState("");
+
   const [rows, setRows] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableError, setTableError] = useState("");
@@ -365,9 +431,26 @@ export default function AnticipationPage() {
   const lowCount = tableSummary.low_count || 0;
   const releaseGroups = useMemo(
     () =>
-      getPlanGroups(demoReleaseItems, demoPlan.concurrent_assignments_limit),
-    [],
+      getPlanGroups(
+        demoReleaseItems,
+        Number(concurrentAssignmentsLimit || 0) || 2,
+      ),
+    [concurrentAssignmentsLimit],
   );
+
+  const [standardTaktSeconds, setStandardTaktSeconds] = useState(280);
+  const [triggerOnMes, setTriggerOnMes] = useState(true);
+  const [useSmartTakt, setUseSmartTakt] = useState(false);
+
+  const lineupFileInputRef = useRef(null);
+
+  const bumpPreviewWindow = (delta) =>
+    setPreviewWindow((prev) => String(Math.max(1, Number(prev || 0) + delta)));
+
+  const bumpPartsWindow = (delta) =>
+    setPartsWindow((prev) => String(Math.max(1, Number(prev || 0) + delta)));
+
+  const openLineupFilePicker = () => lineupFileInputRef.current?.click();
 
   function toggleRow(id) {
     setRows((prev) =>
@@ -409,6 +492,96 @@ export default function AnticipationPage() {
       prev.map((row) => ({ ...row, selected: shouldSelectAll })),
     );
   }
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadPagePreferences() {
+      setPageLoadLoading(true);
+      setPageLoadError("");
+
+      try {
+        const response = await fetch(
+          `${backendBase}/mhsa/api/anticipation/page-load/`,
+          {
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`Page load request failed (${response.status})`);
+        }
+
+        const data = await response.json();
+
+        if (!data?.ok) {
+          throw new Error(data?.error || "Page load payload was not ok.");
+        }
+
+        if (isCancelled) return;
+
+        const controls = data?.controls || {};
+        const options = data?.options || {};
+
+        const forecastOpts = Array.isArray(options.forecast_length)
+          ? options.forecast_length
+          : [];
+        const releaseOpts = Array.isArray(options.assignment_release_horizon)
+          ? options.assignment_release_horizon
+          : [];
+
+        if (forecastOpts.length) {
+          setForecastLengthOptions(forecastOpts);
+        }
+
+        if (releaseOpts.length) {
+          setReleaseHorizonOptions(releaseOpts);
+        }
+
+        setResolvedPreferenceId(controls.id || "");
+
+        setForecastLength(
+          minutesToForecastLabel(controls.forecast_length_minutes),
+        );
+
+        setReleaseHorizon(
+          minutesToReleaseLabel(controls.assignment_release_horizon_minutes),
+        );
+
+        setConcurrentAssignmentsLimit(
+          String(controls.concurrent_assignments_limit ?? 2),
+        );
+
+        setPreviewWindow(String(controls.preview_window_width ?? 10));
+        setPartsWindow(String(controls.parts_list_window ?? 8));
+
+        setDefaultSort(sortBackendToUi(controls.default_sort_criteria));
+        setCreateAssignments(!!controls.create_assignments_default);
+        setGenerateCommandFile(!!controls.export_csv_default);
+        setPartsToTrack(partsListCodeToLabel(controls.active_parts_list_code));
+        setStartTime(controls.start_time || "");
+      } catch (err) {
+        if (!isCancelled) {
+          setPageLoadError(
+            err?.message || "Unable to load anticipation page controls.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setPageLoadLoading(false);
+        }
+      }
+    }
+
+    loadPagePreferences();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     let isCancelled = false;
@@ -475,7 +648,7 @@ export default function AnticipationPage() {
     return () => {
       isCancelled = true;
     };
-  }, [partsToTrack, defaultSort]);
+  }, [partsToTrack, defaultSort, resolvedPreferenceId]);
 
   return (
     <div className="mhsa-page mhsa-home mhsa-dark anticipation-page-shell">
@@ -962,25 +1135,10 @@ export default function AnticipationPage() {
       <div className="anticipation-toolbar-wrap">
         <div className="anticipation-toolbar" style={{ width: "100%" }}>
           <div className="anticipation-toolbar-links">
-            <div>
-              <p className="anticipation-rail-title">Current Plan</p>
-              <div
-                style={{ fontSize: "4.05rem", fontWeight: 900, marginTop: 6 }}
-              >
-                {demoPlan.name}
-              </div>
-              <div className="anticipation-ai-caption" style={{ marginTop: 6 }}>
-                {demoPlan.generated_at_label} · {demoPlan.created_by_label}
-              </div>
-            </div>
-            <div className="anticipation-note">
-              This preliminary page emphasizes research, seeded data validation,
-              and shape-of-model review before dynamic charting.
-            </div>
-
             <button className="mhsa-btn mhsa-btn-primary" type="button">
               Manage Lineup Preferences
             </button>
+
             <div style={styles.headerRight}>
               <Link to="/clubcar" style={styles.link}>
                 ← MHSA Home
@@ -988,11 +1146,12 @@ export default function AnticipationPage() {
             </div>
           </div>
         </div>
+
         <div className="anticipation-toolbar">
           <div className="anticipation-toolbar-card">
             <div
               className="anticipation-toolbar-grid"
-              style={{ maxWidth: "1320px", width: "80%" }}
+              style={{ maxWidth: "1320px", width: "100%" }}
             >
               <div className="anticipation-field">
                 <label>ANTICIPATION Length</label>
@@ -1000,11 +1159,14 @@ export default function AnticipationPage() {
                   value={forecastLength}
                   onChange={(e) => setForecastLength(e.target.value)}
                 >
-                  <option>2 hr</option>
-                  <option>4 hr</option>
-                  <option>6 hr</option>
+                  {forecastLengthOptions.map((opt) => (
+                    <option key={opt.value_minutes} value={opt.label}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div className="anticipation-field">
                 <label>Parts to Track</label>
                 <select
@@ -1016,47 +1178,204 @@ export default function AnticipationPage() {
                   <option>High Risk</option>
                 </select>
               </div>
+
               <div className="anticipation-field">
                 <label>Assignment Release Horizon</label>
                 <select
                   value={releaseHorizon}
                   onChange={(e) => setReleaseHorizon(e.target.value)}
                 >
-                  <option>40 min</option>
-                  <option>60 min</option>
-                  <option>90 min</option>
+                  {releaseHorizonOptions.map((opt) => (
+                    <option key={opt.value_minutes} value={opt.label}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div className="anticipation-field">
                 <label>Concurrent Assignments Limit</label>
-                <input value={demoPlan.concurrent_assignments_limit} readOnly />
+                <input
+                  value={concurrentAssignmentsLimit}
+                  onChange={(e) =>
+                    setConcurrentAssignmentsLimit(e.target.value)
+                  }
+                />
               </div>
-              <div className="anticipation-field">
+
+              <div className="anticipation-field anticipation-field--spinner">
                 <label>Preview Window Width</label>
-                <input
-                  value={previewWindow}
-                  onChange={(e) => setPreviewWindow(e.target.value)}
-                />
+                <div
+                  className="anticipation-spinner-shell"
+                  style={{ position: "relative", width: "100%" }}
+                >
+                  <input
+                    value={previewWindow}
+                    onChange={(e) => setPreviewWindow(e.target.value)}
+                    style={{ width: "100%", paddingRight: "34px" }}
+                  />
+                  <div
+                    className="anticipation-spinner-buttons"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "6px",
+                      transform: "translateY(-50%)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="anticipation-spinner-btn"
+                      onClick={() => bumpPreviewWindow(1)}
+                      aria-label="Increase preview window width"
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        padding: 0,
+                        lineHeight: 1,
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className="anticipation-spinner-btn"
+                      onClick={() => bumpPreviewWindow(-1)}
+                      aria-label="Decrease preview window width"
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        padding: 0,
+                        lineHeight: 1,
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="anticipation-field">
+
+              <div className="anticipation-field anticipation-field--spinner">
                 <label>Parts List Window</label>
+                <div
+                  className="anticipation-spinner-shell"
+                  style={{ position: "relative", width: "100%" }}
+                >
+                  <input
+                    value={partsWindow}
+                    onChange={(e) => setPartsWindow(e.target.value)}
+                    style={{ width: "100%", paddingRight: "34px" }}
+                  />
+                  <div
+                    className="anticipation-spinner-buttons"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      right: "6px",
+                      transform: "translateY(-50%)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="anticipation-spinner-btn"
+                      onClick={() => bumpPartsWindow(1)}
+                      aria-label="Increase parts list window"
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        padding: 0,
+                        lineHeight: 1,
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className="anticipation-spinner-btn"
+                      onClick={() => bumpPartsWindow(-1)}
+                      aria-label="Decrease parts list window"
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        padding: 0,
+                        lineHeight: 1,
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="anticipation-field">
+                <label>TAKT Time (secs)</label>
                 <input
-                  value={partsWindow}
-                  onChange={(e) => setPartsWindow(e.target.value)}
+                  value={standardTaktSeconds}
+                  onChange={(e) => setStandardTaktSeconds(e.target.value)}
                 />
               </div>
+
               <div
                 className="anticipation-field anticipation-field--inline"
-                style={{ maxWidth: "1520px", width: "100%" }}
+                style={{ gridColumn: "1 / span 4" }}
               >
                 <label>Lineup File</label>
+
+                <button
+                  type="button"
+                  className="mhsa-linkbtn"
+                  onClick={openLineupFilePicker}
+                >
+                  {demoPlan.lineup_source_label || "Select lineup .csv"}
+                </button>
+
                 <input
-                  value={demoPlan.lineup_source_label || "Today.csvicipatioh"}
-                  readOnly
+                  ref={lineupFileInputRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    // later: set selected file state / upload state here
+                  }}
                 />
+
                 <button className="mhsa-linkbtn" type="button">
                   Ingest
                 </button>
+              </div>
+
+              <div
+                className="anticipation-field anticipation-field--inline"
+                style={{ gridColumn: "5 / span 3", alignItems: "end" }}
+              >
+                <label style={{ visibility: "hidden" }}>Trigger on MES</label>
+                <label className="mhsa-switch" htmlFor="TriggerOnMesPref">
+                  <span className="mhsa-switch__label">Trigger on MES</span>
+                  <input
+                    id="TriggerOnMesPref"
+                    className="mhsa-switch__input"
+                    type="checkbox"
+                    checked={triggerOnMes}
+                    onChange={(e) => setTriggerOnMes(e.target.checked)}
+                  />
+                  <span className="mhsa-switch__slider" aria-hidden="true" />
+                </label>
               </div>
             </div>
 
@@ -1071,6 +1390,11 @@ export default function AnticipationPage() {
               </div>
               <div className="anticipation-note">
                 Planner-facing advisory control panel.
+                {resolvedPreferenceId ? (
+                  <span style={{ marginLeft: 8, opacity: 0.75 }}>
+                    pref {resolvedPreferenceId}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -1081,19 +1405,29 @@ export default function AnticipationPage() {
           >
             <div>
               <p className="anticipation-rail-title">AI Analysis</p>
+
               <div className="anticipation-ai-block">
                 <button
                   className="mhsa-ai-avatar-btn"
                   type="button"
                   aria-label="AI Analysis"
                 />
-                <div className="anticipation-ai-caption">
-                  (Future) Simulate Forecasting without committing queue work.
-                </div>
+                <button
+                  className="mhsa-btn mhsa-btn-primary"
+                  type="button"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  TAKT ANALYSIS
+                </button>
               </div>
+
+              <div className="anticipation-ai-caption">
+                (Future) Simulate Forecasting without committing queue work.
+              </div>
+
               <div
                 className="anticipation-field"
-                style={{ gridColumn: "span 2" }}
+                style={{ gridColumn: "span 2", marginTop: 16 }}
               >
                 <label>Planner Toggles</label>
 
@@ -1111,6 +1445,18 @@ export default function AnticipationPage() {
                       type="checkbox"
                       checked={createAssignments}
                       onChange={(e) => setCreateAssignments(e.target.checked)}
+                    />
+                    <span className="mhsa-switch__slider" aria-hidden="true" />
+                  </label>
+
+                  <label className="mhsa-switch" htmlFor="UseSmartTaktPref">
+                    <span className="mhsa-switch__label">Smart Takt</span>
+                    <input
+                      id="UseSmartTaktPref"
+                      className="mhsa-switch__input"
+                      type="checkbox"
+                      checked={useSmartTakt}
+                      onChange={(e) => setUseSmartTakt(e.target.checked)}
                     />
                     <span className="mhsa-switch__slider" aria-hidden="true" />
                   </label>
@@ -1134,6 +1480,7 @@ export default function AnticipationPage() {
                 </div>
               </div>
             </div>
+
             <button className="mhsa-btn mhsa-btn-primary" type="button">
               Generate MH Release Schedule
             </button>
@@ -1152,6 +1499,22 @@ export default function AnticipationPage() {
                   quantity is contextual; POU quantity drives local starvation
                   risk.
                 </div>
+                {pageLoadLoading ? (
+                  <div
+                    className="anticipation-table-subtitle"
+                    style={{ marginTop: 6 }}
+                  >
+                    Loading anticipation preferences…
+                  </div>
+                ) : null}
+                {pageLoadError ? (
+                  <div
+                    className="anticipation-table-subtitle"
+                    style={{ marginTop: 6, color: "#ff9f9f" }}
+                  >
+                    {pageLoadError}
+                  </div>
+                ) : null}
                 {tableLoading ? (
                   <div
                     className="anticipation-table-subtitle"
@@ -1384,15 +1747,15 @@ export default function AnticipationPage() {
               </div>
               <div className="meta">
                 <div className="label">Concurrent Limit</div>
-                <div>{demoPlan.concurrent_assignments_limit}</div>
+                <div>{concurrentAssignmentsLimit}</div>
               </div>
               <div className="meta">
                 <div className="label">ANTICIPATION HORIZON</div>
-                <div>{demoPlan.forecast_length_minutes} min</div>
+                <div>{forecastLabelToMinutes(forecastLength)} min</div>
               </div>
               <div className="meta">
                 <div className="label">Release Horizon</div>
-                <div>{demoPlan.assignment_release_horizon_minutes} min</div>
+                <div>{releaseLabelToMinutes(releaseHorizon)} min</div>
               </div>
             </div>
           </div>
