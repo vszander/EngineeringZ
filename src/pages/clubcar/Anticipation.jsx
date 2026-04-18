@@ -246,8 +246,17 @@ function getRowTone(row) {
   return "normal";
 }
 
-function normalizePartsScope(value) {
+function normalizePartsScope(value, options = []) {
   if (!value) return "my_favorites";
+
+  const exact = options.find(
+    (opt) =>
+      String(opt.label || "")
+        .toLowerCase()
+        .trim() === String(value).toLowerCase().trim(),
+  );
+  if (exact?.code) return exact.code;
+
   const v = String(value).toLowerCase().trim();
   if (v.includes("favorite")) return "my_favorites";
   if (v.includes("high")) return "high_risk";
@@ -341,12 +350,21 @@ function releaseLabelToMinutes(label) {
   return Number(match[1]);
 }
 
-function partsListCodeToLabel(value) {
-  const v = String(value || "")
+function partsListCodeToLabel(value, options = []) {
+  const code = String(value || "")
     .toLowerCase()
     .trim();
-  if (v.includes("favorite")) return "My Favorites";
-  if (v.includes("high")) return "High Risk";
+
+  const exact = options.find(
+    (opt) =>
+      String(opt.code || "")
+        .toLowerCase()
+        .trim() === code,
+  );
+  if (exact?.label) return exact.label;
+
+  if (code.includes("favorite")) return "My Favorites";
+  if (code.includes("high")) return "High Risk";
   return "All Tracked";
 }
 
@@ -359,6 +377,23 @@ function sortBackendToUi(value) {
   if (v === "leadtime" || v === "lead_time") return "LeadTime";
   if (v === "queue") return "Queue";
   return "sort_rank";
+}
+
+function timeToInputValue(value) {
+  if (!value) return "";
+  const text = String(value).trim();
+
+  if (/^\d{2}:\d{2}$/.test(text)) return text;
+  if (/^\d{4}$/.test(text)) return `${text.slice(0, 2)}:${text.slice(2, 4)}`;
+
+  return "";
+}
+
+function inputValueToCompactTime(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^\d{2}:\d{2}$/.test(text)) return text.replace(":", "");
+  return text;
 }
 
 const styles = {
@@ -397,6 +432,11 @@ export default function AnticipationPage() {
   ]);
 
   const [partsToTrack, setPartsToTrack] = useState("My Favorites");
+  const [partsToTrackOptions, setPartsToTrackOptions] = useState([
+    { code: "my_favorites", label: "My Favorites" },
+    { code: "all_tracked", label: "All Tracked" },
+    { code: "high_risk", label: "High Risk" },
+  ]);
 
   const [releaseHorizon, setReleaseHorizon] = useState("40 min");
   const [releaseHorizonOptions, setReleaseHorizonOptions] = useState([
@@ -532,6 +572,9 @@ export default function AnticipationPage() {
         const releaseOpts = Array.isArray(options.assignment_release_horizon)
           ? options.assignment_release_horizon
           : [];
+        const partsScopeOpts = Array.isArray(options.parts_to_track)
+          ? options.parts_to_track
+          : [];
 
         if (forecastOpts.length) {
           setForecastLengthOptions(forecastOpts);
@@ -539,6 +582,10 @@ export default function AnticipationPage() {
 
         if (releaseOpts.length) {
           setReleaseHorizonOptions(releaseOpts);
+        }
+
+        if (partsScopeOpts.length) {
+          setPartsToTrackOptions(partsScopeOpts);
         }
 
         setResolvedPreferenceId(controls.id || "");
@@ -561,8 +608,12 @@ export default function AnticipationPage() {
         setDefaultSort(sortBackendToUi(controls.default_sort_criteria));
         setCreateAssignments(!!controls.create_assignments_default);
         setGenerateCommandFile(!!controls.export_csv_default);
-        setPartsToTrack(partsListCodeToLabel(controls.active_parts_list_code));
-        setStartTime(controls.start_time || "");
+
+        setPartsToTrack(
+          partsListCodeToLabel(controls.active_parts_list_code, partsScopeOpts),
+        );
+
+        setStartTime(timeToInputValue(controls.start_time));
       } catch (err) {
         if (!isCancelled) {
           setPageLoadError(
@@ -592,7 +643,7 @@ export default function AnticipationPage() {
 
       try {
         const params = new URLSearchParams({
-          parts_scope: normalizePartsScope(partsToTrack),
+          parts_scope: normalizePartsScope(partsToTrack, partsToTrackOptions),
           sort: normalizeSort(defaultSort),
         });
 
@@ -648,7 +699,7 @@ export default function AnticipationPage() {
     return () => {
       isCancelled = true;
     };
-  }, [partsToTrack, defaultSort, resolvedPreferenceId]);
+  }, [partsToTrack, partsToTrackOptions, defaultSort, resolvedPreferenceId]);
 
   return (
     <div className="mhsa-page mhsa-home mhsa-dark anticipation-page-shell">
@@ -1173,9 +1224,11 @@ export default function AnticipationPage() {
                   value={partsToTrack}
                   onChange={(e) => setPartsToTrack(e.target.value)}
                 >
-                  <option>My Favorites</option>
-                  <option>All Tracked</option>
-                  <option>High Risk</option>
+                  {partsToTrackOptions.map((opt) => (
+                    <option key={opt.code} value={opt.label}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1192,7 +1245,14 @@ export default function AnticipationPage() {
                   ))}
                 </select>
               </div>
-
+              <div className="anticipation-field">
+                <label>Start Time</label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
               <div className="anticipation-field">
                 <label>Concurrent Assignments Limit</label>
                 <input
@@ -1401,7 +1461,7 @@ export default function AnticipationPage() {
 
           <div
             className="anticipation-rail-card"
-            style={{ maxWidth: "320px", width: "100%" }}
+            style={{ maxWidth: "620px", width: "100%" }}
           >
             <div>
               <p className="anticipation-rail-title">AI Analysis</p>
@@ -1728,7 +1788,11 @@ export default function AnticipationPage() {
             <MetricCard
               label="Lineup Source"
               value={demoPlan.lineup_source_label}
-              subvalue="Apriso Export of Production Schedule"
+              subvalue={
+                startTime
+                  ? `Epoch 0 starts at ${inputValueToCompactTime(startTime)}`
+                  : "Apriso Export of Production Schedule"
+              }
             />
           </div>
         </section>
