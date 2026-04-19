@@ -4,145 +4,6 @@ import "./Anticipation.css";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
-const demoPartStates = [
-  {
-    id: "aps-1",
-    selected: false,
-    estimated_total_maplayer_qty: 100,
-    estimated_pou_qty: 30,
-    estimated_incoming_qty: 0,
-    default_queue_label: "Martinsville-SB",
-    lead_time_minutes: 10,
-    resupply_qty: 30,
-    pou_code: "05M06",
-    zone: "M5",
-    part_number: "102521901",
-    description_snapshot: "BRACKET-CLAMSHELL",
-    warning_qty_effective: 12,
-    sort_rank: 10,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-2",
-    selected: true,
-    estimated_total_maplayer_qty: 48,
-    estimated_pou_qty: 6,
-    estimated_incoming_qty: 12,
-    default_queue_label: "KansasCity-Bulk",
-    lead_time_minutes: 20,
-    resupply_qty: 6,
-    pou_code: "05M05",
-    zone: "M5",
-    part_number: "103635212",
-    description_snapshot: "UNDERBODY, FRONT, FRONT HALF",
-    warning_qty_effective: 8,
-    sort_rank: 20,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-3",
-    selected: false,
-    estimated_total_maplayer_qty: 200,
-    estimated_pou_qty: 36,
-    estimated_incoming_qty: 0,
-    default_queue_label: "KansasCity-Bulk",
-    lead_time_minutes: 20,
-    resupply_qty: 36,
-    pou_code: "05SP2",
-    zone: "SP",
-    part_number: "103833601",
-    description_snapshot: "HIP RESTRAINT, DRIVER",
-    warning_qty_effective: 10,
-    sort_rank: 30,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-4",
-    selected: false,
-    estimated_total_maplayer_qty: 22,
-    estimated_pou_qty: 16,
-    estimated_incoming_qty: 0,
-    default_queue_label: "KansasCity-Bulk",
-    lead_time_minutes: 10,
-    resupply_qty: 16,
-    pou_code: "05SM1",
-    zone: "SM",
-    part_number: "104023401",
-    description_snapshot: "SEAT BOTTOM, ASM, PREC, BEIGE",
-    warning_qty_effective: 8,
-    sort_rank: 40,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-5",
-    selected: true,
-    estimated_total_maplayer_qty: 6,
-    estimated_pou_qty: 2,
-    estimated_incoming_qty: 0,
-    default_queue_label: "KansasCity-Bulk",
-    lead_time_minutes: 10,
-    resupply_qty: 16,
-    pou_code: "05SM1",
-    zone: "SM",
-    part_number: "104023402",
-    description_snapshot: "SEAT BOTTOM, ASM, PREC, WHITE",
-    warning_qty_effective: 8,
-    sort_rank: 50,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-6",
-    selected: false,
-    estimated_total_maplayer_qty: 24,
-    estimated_pou_qty: 5,
-    estimated_incoming_qty: 10,
-    default_queue_label: "KansasCity-Bulk",
-    lead_time_minutes: 10,
-    resupply_qty: 16,
-    pou_code: "05SM1",
-    zone: "SM",
-    part_number: "104023404",
-    description_snapshot: "SEAT BOTTOM, ASM, PREC, GRAY",
-    warning_qty_effective: 8,
-    sort_rank: 60,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-7",
-    selected: false,
-    estimated_total_maplayer_qty: 55,
-    estimated_pou_qty: 9,
-    estimated_incoming_qty: 12,
-    default_queue_label: "Martinsville-Bulk",
-    lead_time_minutes: 7,
-    resupply_qty: 9,
-    pou_code: "05M09",
-    zone: "M9",
-    part_number: "47786539001",
-    description_snapshot: "BATTERY, LI, 4 KW, PROD",
-    warning_qty_effective: 6,
-    sort_rank: 70,
-    model_code: "FAVORITES",
-  },
-  {
-    id: "aps-8",
-    selected: false,
-    estimated_total_maplayer_qty: 60,
-    estimated_pou_qty: 12,
-    estimated_incoming_qty: 0,
-    default_queue_label: "Martinsville-Bulk",
-    lead_time_minutes: 7,
-    resupply_qty: 12,
-    pou_code: "05M12",
-    zone: "M12",
-    part_number: "47788791001",
-    description_snapshot: "BODY, CENTER, REAR, BLK",
-    warning_qty_effective: 8,
-    sort_rank: 80,
-    model_code: "FAVORITES",
-  },
-];
-
 const demoPlan = {
   id: "plan-1",
   name: "Planner Reviewed – Today.csv",
@@ -397,6 +258,424 @@ function inputValueToCompactTime(value) {
   return text;
 }
 
+function getCookie(name) {
+  if (typeof document === "undefined") return "";
+  const cookies = document.cookie ? document.cookie.split(";") : [];
+  for (let i = 0; i < cookies.length; i += 1) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith(`${name}=`)) {
+      return decodeURIComponent(cookie.slice(name.length + 1));
+    }
+  }
+  return "";
+}
+
+function resolveGraphStart(startTime) {
+  const now = new Date();
+  const base = new Date(now);
+
+  if (startTime && /^\d{2}:\d{2}$/.test(String(startTime))) {
+    const [hh, mm] = String(startTime).split(":").map(Number);
+    base.setHours(hh, mm, 0, 0);
+    return base;
+  }
+
+  return now;
+}
+
+function fmtEpochLabel(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function nearestEpochIndex(epochs, value) {
+  if (!value || !Array.isArray(epochs) || !epochs.length) return -1;
+  const target = new Date(value).getTime();
+  if (Number.isNaN(target)) return -1;
+
+  let bestIdx = 0;
+  let bestDiff = Math.abs(new Date(epochs[0].at).getTime() - target);
+
+  for (let i = 1; i < epochs.length; i += 1) {
+    const diff = Math.abs(new Date(epochs[i].at).getTime() - target);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+
+  return bestIdx;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function fmtGraphQty(value) {
+  const num = Number(value ?? 0);
+  if (!Number.isFinite(num)) return "0";
+  return Number.isInteger(num) ? String(num) : num.toFixed(1);
+}
+
+function AnticipationGraphRow({ row, epochs, width = 760, height = 56 }) {
+  const series = Array.isArray(row.series) ? row.series : [];
+  const leftPad = 6;
+  const rightPad = 6;
+  const topPad = 6;
+  const bottomPad = 6;
+  const innerW = Math.max(20, width - leftPad - rightPad);
+  const innerH = Math.max(20, height - topPad - bottomPad);
+
+  const maxQty = Math.max(
+    Number(row.start_qty || 0),
+    Number(row.warning_qty || 0),
+    Number(row.resupply_qty || 0),
+    ...series.map((pt) => Number(pt.qty || 0)),
+    1,
+  );
+
+  const xForIndex = (idx) => {
+    if (!series.length) return leftPad;
+    if (series.length === 1) return leftPad + innerW / 2;
+    return leftPad + (idx / (series.length - 1)) * innerW;
+  };
+
+  const yForQty = (qty) => {
+    const ratio = clamp(Number(qty || 0) / maxQty, 0, 1);
+    return topPad + (1 - ratio) * innerH;
+  };
+
+  const warningY = yForQty(row.warning_qty || 0);
+
+  const points = series.map((pt, idx) => ({
+    ...pt,
+    x: xForIndex(idx),
+    y: yForQty(pt.qty),
+  }));
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className="anticipation-graph-row-svg"
+      role="img"
+      aria-label={`Projected quantity for part ${row.part_number}`}
+    >
+      <line
+        x1={leftPad}
+        x2={width - rightPad}
+        y1={height - bottomPad}
+        y2={height - bottomPad}
+        className="anticipation-graph-axis-line"
+      />
+
+      <line
+        x1={leftPad}
+        x2={width - rightPad}
+        y1={warningY}
+        y2={warningY}
+        className="anticipation-graph-warning-line"
+      />
+
+      {points.map((pt) => (
+        <line
+          key={`tick-${row.id}-${pt.idx}`}
+          x1={pt.x}
+          x2={pt.x}
+          y1={topPad}
+          y2={height - bottomPad}
+          className="anticipation-graph-epoch-line"
+        />
+      ))}
+
+      {points.slice(0, -1).map((pt, idx) => {
+        const next = points[idx + 1];
+        const up = next.y < pt.y;
+        const danger = Number(next.qty || 0) <= 0;
+        const warn =
+          !danger && Number(next.qty || 0) <= Number(row.warning_qty || 0);
+
+        let className = "anticipation-graph-segment";
+        if (up) className += " is-resupply";
+        else if (danger) className += " is-critical";
+        else if (warn) className += " is-warning";
+
+        return (
+          <g key={`seg-${row.id}-${idx}`}>
+            <line
+              x1={pt.x}
+              y1={pt.y}
+              x2={next.x}
+              y2={pt.y}
+              className={className}
+            />
+            <line
+              x1={next.x}
+              y1={pt.y}
+              x2={next.x}
+              y2={next.y}
+              className={className}
+            />
+          </g>
+        );
+      })}
+
+      {points.map((pt) => {
+        const hasRelease =
+          Array.isArray(pt.releaseEvents) && pt.releaseEvents.length > 0;
+        const hasNeed =
+          Array.isArray(pt.needEvents) && pt.needEvents.length > 0;
+
+        return (
+          <g key={`marker-${row.id}-${pt.idx}`}>
+            {hasRelease ? (
+              <rect
+                x={pt.x - 5}
+                y={pt.y - 5}
+                width={10}
+                height={10}
+                className="anticipation-graph-marker anticipation-graph-marker--release"
+              />
+            ) : null}
+
+            {hasNeed ? (
+              <circle
+                cx={pt.x}
+                cy={pt.y}
+                r={5}
+                className="anticipation-graph-marker anticipation-graph-marker--need"
+              />
+            ) : null}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function AnticipationSawtoothGraph({ rows, epochs, partsWindow = 8 }) {
+  const visibleRows = (rows || []).slice(0, Number(partsWindow || 8));
+
+  if (!visibleRows.length) {
+    return (
+      <div className="anticipation-note" style={{ marginTop: 8 }}>
+        No projected graph rows available yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="anticipation-sawtooth-graph">
+      <div className="anticipation-sawtooth-graph__header">
+        <div className="anticipation-sawtooth-graph__meta">Tracked Part</div>
+        <div className="anticipation-sawtooth-graph__timeline">
+          <div className="anticipation-sawtooth-graph__epoch-labels">
+            {epochs.map((epoch) => (
+              <div
+                key={epoch.key || epoch.idx}
+                className="anticipation-sawtooth-graph__epoch"
+              >
+                {epoch.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="anticipation-sawtooth-graph__body">
+        {visibleRows.map((row) => (
+          <div key={row.id} className="anticipation-sawtooth-graph__row">
+            <div className="anticipation-sawtooth-graph__meta">
+              <div className="anticipation-sawtooth-graph__part">
+                {row.part_number}
+              </div>
+              <div className="anticipation-sawtooth-graph__desc">
+                {row.description}
+              </div>
+              <div className="anticipation-sawtooth-graph__submeta">
+                {row.pou_code} · {row.default_queue_label || "—"} · start{" "}
+                {fmtGraphQty(row.start_qty)} · warn{" "}
+                {fmtGraphQty(row.warning_qty)}
+              </div>
+            </div>
+
+            <div className="anticipation-sawtooth-graph__timeline">
+              <AnticipationGraphRow row={row} epochs={epochs} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="anticipation-sawtooth-legend">
+        <span className="anticipation-mini-pill">green = resupply jump</span>
+        <span className="anticipation-mini-pill">yellow = warning zone</span>
+        <span className="anticipation-mini-pill">red = stockout risk</span>
+        <span className="anticipation-mini-pill">square = release</span>
+        <span className="anticipation-mini-pill">circle = need</span>
+      </div>
+    </div>
+  );
+}
+
+function buildPartGraphRows({
+  rows,
+  releaseItems,
+  startTime,
+  standardTaktSeconds,
+  forecastLengthMinutes,
+}) {
+  const epochSeconds = Number(standardTaktSeconds || 280);
+  const totalSeconds = Number(forecastLengthMinutes || 120) * 60;
+  const epochCount = Math.max(1, Math.ceil(totalSeconds / epochSeconds));
+
+  const startDate = resolveGraphStart(startTime);
+  const epochs = Array.from({ length: epochCount + 1 }, (_, idx) => {
+    const at = new Date(startDate.getTime() + idx * epochSeconds * 1000);
+    return {
+      idx,
+      at,
+      key: at.toISOString(),
+      label: fmtEpochLabel(at),
+    };
+  });
+
+  const releaseByPart = new Map();
+  for (const item of releaseItems || []) {
+    const key = String(item.part_number || "");
+    if (!releaseByPart.has(key)) releaseByPart.set(key, []);
+    releaseByPart.get(key).push(item);
+  }
+
+  const graphRows = (rows || []).map((row) => {
+    const partKey = String(row.part_number || "");
+    const partEvents = releaseByPart.get(partKey) || [];
+
+    return {
+      id: row.id,
+      part_number: row.part_number,
+      description: row.description_snapshot,
+      pou_code: row.pou_code,
+      default_queue_label: row.default_queue_label,
+      lead_time_minutes: row.lead_time_minutes,
+      resupply_qty: row.resupply_qty,
+      start_qty: Number(
+        row.estimated_pou_qty ?? row.estimated_total_maplayer_qty ?? 0,
+      ),
+      warning_qty: Number(row.warning_qty_effective ?? 0),
+      epochs,
+      events: partEvents,
+    };
+  });
+
+  return { epochs, graphRows };
+}
+
+function projectPartSeries(partRow) {
+  let qty = Number(partRow.start_qty || 0);
+
+  const releaseEpochs = new Map();
+  for (const evt of partRow.events) {
+    const needIdx = nearestEpochIndex(partRow.epochs, evt.projected_need_at);
+    const relIdx = nearestEpochIndex(
+      partRow.epochs,
+      evt.recommended_release_at,
+    );
+
+    if (!releaseEpochs.has(relIdx)) {
+      releaseEpochs.set(relIdx, []);
+    }
+    releaseEpochs.get(relIdx).push(evt);
+
+    // Optional:
+    // if backend later provides per-epoch consumption, use that instead
+    // of inferring from release items.
+  }
+
+  return partRow.epochs.map((epoch, idx) => {
+    // Placeholder depletion logic:
+    // for now, decrement when a need event lands in this epoch
+    const needsNow = partRow.events.filter(
+      (evt) => nearestEpochIndex(partRow.epochs, evt.projected_need_at) === idx,
+    );
+    for (const evt of needsNow) {
+      qty -= Math.max(1, Number(evt.projected_consumption_qty || 1));
+    }
+
+    const releasesNow = releaseEpochs.get(idx) || [];
+    for (const evt of releasesNow) {
+      qty += Number(evt.resupply_qty ?? partRow.resupply_qty ?? 0);
+    }
+
+    return {
+      idx,
+      at: epoch.at,
+      qty,
+      isWarning: qty <= partRow.warning_qty,
+      isCritical: qty <= 0,
+      releaseEvents: releasesNow,
+      needEvents: needsNow,
+    };
+  });
+}
+
+function buildGenerateReleaseSchedulePayload({
+  resolvedPreferenceId,
+  partsToTrack,
+  partsToTrackOptions,
+  forecastLength,
+  releaseHorizon,
+  concurrentAssignmentsLimit,
+  previewWindow,
+  partsWindow,
+  defaultSort,
+  startTime,
+  createAssignments,
+  generateCommandFile,
+  triggerOnMes,
+  useSmartTakt,
+  standardTaktSeconds,
+  lineupSourceLabel,
+}) {
+  return {
+    controls: {
+      preference_id: resolvedPreferenceId || null,
+      parts_list_code: normalizePartsScope(partsToTrack, partsToTrackOptions),
+      forecast_length_minutes: forecastLabelToMinutes(forecastLength),
+      assignment_release_horizon_minutes: releaseLabelToMinutes(releaseHorizon),
+      concurrent_assignments_limit:
+        Number(concurrentAssignmentsLimit || 0) || 2,
+      preview_window_width: Number(previewWindow || 0) || 10,
+      parts_list_window: Number(partsWindow || 0) || 8,
+      default_sort_criteria: defaultSort || "sort_rank",
+      start_time: startTime || null,
+      create_assignments_default: !!createAssignments,
+      generate_assignments_file: !!generateCommandFile,
+      trigger_on_mes: !!triggerOnMes,
+      use_smart_takt: !!useSmartTakt,
+      standard_takt_seconds: Number(standardTaktSeconds || 0) || 280,
+    },
+    lineup: {
+      source_type: "existing",
+      source_ref: null,
+      source_label: lineupSourceLabel || null,
+    },
+    context: {
+      map_layer_id: null,
+      requested_parts_scope: normalizePartsScope(
+        partsToTrack,
+        partsToTrackOptions,
+      ),
+    },
+    client: {
+      page: "AnticipationPage",
+      generated_at_client: new Date().toISOString(),
+      ui_version: 1,
+    },
+  };
+}
+
 const styles = {
   page: { padding: 16, minHeight: "100vh", boxSizing: "border-box" },
 
@@ -467,23 +746,56 @@ export default function AnticipationPage() {
     selected_count: 0,
     low_count: 0,
   });
+  const [generatedReleaseItems, setGeneratedReleaseItems] = useState([]);
+  const [generationLoading, setGenerationLoading] = useState(false);
+  const [generationError, setGenerationError] = useState("");
+  const [generationWarnings, setGenerationWarnings] = useState([]);
+  const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [generatedSummary, setGeneratedSummary] = useState(null);
 
   const selectedCount = tableSummary.selected_count || 0;
   const lowCount = tableSummary.low_count || 0;
-  const releaseGroups = useMemo(
-    () =>
-      getPlanGroups(
-        demoReleaseItems,
-        Number(concurrentAssignmentsLimit || 0) || 2,
-      ),
-    [concurrentAssignmentsLimit],
-  );
+  const activeReleaseItems =
+    generatedReleaseItems.length > 0 ? generatedReleaseItems : demoReleaseItems;
+
+  const activePlan = generatedPlan || demoPlan;
 
   const [standardTaktSeconds, setStandardTaktSeconds] = useState(280);
   const [triggerOnMes, setTriggerOnMes] = useState(true);
   const [useSmartTakt, setUseSmartTakt] = useState(false);
 
+  const graphForecastLengthMinutes =
+    activePlan?.forecast_length_minutes ??
+    forecastLabelToMinutes(forecastLength);
+
+  const partGraphModel = useMemo(() => {
+    return buildPartGraphRows({
+      rows,
+      releaseItems: activeReleaseItems,
+      startTime,
+      standardTaktSeconds,
+      forecastLengthMinutes: graphForecastLengthMinutes,
+    });
+  }, [
+    rows,
+    activeReleaseItems,
+    startTime,
+    standardTaktSeconds,
+    graphForecastLengthMinutes,
+  ]);
+
+  const projectedGraphRows = useMemo(() => {
+    return (partGraphModel.graphRows || []).map((row) => ({
+      ...row,
+      series: projectPartSeries(row),
+    }));
+  }, [partGraphModel]);
+
+  const graphEpochs = partGraphModel.epochs || [];
   const lineupFileInputRef = useRef(null);
+  const tableScrollRef = useRef(null);
+  const graphScrollRef = useRef(null);
+  const syncingScrollRef = useRef(false);
 
   const bumpPreviewWindow = (delta) =>
     setPreviewWindow((prev) => String(Math.max(1, Number(prev || 0) + delta)));
@@ -524,6 +836,126 @@ export default function AnticipationPage() {
 
     if (generateCommandFile) {
       // current placeholder behavior
+    }
+  }
+
+  async function loadGeneratedPlanItems(planId) {
+    if (!planId) {
+      setGeneratedReleaseItems([]);
+      return;
+    }
+
+    const response = await fetch(
+      `${backendBase}/mhsa/api/anticipation/release-plan-detail/?plan_id=${encodeURIComponent(planId)}`,
+      {
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Plan detail request failed (${response.status})`);
+    }
+
+    const data = await response.json();
+
+    if (!data?.ok) {
+      throw new Error(data?.error || "Plan detail payload was not ok.");
+    }
+
+    setGeneratedPlan(data.plan || null);
+    setGeneratedReleaseItems(Array.isArray(data.items) ? data.items : []);
+  }
+
+  async function handleGenerateReleaseSchedule() {
+    setGenerationLoading(true);
+    setGenerationError("");
+    setGenerationWarnings([]);
+
+    try {
+      const csrfToken = getCookie("csrftoken");
+
+      const payload = buildGenerateReleaseSchedulePayload({
+        resolvedPreferenceId,
+        partsToTrack,
+        partsToTrackOptions,
+        forecastLength,
+        releaseHorizon,
+        concurrentAssignmentsLimit,
+        previewWindow,
+        partsWindow,
+        defaultSort,
+        startTime,
+        createAssignments,
+        generateCommandFile,
+        triggerOnMes,
+        useSmartTakt,
+        standardTaktSeconds,
+        lineupSourceLabel:
+          activePlan?.lineup_source_label || demoPlan.lineup_source_label,
+      });
+
+      const response = await fetch(
+        `${backendBase}/mhsa/api/anticipation/generate-release-schedule/`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        let message = `Generate request failed (${response.status})`;
+        try {
+          const errData = await response.json();
+          if (errData?.error) {
+            message = errData.error;
+            if (Array.isArray(errData.errors) && errData.errors.length) {
+              message += ` ${errData.errors.join(" ")}`;
+            }
+          }
+        } catch (_) {
+          // keep fallback message
+        }
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+
+      if (!data?.ok) {
+        throw new Error(data?.error || "Generate payload was not ok.");
+      }
+
+      const nextPlan = data.plan || null;
+
+      setGeneratedPlan(nextPlan);
+      setGeneratedSummary(data.summary || null);
+      setGenerationWarnings(Array.isArray(data.warnings) ? data.warnings : []);
+
+      if (nextPlan?.id) {
+        await loadGeneratedPlanItems(nextPlan.id);
+      } else {
+        setGeneratedReleaseItems([]);
+      }
+
+      console.log("Generated release schedule:", data);
+    } catch (err) {
+      setGenerationError(
+        err?.message || "Unable to generate release schedule.",
+      );
+      setGeneratedPlan(null);
+      setGeneratedSummary(null);
+      setGenerationWarnings([]);
+      setGeneratedReleaseItems([]);
+    } finally {
+      setGenerationLoading(false);
     }
   }
 
@@ -701,6 +1133,18 @@ export default function AnticipationPage() {
       isCancelled = true;
     };
   }, [partsToTrack, partsToTrackOptions, defaultSort, resolvedPreferenceId]);
+
+  function syncVerticalScroll(source, target) {
+    if (!source?.current || !target?.current) return;
+    if (syncingScrollRef.current) return;
+
+    syncingScrollRef.current = true;
+    target.current.scrollTop = source.current.scrollTop;
+
+    window.requestAnimationFrame(() => {
+      syncingScrollRef.current = false;
+    });
+  }
 
   return (
     <div className="mhsa-page mhsa-home mhsa-dark anticipation-page-shell">
@@ -921,7 +1365,7 @@ export default function AnticipationPage() {
                   className="mhsa-linkbtn"
                   onClick={openLineupFilePicker}
                 >
-                  {demoPlan.lineup_source_label || "Select lineup .csv"}
+                  {activePlan.lineup_source_label || "Select lineup .csv"}
                 </button>
 
                 <input
@@ -1062,8 +1506,15 @@ export default function AnticipationPage() {
               </div>
             </div>
 
-            <button className="mhsa-btn mhsa-btn-primary" type="button">
-              Generate MH Release Schedule
+            <button
+              className="mhsa-btn mhsa-btn-primary"
+              type="button"
+              onClick={handleGenerateReleaseSchedule}
+              disabled={generationLoading}
+            >
+              {generationLoading
+                ? "Generating Release Schedule..."
+                : "Generate MH Release Schedule"}
             </button>
           </div>
         </div>
@@ -1074,7 +1525,7 @@ export default function AnticipationPage() {
           <div className="anticipation-table-shell">
             <div className="anticipation-table-header">
               <div>
-                <h3 className="anticipation-table-title">My Favorites</h3>
+                <h3 className="anticipation-table-title">{partsToTrack}</h3>
                 <div className="anticipation-table-subtitle">
                   Durable advisory state from AnticipationPartState. In-house
                   quantity is contextual; POU quantity drives local starvation
@@ -1115,7 +1566,13 @@ export default function AnticipationPage() {
               </div>
             </div>
 
-            <div className="anticipation-table-wrap mhsa-table-wrap">
+            <div
+              ref={tableScrollRef}
+              className="anticipation-table-wrap mhsa-table-wrap anticipation-linked-pane anticipation-linked-pane--left"
+              onScroll={() =>
+                syncVerticalScroll(tableScrollRef, graphScrollRef)
+              }
+            >
               <table className="table mhsa-table mhsa-table--sm anticipation-table mb-0 align-middle">
                 <thead>
                   <tr>
@@ -1308,7 +1765,7 @@ export default function AnticipationPage() {
             />
             <MetricCard
               label="Lineup Source"
-              value={demoPlan.lineup_source_label}
+              value={activePlan.lineup_source_label}
               subvalue={
                 startTime
                   ? `Epoch 0 starts at ${inputValueToCompactTime(startTime)}`
@@ -1319,114 +1776,94 @@ export default function AnticipationPage() {
         </section>
 
         <aside className="anticipation-plan-panel">
+          <div
+            ref={graphScrollRef}
+            className="anticipation-plan-groups anticipation-linked-pane anticipation-linked-pane--right"
+            onScroll={() => syncVerticalScroll(graphScrollRef, tableScrollRef)}
+          >
+            <AnticipationSawtoothGraph
+              rows={projectedGraphRows}
+              epochs={graphEpochs}
+              partsWindow={partsWindow}
+            />
+
+            {generatedReleaseItems.length ? (
+              <div className="anticipation-note" style={{ marginTop: 8 }}>
+                Loaded {generatedReleaseItems.length} release item(s) for graph
+                rendering.
+              </div>
+            ) : null}
+          </div>
+
           <div className="anticipation-plan-card">
             <h3>Material Handling Release Schedule Graph</h3>
             <div className="anticipation-note" style={{ marginTop: 6 }}>
               Grouped by queue, then by release window. Conflict highlighting is
               based on queue + flight window versus concurrent assignment limit.
             </div>
+            {generationError ? (
+              <div
+                className="anticipation-note"
+                style={{ marginTop: 8, color: "#ff9f9f" }}
+              >
+                {generationError}
+              </div>
+            ) : null}
+
+            {generatedPlan ? (
+              <div className="anticipation-note" style={{ marginTop: 8 }}>
+                Generated plan <strong>{generatedPlan.name}</strong>
+                {generatedPlan.generated_at
+                  ? ` at ${fmtTime(generatedPlan.generated_at)}`
+                  : ""}
+              </div>
+            ) : null}
+
+            {generatedSummary ? (
+              <div className="anticipation-note" style={{ marginTop: 8 }}>
+                Considered {generatedSummary.tracked_parts_considered ?? 0}{" "}
+                tracked parts · matched{" "}
+                {generatedSummary.parts_with_state_match ?? 0} · missing state{" "}
+                {generatedSummary.parts_without_state_match ?? 0}
+              </div>
+            ) : null}
+
+            {generationWarnings.length ? (
+              <div className="anticipation-note" style={{ marginTop: 8 }}>
+                {generationWarnings.slice(0, 3).map((warning, idx) => (
+                  <div key={idx}>• {warning}</div>
+                ))}
+              </div>
+            ) : null}
             <div className="anticipation-plan-meta">
               <div className="meta">
                 <div className="label">Plan Status</div>
-                <div>{demoPlan.status}</div>
+                <div>{activePlan.status}</div>
               </div>
               <div className="meta">
                 <div className="label">Concurrent Limit</div>
-                <div>{concurrentAssignmentsLimit}</div>
+                <div>
+                  {activePlan.concurrent_assignments_limit ??
+                    concurrentAssignmentsLimit}
+                </div>
               </div>
               <div className="meta">
                 <div className="label">ANTICIPATION HORIZON</div>
-                <div>{forecastLabelToMinutes(forecastLength)} min</div>
+                <div>
+                  {activePlan.forecast_length_minutes ??
+                    forecastLabelToMinutes(forecastLength)}{" "}
+                  min
+                </div>
               </div>
               <div className="meta">
                 <div className="label">Release Horizon</div>
-                <div>{releaseLabelToMinutes(releaseHorizon)} min</div>
+                <div>
+                  {activePlan.assignment_release_horizon_minutes ??
+                    releaseLabelToMinutes(releaseHorizon)}{" "}
+                  min
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="anticipation-plan-groups">
-            {releaseGroups.map((group) => (
-              <div key={group.queue} className="anticipation-queue-card">
-                <div className="anticipation-queue-card__header">
-                  <h4>{group.queue}</h4>
-                  <span className="anticipation-mini-pill">
-                    {group.windows.length} window(s)
-                  </span>
-                </div>
-                <div className="anticipation-window-list">
-                  {group.windows.map((windowGroup) => (
-                    <div
-                      key={windowGroup.windowKey}
-                      className={clsx(
-                        "anticipation-window",
-                        windowGroup.isConflict && "is-conflict",
-                      )}
-                    >
-                      <div className="anticipation-window__top">
-                        <strong>
-                          {fmtWindow(
-                            windowGroup.release_window_start,
-                            windowGroup.release_window_end,
-                          )}
-                        </strong>
-                        <span
-                          className={clsx(
-                            "anticipation-mini-pill",
-                            windowGroup.isConflict && "is-danger",
-                          )}
-                        >
-                          {windowGroup.items.length} item(s)
-                          {windowGroup.isConflict ? " · conflict" : ""}
-                        </span>
-                      </div>
-                      <div className="anticipation-window__items">
-                        {windowGroup.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="anticipation-window-item"
-                          >
-                            <div className="anticipation-window-item__top">
-                              <div>
-                                <div className="anticipation-window-item__title">
-                                  {item.part_number} · {item.pou_code}
-                                </div>
-                                <div className="anticipation-window-item__desc">
-                                  {item.description_snapshot}
-                                </div>
-                              </div>
-                              <span
-                                className={clsx(
-                                  "anticipation-mini-pill",
-                                  item.conflict_level === "high" && "is-danger",
-                                )}
-                              >
-                                {item.status}
-                              </span>
-                            </div>
-                            <div className="anticipation-window-item__times">
-                              <span className="anticipation-mini-pill">
-                                release {fmtTime(item.recommended_release_at)}
-                              </span>
-                              <span className="anticipation-mini-pill">
-                                need {fmtTime(item.projected_need_at)}
-                              </span>
-                              <span className="anticipation-mini-pill">
-                                qty@need{" "}
-                                {fmtQty(item.estimated_pou_qty_at_need)}
-                              </span>
-                              <span className="anticipation-mini-pill">
-                                warn {fmtQty(item.warning_qty_effective)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </aside>
       </div>

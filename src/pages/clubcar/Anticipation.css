@@ -456,6 +456,201 @@
   line-height: 1.45;
 }
 
+.anticipation-sawtooth-graph {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.anticipation-sawtooth-graph__header,
+.anticipation-sawtooth-graph__row {
+  display: grid;
+  grid-template-columns: 260px minmax(760px, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.anticipation-sawtooth-graph__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 68vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.anticipation-sawtooth-graph__meta {
+  min-width: 0;
+}
+
+.anticipation-sawtooth-graph__part {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.anticipation-sawtooth-graph__desc {
+  font-size: 0.82rem;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.anticipation-sawtooth-graph__submeta {
+  margin-top: 2px;
+  font-size: 0.76rem;
+  opacity: 0.72;
+}
+
+.anticipation-sawtooth-graph__timeline {
+  min-width: 760px;
+}
+
+.anticipation-sawtooth-graph__epoch-labels {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+  font-size: 0.72rem;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.anticipation-sawtooth-graph__epoch {
+  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.anticipation-sawtooth-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.anticipation-graph-row-svg {
+  display: block;
+  width: 100%;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.anticipation-graph-axis-line {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 1;
+}
+
+.anticipation-graph-warning-line {
+  stroke: rgba(255, 217, 0, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.anticipation-graph-epoch-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.anticipation-graph-segment {
+  fill: none;
+  stroke: #cfcfcf;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.anticipation-graph-segment.is-warning {
+  stroke: #ffe600;
+}
+
+.anticipation-graph-segment.is-critical {
+  stroke: #ff3030;
+}
+
+.anticipation-graph-segment.is-resupply {
+  stroke: #33dd55;
+}
+
+.anticipation-graph-marker {
+  stroke: #111;
+  stroke-width: 1.5;
+}
+
+.anticipation-graph-marker--release {
+  fill: #39e639;
+}
+
+.anticipation-graph-marker--need {
+  fill: #ff35ff;
+}
+
+@media (max-width: 1400px) {
+  .anticipation-sawtooth-graph__header,
+  .anticipation-sawtooth-graph__row {
+    grid-template-columns: 220px minmax(680px, 1fr);
+  }
+
+  .anticipation-sawtooth-graph__timeline {
+    min-width: 680px;
+  }
+}
+
+.anticipation-stage {
+  display: grid;
+  grid-template-columns: minmax(720px, 1.1fr) minmax(680px, 0.9fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.anticipation-results,
+.anticipation-plan-panel {
+  min-width: 0;
+}
+
+.anticipation-linked-pane {
+  max-height: 68vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.anticipation-linked-pane--left {
+  overflow-x: auto;
+}
+
+.anticipation-linked-pane--right {
+  overflow-x: auto;
+  padding-right: 2px;
+}
+
+.anticipation-table-wrap {
+  min-width: 0;
+}
+
+.anticipation-table {
+  min-width: 1120px;
+}
+
+.anticipation-plan-groups {
+  min-width: 0;
+}
+
+.anticipation-sawtooth-graph {
+  min-width: 980px;
+}
+
+.anticipation-sawtooth-graph__body {
+  max-height: none;
+  overflow: visible;
+}
+
 @media (max-width: 1400px) {
   .anticipation-toolbar {
     grid-template-columns: 1fr;
