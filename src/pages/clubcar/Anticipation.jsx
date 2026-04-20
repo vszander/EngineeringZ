@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./Anticipation.css";
+import { Popover } from "bootstrap";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
@@ -81,6 +82,11 @@ const demoReleaseItems = [
 
 function clsx(...parts) {
   return parts.filter(Boolean).join(" ");
+}
+
+function getCsrfToken() {
+  const token = getCookie("csrftoken");
+  return token || "";
 }
 
 function fmtQty(value) {
@@ -677,6 +683,7 @@ function buildGenerateReleaseSchedulePayload({
 }
 
 const styles = {
+  link: { textDecoration: "none" },
   page: { padding: 16, minHeight: "100vh", boxSizing: "border-box" },
 
   headerRow: {
@@ -752,6 +759,36 @@ export default function AnticipationPage() {
   const [generationWarnings, setGenerationWarnings] = useState([]);
   const [generatedPlan, setGeneratedPlan] = useState(null);
   const [generatedSummary, setGeneratedSummary] = useState(null);
+  const [generateRunState, setGenerateRunState] = useState({
+    isRunning: false,
+    phase: "idle", // idle | starting | loading_sources | simulating | finalizing | complete | error
+    startedAt: null,
+    finishedAt: null,
+    telemetry: {
+      lineupLoaded: null,
+      epochMapLoaded: null,
+      bomLookupLoaded: null,
+      stateMatches: null,
+      stateMisses: null,
+      partsWithConsumption: null,
+      generatedItems: null,
+      dataIssues: null,
+      conflictCount: null,
+      sequenceEpochZero: null,
+    },
+    sourceStatus: {
+      scheduling: "idle", // idle | working | done | error
+      routing: "idle",
+      erpBom: "idle",
+      localState: "idle",
+      simulation: "idle",
+      diagnostics: "idle",
+    },
+    message: "Ready to generate release schedule.",
+    error: "",
+  });
+
+  const [showGeneratePanel, setShowGeneratePanel] = useState(false);
 
   const selectedCount = tableSummary.selected_count || 0;
   const lowCount = tableSummary.low_count || 0;
@@ -796,6 +833,8 @@ export default function AnticipationPage() {
   const tableScrollRef = useRef(null);
   const graphScrollRef = useRef(null);
   const syncingScrollRef = useRef(false);
+  const generateBtnRef = useRef(null);
+  const generateProgressTimersRef = useRef([]);
 
   const bumpPreviewWindow = (delta) =>
     setPreviewWindow((prev) => String(Math.max(1, Number(prev || 0) + delta)));
@@ -811,6 +850,368 @@ export default function AnticipationPage() {
         row.id === id ? { ...row, selected: !row.selected } : row,
       ),
     );
+  }
+
+  function clearPseudoProgressTimers() {
+    generateProgressTimersRef.current.forEach((id) => window.clearTimeout(id));
+    generateProgressTimersRef.current = [];
+  }
+
+  function startPseudoProgress() {
+    clearPseudoProgressTimers();
+
+    setGenerateRunState({
+      isRunning: true,
+      phase: "starting",
+      startedAt: Date.now(),
+      finishedAt: null,
+      telemetry: {
+        lineupLoaded: null,
+        epochMapLoaded: null,
+        bomLookupLoaded: null,
+        stateMatches: null,
+        stateMisses: null,
+        partsWithConsumption: null,
+        generatedItems: null,
+        dataIssues: null,
+        conflictCount: null,
+        sequenceEpochZero: null,
+      },
+      sourceStatus: {
+        scheduling: "working",
+        routing: "idle",
+        erpBom: "idle",
+        localState: "idle",
+        simulation: "idle",
+        diagnostics: "idle",
+      },
+      message:
+        "MHSA is initializing a planning session and validating external source connectivity.",
+      error: "",
+    });
+
+    generateProgressTimersRef.current.push(
+      window.setTimeout(() => {
+        setGenerateRunState((prev) => ({
+          ...prev,
+          phase: "loading_sources",
+          sourceStatus: {
+            ...prev.sourceStatus,
+            scheduling: "done",
+            routing: "working",
+          },
+          message:
+            "Scheduling source connected. Loading epoch-order routing references for point-of-use timing.",
+        }));
+      }, 700),
+    );
+
+    generateProgressTimersRef.current.push(
+      window.setTimeout(() => {
+        setGenerateRunState((prev) => ({
+          ...prev,
+          phase: "loading_sources",
+          sourceStatus: {
+            ...prev.sourceStatus,
+            routing: "done",
+            erpBom: "working",
+          },
+          message:
+            "Routing references loaded. Querying BOM and external requirement coverage.",
+        }));
+      }, 1500),
+    );
+
+    generateProgressTimersRef.current.push(
+      window.setTimeout(() => {
+        setGenerateRunState((prev) => ({
+          ...prev,
+          phase: "loading_sources",
+          sourceStatus: {
+            ...prev.sourceStatus,
+            erpBom: "done",
+            localState: "working",
+          },
+          message:
+            "Requirement lookup prepared. Matching tracked parts to local advisory state.",
+        }));
+      }, 2400),
+    );
+
+    generateProgressTimersRef.current.push(
+      window.setTimeout(() => {
+        setGenerateRunState((prev) => ({
+          ...prev,
+          phase: "simulating",
+          sourceStatus: {
+            ...prev.sourceStatus,
+            localState: "done",
+            simulation: "working",
+          },
+          message:
+            "Tracked part state matched. Running anticipation simulation and threshold analysis.",
+        }));
+      }, 3400),
+    );
+
+    generateProgressTimersRef.current.push(
+      window.setTimeout(() => {
+        setGenerateRunState((prev) => ({
+          ...prev,
+          phase: "finalizing",
+          sourceStatus: {
+            ...prev.sourceStatus,
+            simulation: "done",
+            diagnostics: "working",
+          },
+          message:
+            "Simulation complete. Building diagnostics, issue report, and release-plan summary.",
+        }));
+      }, 4600),
+    );
+  }
+
+  async function handleGenerateReleaseSchedule() {
+    if (generateRunState.isRunning) return;
+
+    setShowGeneratePanel(true);
+
+    startPseudoProgress();
+    setGenerationLoading(true);
+    setGenerationError("");
+    setGenerationWarnings([]);
+
+    try {
+      const payload = buildGenerateReleaseSchedulePayload({
+        resolvedPreferenceId,
+        partsToTrack,
+        partsToTrackOptions,
+        forecastLength,
+        releaseHorizon,
+        concurrentAssignmentsLimit,
+        previewWindow,
+        partsWindow,
+        defaultSort,
+        startTime,
+        createAssignments,
+        generateCommandFile,
+        triggerOnMes,
+        useSmartTakt,
+        standardTaktSeconds,
+        lineupSourceLabel: activePlan?.lineup_source_label || "Today.csv",
+      });
+
+      const response = await fetch(
+        `${backendBase}/mhsa/api/anticipation/generate-release-schedule/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || "Generate Release Schedule failed.");
+      }
+
+      clearPseudoProgressTimers();
+      applyGenerateResponseToRunState(data);
+
+      setGeneratedPlan(data.plan || null);
+      setGeneratedSummary(data.summary || null);
+      setGenerationWarnings(Array.isArray(data.warnings) ? data.warnings : []);
+
+      if (data?.plan?.id) {
+        await loadGeneratedPlanItems(data.plan.id);
+      } else {
+        setGeneratedReleaseItems([]);
+      }
+    } catch (err) {
+      const message = err?.message || "Unexpected forecast generation error.";
+      clearPseudoProgressTimers();
+      setGenerationError(message);
+      failGenerateRun(message);
+    } finally {
+      setGenerationLoading(false);
+    }
+  }
+
+  function applyGenerateResponseToRunState(data) {
+    const plan = data?.plan || {};
+    const summary = data?.summary || {};
+
+    const lineupSummary =
+      data?.plan_json?.lineup_summary ||
+      data?.lineup_summary ||
+      data?.plan?.lineup_summary ||
+      {};
+
+    const planJson = data?.plan_json || {};
+
+    const effectiveLineupSummary =
+      planJson.lineup_summary || lineupSummary || {};
+
+    const effectiveEpochSummary = planJson.epoch_order_summary || {};
+
+    const effectiveBomSummary = planJson.bom_summary || {};
+
+    setGenerateRunState((prev) => ({
+      ...prev,
+      isRunning: false,
+      phase: "complete",
+      finishedAt: Date.now(),
+      sourceStatus: {
+        scheduling: "done",
+        routing: "done",
+        erpBom: "done",
+        localState: "done",
+        simulation: "done",
+        diagnostics: "done",
+      },
+      telemetry: {
+        lineupLoaded:
+          summary.lineup_order_count ??
+          effectiveLineupSummary.order_count ??
+          null,
+        epochMapLoaded:
+          summary.mapped_pou_count ??
+          effectiveEpochSummary.mapped_pou_count ??
+          null,
+        bomLookupLoaded:
+          summary.bom_lookup_count ??
+          effectiveBomSummary.bom_lookup_count ??
+          null,
+        stateMatches: summary.parts_with_state_match ?? null,
+        stateMisses: summary.parts_without_state_match ?? null,
+        partsWithConsumption: summary.parts_with_consumption ?? null,
+        generatedItems: plan.generated_item_count ?? null,
+        dataIssues: summary.data_issue_count ?? null,
+        conflictCount: plan.conflict_count ?? null,
+        sequenceEpochZero:
+          plan.sequence_epoch_zero ?? planJson.sequence_epoch_zero ?? null,
+      },
+      message:
+        (plan.generated_item_count || 0) > 0
+          ? "Planning session complete. MHSA generated advisory release activity and captured supporting telemetry."
+          : "Planning session complete. No release events were generated in the current horizon, but MHSA confirmed source loading, matching, and diagnostics.",
+      error: "",
+    }));
+  }
+
+  function failGenerateRun(errorText) {
+    setGenerateRunState((prev) => ({
+      ...prev,
+      isRunning: false,
+      phase: "error",
+      finishedAt: Date.now(),
+      sourceStatus: {
+        ...prev.sourceStatus,
+        diagnostics: "error",
+      },
+      message:
+        "The planning session did not complete normally. Review the diagnostic details below.",
+      error: errorText || "Unknown anticipation run error.",
+    }));
+  }
+
+  function buildGeneratePopoverHtml(runState) {
+    const icon = (status) => {
+      if (status === "done") return "✅";
+      if (status === "working") return "⏳";
+      if (status === "error") return "⚠️";
+      return "◌";
+    };
+
+    const metric = (label, value) => {
+      if (value === null || value === undefined) {
+        return `<div class="anticipation-run-metric"><span>${label}</span><strong>—</strong></div>`;
+      }
+      return `<div class="anticipation-run-metric"><span>${label}</span><strong>${value}</strong></div>`;
+    };
+
+    const telemetry = runState.telemetry || {};
+    const sourceStatus = runState.sourceStatus || {};
+
+    return `
+    <div class="anticipation-run-popover">
+      <div class="anticipation-run-popover__intro">
+        <div class="anticipation-run-popover__headline">
+          ${runState.isRunning ? "MHSA Anticipation Run In Progress" : "MHSA Anticipation Session"}
+        </div>
+        <div class="anticipation-run-popover__copy">
+          ${runState.message || "Preparing forecast session."}
+        </div>
+      </div>
+
+      <div class="anticipation-run-popover__section">
+        <div class="anticipation-run-popover__section-title">Workstreams</div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.scheduling)}</span>
+          <span class="anticipation-run-step__label">Scheduling / Lineup source</span>
+        </div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.routing)}</span>
+          <span class="anticipation-run-step__label">POU epoch / routing map</span>
+        </div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.erpBom)}</span>
+          <span class="anticipation-run-step__label">ERP / BOM requirement lookup</span>
+        </div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.localState)}</span>
+          <span class="anticipation-run-step__label">Tracked part advisory state</span>
+        </div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.simulation)}</span>
+          <span class="anticipation-run-step__label">Forecast simulation</span>
+        </div>
+
+        <div class="anticipation-run-step">
+          <span class="anticipation-run-step__icon">${icon(sourceStatus.diagnostics)}</span>
+          <span class="anticipation-run-step__label">Diagnostics / issue report</span>
+        </div>
+      </div>
+
+      <div class="anticipation-run-popover__section">
+        <div class="anticipation-run-popover__section-title">Telemetry</div>
+        <div class="anticipation-run-metrics">
+          ${metric("Orders loaded", telemetry.lineupLoaded)}
+          ${metric("POUs mapped", telemetry.epochMapLoaded)}
+          ${metric("BOM lookup rows", telemetry.bomLookupLoaded)}
+          ${metric("Tracked parts matched", telemetry.stateMatches)}
+          ${metric("Tracked parts unmatched", telemetry.stateMisses)}
+          ${metric("Parts with consumption", telemetry.partsWithConsumption)}
+          ${metric("Release items generated", telemetry.generatedItems)}
+          ${metric("Data issues detected", telemetry.dataIssues)}
+          ${metric("Conflicts", telemetry.conflictCount)}
+          ${metric("Epoch 0 sequence", telemetry.sequenceEpochZero)}
+        </div>
+      </div>
+
+      ${
+        runState.error
+          ? `
+        <div class="anticipation-run-popover__section anticipation-run-popover__section--error">
+          <div class="anticipation-run-popover__section-title">Attention</div>
+          <div class="anticipation-run-popover__error">${runState.error}</div>
+        </div>
+      `
+          : ""
+      }
+    </div>
+  `;
   }
 
   function handleGenerateAssignmentsFile() {
@@ -869,102 +1270,30 @@ export default function AnticipationPage() {
     setGeneratedReleaseItems(Array.isArray(data.items) ? data.items : []);
   }
 
-  async function handleGenerateReleaseSchedule() {
-    setGenerationLoading(true);
-    setGenerationError("");
-    setGenerationWarnings([]);
-
-    try {
-      const csrfToken = getCookie("csrftoken");
-
-      const payload = buildGenerateReleaseSchedulePayload({
-        resolvedPreferenceId,
-        partsToTrack,
-        partsToTrackOptions,
-        forecastLength,
-        releaseHorizon,
-        concurrentAssignmentsLimit,
-        previewWindow,
-        partsWindow,
-        defaultSort,
-        startTime,
-        createAssignments,
-        generateCommandFile,
-        triggerOnMes,
-        useSmartTakt,
-        standardTaktSeconds,
-        lineupSourceLabel:
-          activePlan?.lineup_source_label || demoPlan.lineup_source_label,
-      });
-
-      const response = await fetch(
-        `${backendBase}/mhsa/api/anticipation/generate-release-schedule/`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      if (!response.ok) {
-        let message = `Generate request failed (${response.status})`;
-        try {
-          const errData = await response.json();
-          if (errData?.error) {
-            message = errData.error;
-            if (Array.isArray(errData.errors) && errData.errors.length) {
-              message += ` ${errData.errors.join(" ")}`;
-            }
-          }
-        } catch (_) {
-          // keep fallback message
-        }
-        throw new Error(message);
-      }
-
-      const data = await response.json();
-
-      if (!data?.ok) {
-        throw new Error(data?.error || "Generate payload was not ok.");
-      }
-
-      const nextPlan = data.plan || null;
-
-      setGeneratedPlan(nextPlan);
-      setGeneratedSummary(data.summary || null);
-      setGenerationWarnings(Array.isArray(data.warnings) ? data.warnings : []);
-
-      if (nextPlan?.id) {
-        await loadGeneratedPlanItems(nextPlan.id);
-      } else {
-        setGeneratedReleaseItems([]);
-      }
-
-      console.log("Generated release schedule:", data);
-    } catch (err) {
-      setGenerationError(
-        err?.message || "Unable to generate release schedule.",
-      );
-      setGeneratedPlan(null);
-      setGeneratedSummary(null);
-      setGenerationWarnings([]);
-      setGeneratedReleaseItems([]);
-    } finally {
-      setGenerationLoading(false);
-    }
-  }
-
   function toggleAll() {
     const shouldSelectAll = rows.some((row) => !row.selected);
     setRows((prev) =>
       prev.map((row) => ({ ...row, selected: shouldSelectAll })),
     );
   }
+
+  useEffect(() => {
+    const nodes = Array.from(
+      document.querySelectorAll('[data-bs-toggle="popover"]'),
+    ).filter((node) => node !== generateBtnRef.current);
+
+    const popovers = nodes.map((node) => {
+      const existing = Popover.getInstance(node);
+      if (existing) {
+        existing.dispose();
+      }
+      return new Popover(node);
+    });
+
+    return () => {
+      popovers.forEach((popover) => popover.dispose());
+    };
+  }, [rows, projectedGraphRows, generationWarnings, generatedPlan]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -1429,7 +1758,59 @@ export default function AnticipationPage() {
             style={{ maxWidth: "620px", width: "100%" }}
           >
             <div>
-              <p className="anticipation-rail-title">AI Analysis</p>
+              <div
+                className="anticipation-rail-title-wrap"
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <p className="anticipation-rail-title" style={{ margin: 0 }}>
+                  AI Analysis
+                </p>
+
+                <button
+                  type="button"
+                  className="anticipation-help-icon"
+                  aria-label="Executive explanation of anticipation logic"
+                  data-bs-toggle="popover"
+                  data-bs-trigger="click focus"
+                  data-bs-placement="left"
+                  data-bs-html="true"
+                  data-bs-custom-class="anticipation-exec-popover"
+                  title="Anticipation Logic Explained"
+                  data-bs-content={`
+      <div class="anticipation-exec-popover__body">
+        <div class="anticipation-exec-popover__copy">
+          MHSA works backward from projected point-of-use risk.
+          It estimates when a part will cross its warning threshold,
+          subtracts lead time, aligns that need to the best release window,
+          and recommends when work should be released to the queue so the part
+          arrives before local starvation occurs.
+        </div>
+        <img
+          src="http://localhost:5173/images/clubcar/Exec_Anticipation_logic.png"
+          alt="Executive anticipation planning logic"
+          class="anticipation-exec-popover__img"
+        />
+      </div>
+    `}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "rgba(255,255,255,0.06)",
+                    color: "#d7dce5",
+                    width: "26px",
+                    height: "26px",
+                    borderRadius: "999px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    fontSize: "0.9rem",
+                    lineHeight: 1,
+                    padding: 0,
+                  }}
+                >
+                  ?
+                </button>
+              </div>
 
               <div className="anticipation-ai-block">
                 <button
@@ -1505,21 +1886,70 @@ export default function AnticipationPage() {
                 </div>
               </div>
             </div>
-
             <button
-              className="mhsa-btn mhsa-btn-primary"
+              ref={generateBtnRef}
               type="button"
+              className="mhsa-linkbtn"
               onClick={handleGenerateReleaseSchedule}
-              disabled={generationLoading}
+              aria-label="Generate release schedule"
+              aria-expanded={showGeneratePanel ? "true" : "false"}
+              style={{
+                opacity: generateRunState.isRunning ? 0.72 : 1,
+                cursor: generateRunState.isRunning ? "progress" : "pointer",
+              }}
             >
-              {generationLoading
-                ? "Generating Release Schedule..."
-                : "Generate MH Release Schedule"}
+              {generateRunState.isRunning
+                ? "Generating..."
+                : "Generate Release Schedule"}
             </button>
           </div>
         </div>
       </div>
+      {showGeneratePanel ? (
+        <div
+          className="anticipation-run-floating-panel"
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            width: "420px",
+            maxWidth: "calc(100vw - 32px)",
+            maxHeight: "calc(100vh - 40px)",
+            zIndex: 9999,
+            background: "#1f2630",
+            color: "#e6edf5",
+            border: "2px solid rgba(255,255,255,0.18)",
+            borderRadius: "14px",
+            boxShadow: "0 18px 48px rgba(0,0,0,0.38)",
+            overflow: "hidden",
+          }}
+        >
+          <div className="anticipation-run-floating-panel__header">
+            <div className="anticipation-run-floating-panel__title">
+              Anticipation Run Status
+            </div>
+            <button
+              type="button"
+              className="anticipation-run-floating-panel__close"
+              onClick={() => setShowGeneratePanel(false)}
+              aria-label="Close anticipation run status"
+            >
+              ×
+            </button>
+          </div>
 
+          <div
+            className="anticipation-run-floating-panel__body"
+            style={{
+              maxHeight: "calc(100vh - 92px)",
+              overflowY: "auto",
+            }}
+            dangerouslySetInnerHTML={{
+              __html: buildGeneratePopoverHtml(generateRunState),
+            }}
+          />
+        </div>
+      ) : null}
       <div className="anticipation-stage">
         <section className="anticipation-results">
           <div className="anticipation-table-shell">
