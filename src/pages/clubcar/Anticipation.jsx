@@ -761,7 +761,7 @@ export default function AnticipationPage() {
   const [generatedSummary, setGeneratedSummary] = useState(null);
   const [generateRunState, setGenerateRunState] = useState({
     isRunning: false,
-    phase: "idle", // idle | starting | loading_sources | simulating | finalizing | complete | error
+    phase: "idle",
     startedAt: null,
     finishedAt: null,
     telemetry: {
@@ -777,17 +777,22 @@ export default function AnticipationPage() {
       sequenceEpochZero: null,
     },
     sourceStatus: {
-      scheduling: "idle", // idle | working | done | error
+      scheduling: "idle",
       routing: "idle",
       erpBom: "idle",
       localState: "idle",
       simulation: "idle",
       diagnostics: "idle",
     },
+    analysisExport: {
+      ok: false,
+      row_count: 0,
+      download_url: "",
+      error: "",
+    },
     message: "Ready to generate release schedule.",
     error: "",
   });
-
   const [showGeneratePanel, setShowGeneratePanel] = useState(false);
 
   const selectedCount = tableSummary.selected_count || 0;
@@ -885,6 +890,13 @@ export default function AnticipationPage() {
         simulation: "idle",
         diagnostics: "idle",
       },
+      analysisExport: {
+        ok: false,
+        row_count: 0,
+        download_url: "",
+        error: "",
+      },
+
       message:
         "MHSA is initializing a planning session and validating external source connectivity.",
       error: "",
@@ -1059,8 +1071,8 @@ export default function AnticipationPage() {
       planJson.lineup_summary || lineupSummary || {};
 
     const effectiveEpochSummary = planJson.epoch_order_summary || {};
-
     const effectiveBomSummary = planJson.bom_summary || {};
+    const analysisExport = plan.analysis_export || {};
 
     setGenerateRunState((prev) => ({
       ...prev,
@@ -1096,6 +1108,12 @@ export default function AnticipationPage() {
         conflictCount: plan.conflict_count ?? null,
         sequenceEpochZero:
           plan.sequence_epoch_zero ?? planJson.sequence_epoch_zero ?? null,
+      },
+      analysisExport: {
+        ok: !!analysisExport.ok,
+        row_count: Number(analysisExport.row_count || 0),
+        download_url: analysisExport.download_url || "",
+        error: analysisExport.error || "",
       },
       message:
         (plan.generated_item_count || 0) > 0
@@ -1138,6 +1156,20 @@ export default function AnticipationPage() {
 
     const telemetry = runState.telemetry || {};
     const sourceStatus = runState.sourceStatus || {};
+    const analysis = runState.analysisExport || {};
+
+    const hasErrors = Number(telemetry.dataIssues || 0) > 0 || !!runState.error;
+
+    const checklistHref = analysis.download_url
+      ? /^https?:\/\//i.test(analysis.download_url)
+        ? analysis.download_url
+        : `${String(backendBase || "").replace(/\/$/, "")}/${String(
+            analysis.download_url,
+          ).replace(/^\//, "")}`
+      : "";
+
+    const hasChecklist =
+      !!analysis.ok && Number(analysis.row_count || 0) > 0 && !!checklistHref;
 
     return `
     <div class="anticipation-run-popover">
@@ -1199,6 +1231,53 @@ export default function AnticipationPage() {
           ${metric("Epoch 0 sequence", telemetry.sequenceEpochZero)}
         </div>
       </div>
+
+      <div class="anticipation-run-popover__section">
+        <div class="anticipation-run-popover__section-title">Run Summary</div>
+        <div class="anticipation-run-metrics">
+          ${metric("Generated Items", telemetry.generatedItems)}
+          ${metric("Data Issues", telemetry.dataIssues)}
+          ${metric("State Matches", telemetry.stateMatches)}
+          ${metric("Consumption Timelines", telemetry.partsWithConsumption)}
+        </div>
+      </div>
+
+      ${
+        hasErrors
+          ? `
+        <div class="anticipation-run-popover__section anticipation-run-popover__section--warning">
+          <div class="anticipation-run-popover__section-title">Issues detected</div>
+          <div class="anticipation-run-popover__copy">
+            MHSA found forecast or data anomalies for this run.
+          </div>
+        </div>
+      `
+          : ""
+      }
+
+      ${
+        hasChecklist
+          ? `
+        <div class="anticipation-run-popover__section">
+          <div class="anticipation-run-popover__section-title">Operations Checklist</div>
+          <div class="anticipation-run-popover__copy">
+            A CSV checklist was generated for follow-up and data cleanup.
+          </div>
+          <div class="anticipation-diagnostics-popover__actions">
+            <a
+              class="btn btn-sm btn-outline-primary"
+              href="${checklistHref}"
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+            >
+              Download Checklist CSV
+            </a>
+          </div>
+        </div>
+      `
+          : ""
+      }
 
       ${
         runState.error

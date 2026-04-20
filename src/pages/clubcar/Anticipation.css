@@ -774,6 +774,26 @@
   padding: 12px;
 }
 
+.anticipation-diagnostics-popover__actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.anticipation-diagnostics-popover__section--warning {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 193, 7, 0.12);
+}
+
+.anticipation-diagnostics-popover__section--ok {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(25, 135, 84, 0.12);
+}
+
 @media (max-width: 1400px) {
   .anticipation-toolbar {
     grid-template-columns: 1fr;
