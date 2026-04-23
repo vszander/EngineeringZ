@@ -1834,12 +1834,18 @@ export default function AnticipationPage() {
 
           <div
             className="anticipation-rail-card"
-            style={{ maxWidth: "620px", width: "100%" }}
+            style={{ maxWidth: "1280px", width: "100%" }}
           >
             <div>
               <div
                 className="anticipation-rail-title-wrap"
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                }}
               >
                 <p className="anticipation-rail-title" style={{ margin: 0 }}>
                   AI Analysis
@@ -1856,21 +1862,21 @@ export default function AnticipationPage() {
                   data-bs-custom-class="anticipation-exec-popover"
                   title="Anticipation Logic Explained"
                   data-bs-content={`
-      <div class="anticipation-exec-popover__body">
-        <div class="anticipation-exec-popover__copy">
-          MHSA works backward from projected point-of-use risk.
-          It estimates when a part will cross its warning threshold,
-          subtracts lead time, aligns that need to the best release window,
-          and recommends when work should be released to the queue so the part
-          arrives before local starvation occurs.
-        </div>
-        <img
-          src="https://www.engineering-z.com/images/clubcar/Exec_Anticipation_logic.png"
-          alt="Executive anticipation planning logic"
-          class="anticipation-exec-popover__img"
-        />
-      </div>
-    `}
+  <div class="anticipation-exec-popover__body">
+    <div class="anticipation-exec-popover__copy">
+      MHSA works backward from projected point-of-use risk.
+      It estimates when a part will cross its warning threshold,
+      subtracts lead time, aligns that need to the best release window,
+      and recommends when work should be released to the queue so the part
+      arrives before local starvation occurs.
+    </div>
+    <img
+      src="https://www.engineering-z.com/images/clubcar/Exec_Anticipation_logic.png"
+      alt="Executive anticipation planning logic"
+      class="anticipation-exec-popover__img"
+    />
+  </div>
+`}
                   style={{
                     border: "1px solid rgba(255,255,255,0.18)",
                     background: "rgba(255,255,255,0.06)",
@@ -1885,28 +1891,60 @@ export default function AnticipationPage() {
                     fontSize: "0.9rem",
                     lineHeight: 1,
                     padding: 0,
+                    flex: "0 0 auto",
                   }}
                 >
                   ?
                 </button>
               </div>
 
-              <div className="anticipation-ai-block">
+              <div
+                className="anticipation-ai-block"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  marginTop: "12px",
+                }}
+              >
                 <button
                   className="mhsa-ai-avatar-btn"
                   type="button"
-                  aria-label="AI Analysis"
+                  aria-label={
+                    generateRunState.isRunning
+                      ? "Generating release schedule"
+                      : "Generate release schedule"
+                  }
+                  title={
+                    generateRunState.isRunning
+                      ? "Generating..."
+                      : "Generate release schedule"
+                  }
+                  onClick={handleGenerateReleaseSchedule}
+                  disabled={generateRunState.isRunning}
+                  style={{
+                    opacity: generateRunState.isRunning ? 0.72 : 1,
+                    cursor: generateRunState.isRunning ? "progress" : "pointer",
+                    pointerEvents: generateRunState.isRunning ? "none" : "auto",
+                  }}
                 />
                 <button
                   className="mhsa-btn mhsa-btn-primary"
                   type="button"
-                  style={{ whiteSpace: "nowrap" }}
+                  style={{
+                    whiteSpace: "nowrap",
+                    flex: "0 0 auto",
+                  }}
                 >
                   TAKT ANALYSIS
                 </button>
               </div>
 
-              <div className="anticipation-ai-caption">
+              <div
+                className="anticipation-ai-caption"
+                style={{ marginTop: "10px" }}
+              >
                 (Future) Simulate Forecasting without committing queue work.
               </div>
 
@@ -1969,7 +2007,6 @@ export default function AnticipationPage() {
               ref={generateBtnRef}
               type="button"
               className="mhsa-linkbtn"
-              onClick={handleGenerateReleaseSchedule}
               aria-label="Generate release schedule"
               aria-expanded={showGeneratePanel ? "true" : "false"}
               style={{
