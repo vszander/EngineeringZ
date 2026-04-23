@@ -1865,7 +1865,7 @@ export default function AnticipationPage() {
           arrives before local starvation occurs.
         </div>
         <img
-          src="http://localhost:5173/images/clubcar/Exec_Anticipation_logic.png"
+          src="https://www.engineering-z.com/images/clubcar/Exec_Anticipation_logic.png"
           alt="Executive anticipation planning logic"
           class="anticipation-exec-popover__img"
         />
