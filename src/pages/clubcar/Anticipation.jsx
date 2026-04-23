@@ -1945,7 +1945,7 @@ export default function AnticipationPage() {
                 className="anticipation-ai-caption"
                 style={{ marginTop: "10px" }}
               >
-                (Future) Simulate Forecasting without committing queue work.
+                Simulate Forecast without committing to queue.
               </div>
 
               <div
