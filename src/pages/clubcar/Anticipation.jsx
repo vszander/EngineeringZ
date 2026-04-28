@@ -794,6 +794,11 @@ export default function AnticipationPage() {
     error: "",
   });
   const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+  const [showPartsUploadPanel, setShowPartsUploadPanel] = useState(false);
+  const [partsUploadFile, setPartsUploadFile] = useState(null);
+  const [partsUploadState, setPartsUploadState] = useState("idle");
+  const [partsUploadPreview, setPartsUploadPreview] = useState(null);
+  const [partsUploadError, setPartsUploadError] = useState("");
 
   const selectedCount = tableSummary.selected_count || 0;
   const lowCount = tableSummary.low_count || 0;
@@ -860,6 +865,87 @@ export default function AnticipationPage() {
   function clearPseudoProgressTimers() {
     generateProgressTimersRef.current.forEach((id) => window.clearTimeout(id));
     generateProgressTimersRef.current = [];
+  }
+
+  async function handleAnalyzePartsUpload() {
+    if (!partsUploadFile) return;
+
+    setPartsUploadState("analyzing");
+    setPartsUploadError("");
+    setPartsUploadPreview(null);
+
+    const formData = new FormData();
+    formData.append("file", partsUploadFile);
+    formData.append("mode", "preview");
+
+    try {
+      const response = await fetch(
+        `${backendBase}/mhsa/api/anticipation/parts-list-upload-preview/`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "CSV analysis failed.");
+      }
+
+      setPartsUploadPreview(data);
+      setPartsUploadState("previewed");
+    } catch (err) {
+      setPartsUploadError(err.message || "CSV analysis failed.");
+      setPartsUploadState("error");
+    }
+  }
+
+  async function handleCommitPartsUpload() {
+    if (!partsUploadFile || !partsUploadPreview?.upload_token) return;
+
+    setPartsUploadState("committing");
+    setPartsUploadError("");
+
+    const formData = new FormData();
+    formData.append("file", partsUploadFile);
+    formData.append("mode", "commit");
+    formData.append("upload_token", partsUploadPreview.upload_token);
+
+    try {
+      const response = await fetch(
+        `${backendBase}/mhsa/api/anticipation/parts-list-upload-commit/`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Parts list creation failed.");
+      }
+
+      setPartsUploadPreview(data);
+      setPartsUploadState("committed");
+
+      // Later: refresh parts-list dropdown/table here.
+      // Example:
+      // await loadPageData();
+      // await loadTableData();
+    } catch (err) {
+      setPartsUploadError(err.message || "Parts list creation failed.");
+      setPartsUploadState("error");
+    }
   }
 
   function startPseudoProgress() {
@@ -1563,6 +1649,16 @@ export default function AnticipationPage() {
               Manage Lineup Preferences
             </button>
 
+            <button
+              className="mhsa-btn mhsa-btn-secondary"
+              type="button"
+              onClick={() => setShowPartsUploadPanel(true)}
+              aria-expanded={showPartsUploadPanel ? "true" : "false"}
+              aria-controls="anticipation-parts-upload-dialog"
+            >
+              Upload Parts List
+            </button>
+
             <div style={styles.headerRight}>
               <Link to="/clubcar" style={styles.link}>
                 ← MHSA Home
@@ -2021,49 +2117,149 @@ export default function AnticipationPage() {
           </div>
         </div>
       </div>
-      {showGeneratePanel ? (
+      {showPartsUploadPanel ? (
         <div
-          className="anticipation-run-floating-panel"
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            width: "420px",
-            maxWidth: "calc(100vw - 32px)",
-            maxHeight: "calc(100vh - 40px)",
-            zIndex: 9999,
-            background: "#1f2630",
-            color: "#e6edf5",
-            border: "2px solid rgba(255,255,255,0.18)",
-            borderRadius: "14px",
-            boxShadow: "0 18px 48px rgba(0,0,0,0.38)",
-            overflow: "hidden",
-          }}
+          className="anticipation-upload-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="anticipation-parts-upload-title"
+          id="anticipation-parts-upload-dialog"
         >
-          <div className="anticipation-run-floating-panel__header">
-            <div className="anticipation-run-floating-panel__title">
-              Anticipation Run Status
-            </div>
-            <button
-              type="button"
-              className="anticipation-run-floating-panel__close"
-              onClick={() => setShowGeneratePanel(false)}
-              aria-label="Close anticipation run status"
-            >
-              ×
-            </button>
-          </div>
+          <div className="anticipation-upload-dialog">
+            <div className="anticipation-upload-panel__header">
+              <div>
+                <h3 id="anticipation-parts-upload-title">
+                  Upload Anticipation Parts List
+                </h3>
+                <p>
+                  Upload a CSV of part numbers. MHSA will preview matching Item,
+                  SampleBOM, POU, queue, and model-consumption defaults before
+                  commit.
+                </p>
+              </div>
 
-          <div
-            className="anticipation-run-floating-panel__body"
-            style={{
-              maxHeight: "calc(100vh - 92px)",
-              overflowY: "auto",
-            }}
-            dangerouslySetInnerHTML={{
-              __html: buildGeneratePopoverHtml(generateRunState),
-            }}
-          />
+              <button
+                type="button"
+                className="mhsa-linkbtn"
+                onClick={() => setShowPartsUploadPanel(false)}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="anticipation-upload-panel__body">
+              <label className="anticipation-upload-field">
+                <span>CSV File</span>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(e) => {
+                    setPartsUploadFile(e.target.files?.[0] || null);
+                    setPartsUploadError("");
+                    setPartsUploadPreview(null);
+                    setPartsUploadState("idle");
+                  }}
+                />
+              </label>
+
+              {partsUploadFile ? (
+                <div className="anticipation-upload-file-note">
+                  Selected: <strong>{partsUploadFile.name}</strong>
+                </div>
+              ) : null}
+
+              <div className="anticipation-upload-actions">
+                <button
+                  type="button"
+                  className="mhsa-btn mhsa-btn-primary"
+                  disabled={
+                    !partsUploadFile || partsUploadState === "analyzing"
+                  }
+                  onClick={handleAnalyzePartsUpload}
+                >
+                  {partsUploadState === "analyzing"
+                    ? "Analyzing..."
+                    : "Analyze CSV"}
+                </button>
+
+                <button
+                  type="button"
+                  className="mhsa-btn mhsa-btn-secondary"
+                  disabled={
+                    !partsUploadPreview?.ok || partsUploadState === "committing"
+                  }
+                  onClick={handleCommitPartsUpload}
+                >
+                  {partsUploadState === "committing"
+                    ? "Creating List..."
+                    : "Create Parts List"}
+                </button>
+              </div>
+
+              {partsUploadError ? (
+                <div className="anticipation-upload-alert anticipation-upload-alert--error">
+                  {partsUploadError}
+                </div>
+              ) : null}
+
+              {partsUploadPreview?.ok ? (
+                <div className="anticipation-upload-preview">
+                  <div className="anticipation-upload-summary">
+                    <span>
+                      {partsUploadPreview.summary?.row_count || 0} CSV rows
+                    </span>
+                    <span>
+                      {partsUploadPreview.summary?.part_count || 0} unique parts
+                    </span>
+                    <span>
+                      {partsUploadPreview.summary?.matched_item_count || 0}{" "}
+                      matched Items
+                    </span>
+                    <span>
+                      {partsUploadPreview.summary?.model_requirement_count || 0}{" "}
+                      model requirements
+                    </span>
+                    <span>
+                      {partsUploadPreview.summary?.issue_count || 0} issues
+                    </span>
+                  </div>
+
+                  <div className="anticipation-upload-table-wrap">
+                    <table className="anticipation-upload-table">
+                      <thead>
+                        <tr>
+                          <th>Part</th>
+                          <th>Description</th>
+                          <th>POU</th>
+                          <th>Queue</th>
+                          <th>Models</th>
+                          <th>Resupply Qty</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(partsUploadPreview.rows || [])
+                          .slice(0, 25)
+                          .map((row) => (
+                            <tr
+                              key={`${row.part_number}-${row.pou_code || "none"}`}
+                            >
+                              <td>{row.part_number}</td>
+                              <td>{row.description || "—"}</td>
+                              <td>{row.pou_code || "—"}</td>
+                              <td>{row.default_queue_label || "—"}</td>
+                              <td>{row.model_count || 0}</td>
+                              <td>{row.resupply_qty || "—"}</td>
+                              <td>{row.status_label || "Preview"}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
       ) : null}
       <div className="anticipation-stage">

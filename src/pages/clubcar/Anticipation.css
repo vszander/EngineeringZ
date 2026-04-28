@@ -799,6 +799,124 @@
     grid-template-columns: 1fr;
   }
 
+  .anticipation-upload-panel {
+    margin-top: 0.75rem;
+    width: 100%;
+    border: 1px solid rgba(183, 154, 93, 0.28);
+    border-radius: 18px;
+    background: rgba(10, 18, 24, 0.96);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+    padding: 1rem;
+    color: var(--mhsa-text, #e8edf0);
+  }
+
+  .anticipation-upload-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .anticipation-upload-panel__header h3 {
+    margin: 0 0 0.25rem;
+    color: var(--mhsa-heading, #f4efe4);
+    font-size: 1rem;
+  }
+
+  .anticipation-upload-panel__header p {
+    margin: 0;
+    max-width: 760px;
+    color: rgba(232, 237, 240, 0.72);
+    font-size: 0.86rem;
+  }
+
+  .anticipation-upload-panel__body {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .anticipation-upload-field {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 520px;
+    font-size: 0.82rem;
+    color: rgba(232, 237, 240, 0.78);
+  }
+
+  .anticipation-upload-field input {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 0.55rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--mhsa-text, #e8edf0);
+  }
+
+  .anticipation-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .anticipation-upload-alert {
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.86rem;
+  }
+
+  .anticipation-upload-alert--error {
+    border: 1px solid rgba(255, 110, 110, 0.35);
+    background: rgba(120, 20, 20, 0.28);
+    color: #ffd6d6;
+  }
+
+  .anticipation-upload-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .anticipation-upload-summary span {
+    border: 1px solid rgba(20, 141, 151, 0.35);
+    background: rgba(20, 141, 151, 0.12);
+    border-radius: 999px;
+    padding: 0.32rem 0.62rem;
+    font-size: 0.78rem;
+    color: rgba(232, 237, 240, 0.88);
+  }
+
+  .anticipation-upload-table-wrap {
+    max-height: 340px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+  }
+
+  .anticipation-upload-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .anticipation-upload-table th,
+  .anticipation-upload-table td {
+    padding: 0.55rem 0.65rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .anticipation-upload-table th {
+    position: sticky;
+    top: 0;
+    background: rgba(14, 25, 32, 0.98);
+    color: var(--mhsa-heading, #f4efe4);
+    z-index: 1;
+  }
+
   .anticipation-stage {
     grid-template-columns: 1fr;
     height: auto;
