@@ -643,6 +643,7 @@ function buildGenerateReleaseSchedulePayload({
   useSmartTakt,
   standardTaktSeconds,
   lineupSourceLabel,
+  uploadedLineup,
 }) {
   return {
     controls: {
@@ -662,7 +663,7 @@ function buildGenerateReleaseSchedulePayload({
       use_smart_takt: !!useSmartTakt,
       standard_takt_seconds: Number(standardTaktSeconds || 0) || 280,
     },
-    lineup: {
+    lineup: uploadedLineup || {
       source_type: "existing",
       source_ref: null,
       source_label: lineupSourceLabel || null,
@@ -799,6 +800,11 @@ export default function AnticipationPage() {
   const [partsUploadState, setPartsUploadState] = useState("idle");
   const [partsUploadPreview, setPartsUploadPreview] = useState(null);
   const [partsUploadError, setPartsUploadError] = useState("");
+  const [selectedLineupFile, setSelectedLineupFile] = useState(null);
+  const [lineupUploadResult, setLineupUploadResult] = useState(null);
+  const [lineupUploadBusy, setLineupUploadBusy] = useState(false);
+  const [lineupUploadError, setLineupUploadError] = useState("");
+  const [selectedLineupSequence, setSelectedLineupSequence] = useState("");
 
   const selectedCount = tableSummary.selected_count || 0;
   const lowCount = tableSummary.low_count || 0;
@@ -904,6 +910,64 @@ export default function AnticipationPage() {
       setPartsUploadState("error");
     }
   }
+
+  const handleLineupFileSelected = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedLineupFile(file);
+    setLineupUploadResult(null);
+    setLineupUploadError("");
+  };
+
+  const ingestLineupFile = async () => {
+    if (!selectedLineupFile) {
+      setLineupUploadError("Please select a Lineup CSV first.");
+      return;
+    }
+
+    setLineupUploadBusy(true);
+    setLineupUploadError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedLineupFile);
+
+      if (selectedLineupSequence) {
+        formData.append("selected_sequence", selectedLineupSequence);
+      }
+
+      const response = await fetch(
+        `${backendBase}/mhsa/api/anticipation/lineup/upload-preview/`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Lineup upload failed.");
+      }
+
+      setLineupUploadResult(data);
+      console.log("Lineup upload result:", data);
+      console.log("Validated lineup payload:", data.lineup);
+      console.log("Lineup issues:", data.issues);
+      if (!selectedLineupSequence && data.summary?.selected_sequence) {
+        setSelectedLineupSequence(String(data.summary.selected_sequence));
+      }
+    } catch (err) {
+      setLineupUploadError(err.message || "Lineup upload failed.");
+    } finally {
+      setLineupUploadBusy(false);
+    }
+  };
 
   async function handleCommitPartsUpload() {
     if (!partsUploadFile || !partsUploadPreview?.upload_token) return;
@@ -1097,7 +1161,11 @@ export default function AnticipationPage() {
         useSmartTakt,
         standardTaktSeconds,
         lineupSourceLabel: activePlan?.lineup_source_label || "Today.csv",
+        uploadedLineup: lineupUploadResult?.lineup || null,
       });
+      console.log("Generate release schedule payload:", payload);
+      console.log("Generate payload lineup:", payload.lineup);
+      console.log("Uploaded lineup orders:", payload.lineup?.orders?.length);
 
       const response = await fetch(
         `${backendBase}/mhsa/api/anticipation/generate-release-schedule/`,
@@ -1869,7 +1937,10 @@ export default function AnticipationPage() {
                   className="mhsa-linkbtn"
                   onClick={openLineupFilePicker}
                 >
-                  {activePlan.lineup_source_label || "Select lineup .csv"}
+                  {selectedLineupFile?.name ||
+                    lineupUploadResult?.lineup?.source_label ||
+                    activePlan.lineup_source_label ||
+                    "Select lineup .csv"}
                 </button>
 
                 <input
@@ -1877,16 +1948,49 @@ export default function AnticipationPage() {
                   type="file"
                   accept=".csv,text/csv"
                   style={{ display: "none" }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    // later: set selected file state / upload state here
-                  }}
+                  onChange={handleLineupFileSelected}
                 />
 
-                <button className="mhsa-linkbtn" type="button">
-                  Ingest
+                <input
+                  type="number"
+                  value={selectedLineupSequence}
+                  onChange={(e) => setSelectedLineupSequence(e.target.value)}
+                  placeholder="Epoch 0 Sequence"
+                  className="anticipation-mini-input"
+                  style={{ maxWidth: "160px" }}
+                />
+
+                <button
+                  className="mhsa-linkbtn"
+                  type="button"
+                  onClick={ingestLineupFile}
+                  disabled={lineupUploadBusy || !selectedLineupFile}
+                  style={{
+                    opacity: lineupUploadBusy || !selectedLineupFile ? 0.65 : 1,
+                    cursor: lineupUploadBusy ? "progress" : "pointer",
+                  }}
+                >
+                  {lineupUploadBusy ? "Validating..." : "Ingest"}
                 </button>
+
+                {lineupUploadError ? (
+                  <div className="anticipation-inline-error">
+                    {lineupUploadError}
+                  </div>
+                ) : null}
+
+                {lineupUploadResult?.summary ? (
+                  <div className="anticipation-inline-hint">
+                    {lineupUploadResult.summary.valid_row_count} rows validated
+                    ·{" "}
+                    {
+                      lineupUploadResult.summary
+                        .order_count_from_selected_sequence
+                    }{" "}
+                    usable from epoch 0 ·{" "}
+                    {lineupUploadResult.summary.issue_count} issue(s)
+                  </div>
+                ) : null}
               </div>
 
               <div

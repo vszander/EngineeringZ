@@ -917,6 +917,27 @@
     z-index: 1;
   }
 
+  .anticipation-mini-input {
+    min-height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(215, 216, 198, 0.24);
+    background: rgba(0, 0, 0, 0.18);
+    color: var(--mhsa-text, #f4f0df);
+    padding: 0 10px;
+  }
+
+  .anticipation-inline-error {
+    color: #ffb4a8;
+    font-size: 0.82rem;
+    margin-left: 8px;
+  }
+
+  .anticipation-inline-hint {
+    color: rgba(244, 240, 223, 0.72);
+    font-size: 0.82rem;
+    margin-left: 8px;
+  }
+
   .anticipation-stage {
     grid-template-columns: 1fr;
     height: auto;
