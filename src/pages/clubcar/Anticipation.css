@@ -948,6 +948,315 @@
   }
 }
 
+/* Generated ForecastReleasePlan schedule table */
+
+.anticipation-release-schedule {
+  min-width: 1040px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anticipation-release-schedule__summary {
+  border-radius: var(--mhsa-radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.anticipation-release-schedule__summary h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--mhsa-heading);
+}
+
+.anticipation-release-schedule__stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.anticipation-release-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anticipation-release-queue {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.anticipation-release-queue__header {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.anticipation-release-queue__header h4 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: var(--mhsa-heading);
+}
+
+.anticipation-release-window-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.anticipation-release-window {
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.anticipation-release-window.is-conflict {
+  background: rgba(255, 68, 68, 0.12);
+  border-color: rgba(255, 68, 68, 0.28);
+}
+
+.anticipation-release-window__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.anticipation-release-window__label {
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: var(--mhsa-heading);
+}
+
+.anticipation-release-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.anticipation-release-table {
+  width: 100%;
+  min-width: 1280px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.anticipation-release-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 9px 10px;
+  text-align: left;
+  color: var(--mhsa-muted);
+  background: rgba(20, 24, 30, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.anticipation-release-table tbody td {
+  padding: 10px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.anticipation-release-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.anticipation-release-row--warning td {
+  box-shadow: inset 4px 0 0 rgba(255, 196, 0, 0.72);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 196, 0, 0.1),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.anticipation-release-row--critical td {
+  box-shadow: inset 4px 0 0 rgba(255, 68, 68, 0.86);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 68, 68, 0.15),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.anticipation-release-time,
+.anticipation-release-part,
+.anticipation-release-model {
+  font-weight: 900;
+  color: var(--mhsa-heading);
+  white-space: nowrap;
+}
+
+.anticipation-release-desc {
+  max-width: 240px;
+  white-space: normal;
+  line-height: 1.25;
+  color: var(--mhsa-text);
+}
+
+.anticipation-release-subtle {
+  margin-top: 3px;
+  font-size: 0.7rem;
+  color: var(--mhsa-muted);
+  line-height: 1.25;
+}
+
+.anticipation-release-qty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 42px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.anticipation-release-qty.is-warning {
+  background: rgba(255, 196, 0, 0.14);
+  color: #ffe6a3;
+  border: 1px solid rgba(255, 196, 0, 0.26);
+}
+
+.anticipation-release-qty.is-critical {
+  background: rgba(255, 68, 68, 0.16);
+  color: #ffc3c3;
+  border: 1px solid rgba(255, 68, 68, 0.28);
+}
+
+.anticipation-release-empty {
+  border-radius: var(--mhsa-radius);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 18px;
+}
+
+.anticipation-release-empty__title {
+  font-weight: 900;
+  color: var(--mhsa-heading);
+  margin-bottom: 4px;
+}
+
+.anticipation-mini-pill.is-ok {
+  background: rgba(120, 220, 70, 0.14);
+  border-color: rgba(120, 220, 70, 0.26);
+  color: #dff7c7;
+}
+
+.cell-number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ForecastReleasePlan sawtooth chart refinement */
+
+.anticipation-chart-card {
+  min-width: 1040px;
+  border-radius: var(--mhsa-radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px;
+}
+
+.anticipation-chart-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.anticipation-chart-card__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--mhsa-heading);
+}
+
+.anticipation-sawtooth-graph {
+  min-width: 1000px;
+}
+
+.anticipation-sawtooth-graph__header,
+.anticipation-sawtooth-graph__row {
+  grid-template-columns: 300px minmax(920px, 1fr);
+}
+
+.anticipation-sawtooth-graph__body {
+  gap: 10px;
+}
+
+.anticipation-sawtooth-graph__row {
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.anticipation-sawtooth-graph__part {
+  font-weight: 950;
+  color: var(--mhsa-heading);
+}
+
+.anticipation-sawtooth-graph__desc {
+  margin-top: 2px;
+  color: var(--mhsa-text);
+}
+
+.anticipation-sawtooth-graph__submeta {
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.anticipation-graph-row-svg {
+  height: 70px;
+}
+
+.anticipation-graph-critical-zone {
+  fill: rgba(255, 68, 68, 0.08);
+}
+
+.anticipation-graph-marker--consume {
+  fill: rgba(255, 255, 255, 0.72);
+  stroke: rgba(0, 0, 0, 0.85);
+}
+
+.anticipation-graph-marker--resupply {
+  fill: #33dd55;
+  stroke: #111;
+  stroke-width: 1.5;
+}
+
+.anticipation-graph-marker--release {
+  fill: #39e639;
+}
+
+.anticipation-graph-marker--need {
+  fill: #ff35ff;
+}
+
+.anticipation-sawtooth-legend {
+  padding-top: 2px;
+}
+
 @media (max-width: 960px) {
   .anticipation-toolbar-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
