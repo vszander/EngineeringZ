@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import EpaperManifestRenderer from "./EpaperManifestRenderer";
 
 import "./Flight_Manifest_preview.css";
@@ -29,11 +30,27 @@ function formatQty(value) {
   return String(value);
 }
 
+function getCookie(name) {
+  const cookieValue = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`));
+
+  return cookieValue ? decodeURIComponent(cookieValue.split("=")[1]) : "";
+}
+
+function getCsrfToken() {
+  return getCookie("csrftoken");
+}
+
 export default function FlightManifestPreview() {
   const [manifest, setManifest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showEprint, setShowEprint] = useState(false);
+  const [publishingEpaper, setPublishingEpaper] = useState(false);
+  const [publishMessage, setPublishMessage] = useState("");
+
+  const epaperDeviceRef = useRef(null);
 
   const backendBase = import.meta.env.VITE_BACKEND_URL;
 
@@ -99,6 +116,109 @@ export default function FlightManifestPreview() {
     });
   }, [loading, error, manifest, showEprint, flightId]);
 
+  async function handlePublishEpaperManifest() {
+    if (!manifest) {
+      setPublishMessage("No manifest is loaded.");
+      return;
+    }
+
+    if (!flightId) {
+      setPublishMessage("Missing flight_id.");
+      return;
+    }
+
+    try {
+      setPublishingEpaper(true);
+      setPublishMessage("Rendering ePaper PNG…");
+
+      // Make sure EpaperManifestRenderer is visible/mounted.
+      setShowEprint(true);
+
+      // Allow React to render EpaperManifestRenderer and its <img>.
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      // This is the good PNG renderer:
+      // <div class="ep-paper-preview-frame">
+      //   <canvas ...></canvas>
+      //   <img src="data:image/png;base64,...">
+      // </div>
+      const rendererImg = document.querySelector(".ep-paper-preview-frame img");
+
+      if (!rendererImg?.src?.startsWith("data:image/png;base64,")) {
+        throw new Error("Unable to find rendered ePaper PNG image.");
+      }
+
+      const pngDataUrl = rendererImg.src;
+
+      console.log("[ePaper renderer PNG]", {
+        img: rendererImg,
+        naturalWidth: rendererImg.naturalWidth,
+        naturalHeight: rendererImg.naturalHeight,
+        length: pngDataUrl.length,
+        startsWith: pngDataUrl.slice(0, 40),
+      });
+
+      const debugWindow = window.open();
+      if (debugWindow) {
+        debugWindow.document.write(`
+        <title>ePaper Renderer PNG Debug</title>
+        <body style="background:#ddd;padding:20px;">
+          <h3>Renderer PNG sent to backend</h3>
+          <img
+            src="${pngDataUrl}"
+            style="width:480px;height:800px;border:3px solid red;background:white;object-fit:contain;"
+          />
+        </body>
+      `);
+        debugWindow.document.close();
+      }
+
+      setPublishMessage("Publishing to ePaper mailbox…");
+
+      const url = `${backendBase}/mhsa/api/queue-manager/publish-epaper-manifest-png/`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({
+          flight_id: flightId,
+          panel_id: "panel-01",
+          png_data_url: pngDataUrl,
+          width_px: 800,
+          height_px: 480,
+          threshold: 145,
+          invert: true,
+          refresh_after_sec: 3,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(
+          json.detail || json.error || `ePaper publish failed (${res.status})`,
+        );
+      }
+
+      console.log("[FlightManifestPreview] ePaper publish success", json);
+
+      setPublishMessage(`Published to ${json.panel_id || "panel-01"} mailbox.`);
+    } catch (err) {
+      console.error("[FlightManifestPreview] ePaper publish failed", err);
+      setPublishMessage(err.message || "Unable to publish ePaper manifest.");
+    } finally {
+      setPublishingEpaper(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="ep-page-shell">
@@ -146,19 +266,24 @@ export default function FlightManifestPreview() {
         <button
           type="button"
           className="ep-toolbar-btn ep-toolbar-btn--red"
-          onClick={() => {
-            console.log("[FlightManifestPreview] e-print toggle click", {
-              before: showEprint,
-              after: !showEprint,
-            });
-            setShowEprint((prev) => !prev);
-          }}
+          disabled={publishingEpaper}
+          onClick={handlePublishEpaperManifest}
         >
-          {showEprint ? "Hide e-print" : "e-print"}
+          {publishingEpaper ? "Publishing…" : "e-print"}
+        </button>
+        <button
+          type="button"
+          className="ep-toolbar-btn"
+          onClick={() => setShowEprint((prev) => !prev)}
+        >
+          {showEprint ? "Hide PNG Renderer" : "Show PNG Renderer"}
         </button>
       </div>
+      {publishMessage ? (
+        <div className="ep-publish-status">{publishMessage}</div>
+      ) : null}
 
-      <div className="ep-device">
+      <div className="ep-device" ref={epaperDeviceRef}>
         <header className="ep-header">
           <div className="ep-kicker">MHSA Flight Manifest</div>
           <h1 className="ep-title">{flight.name || "Flight"}</h1>
@@ -257,6 +382,7 @@ export default function FlightManifestPreview() {
         manifest={manifest}
         routeLabel="Purple"
         visible={showEprint}
+        captureRef={epaperDeviceRef}
       />
     </div>
   );

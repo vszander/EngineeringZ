@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Popover } from "bootstrap";
 import "./QueueManager.css";
 import { Link } from "react-router-dom";
+import { toPng } from "html-to-image";
 
 function getCsrfToken() {
   const cookies = document.cookie.split(";").map((c) => c.trim());
@@ -109,6 +110,50 @@ function escapeHtml(value) {
 function formatManifestQty(value) {
   if (value === null || value === undefined || value === "") return "";
   return String(value);
+}
+
+async function publishManifestPngToEpaper({
+  manifestRef,
+  flightId,
+  panelId = "panel-01",
+  csrfToken,
+}) {
+  const pngDataUrl = await toPng(manifestRef.current, {
+    cacheBust: true,
+    pixelRatio: 1,
+    width: 480,
+    height: 800,
+    backgroundColor: "#ffffff",
+  });
+
+  const response = await fetch(
+    "/mhsa/api/queue-manager/publish-epaper-manifest-png/",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({
+        flight_id: flightId,
+        panel_id: panelId,
+        png_data_url: pngDataUrl,
+        width_px: 800,
+        height_px: 480,
+        threshold: 145,
+        invert: true,
+      }),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error || "Unable to publish ePaper manifest.");
+  }
+
+  return data;
 }
 
 function buildManifestPreviewHtml(manifest) {
@@ -1358,11 +1403,29 @@ export default function QueueManager() {
 
     const panelId = "panel-01";
 
+    // Open the React preview tab only.
+    // The preview page's e-print button now handles browser-PNG → backend → mailbox.
+    const previewUrl =
+      `/clubcar/flight-manifest-preview` +
+      `?flight_id=${encodeURIComponent(flight.id)}` +
+      `&panel_id=${encodeURIComponent(panelId)}`;
+
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function onOpenManifest_old(flight) {
+    if (!flight?.id) {
+      window.alert("Flight id is missing.");
+      return;
+    }
+
+    const panelId = "panel-01";
+
     // Open the React preview tab immediately so the browser does not block it.
     const previewUrl =
       `/clubcar/flight-manifest-preview` +
       `?flight_id=${encodeURIComponent(flight.id)}` +
-      `&publish_epaper=1` +
+      `&publish_epaper=0` +
       `&panel_id=${encodeURIComponent(panelId)}`;
 
     const previewWindow = window.open(
