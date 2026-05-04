@@ -1350,15 +1350,74 @@ export default function QueueManager() {
     }
   }
 
-  function onOpenManifest(flight) {
+  async function onOpenManifest(flight) {
     if (!flight?.id) {
       window.alert("Flight id is missing.");
       return;
     }
 
-    const previewUrl = `/clubcar/flight-manifest-preview?flight_id=${encodeURIComponent(flight.id)}`;
+    const panelId = "panel-01";
 
-    window.open(previewUrl, "_blank", "noopener,noreferrer");
+    // Open the React preview tab immediately so the browser does not block it.
+    const previewUrl =
+      `/clubcar/flight-manifest-preview` +
+      `?flight_id=${encodeURIComponent(flight.id)}` +
+      `&publish_epaper=1` +
+      `&panel_id=${encodeURIComponent(panelId)}`;
+
+    const previewWindow = window.open(
+      previewUrl,
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+    // This is the Django endpoint that actually generates the .bin and publishes
+    // the command to MhsaPreferences group_id=14.
+    const publishUrl =
+      `${backendBase}/mhsa/api/queue-manager/flight-manifest/` +
+      `?flight_id=${encodeURIComponent(flight.id)}` +
+      `&publish_epaper=1` +
+      `&panel_id=${encodeURIComponent(panelId)}`;
+
+    try {
+      console.log("[QueueManager] publishing ePaper manifest", {
+        flightId: flight.id,
+        panelId,
+        publishUrl,
+      });
+
+      const res = await fetch(publishUrl, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const json = await res.json();
+
+      console.log("[QueueManager] ePaper publish response", json);
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || `ePaper publish failed (${res.status})`);
+      }
+
+      if (!json.epaper_publish?.ok) {
+        throw new Error(
+          json.epaper_publish?.detail ||
+            json.epaper_publish?.error ||
+            "Manifest loaded, but ePaper publish did not complete.",
+        );
+      }
+    } catch (err) {
+      console.error("[QueueManager] ePaper publish failed", err);
+
+      // Keep the preview window open; just alert the user that the physical panel
+      // publish did not happen.
+      window.alert(
+        err.message || "Unable to publish manifest to ePaper panel.",
+      );
+    }
   }
 
   async function onDropToFlight(e, flightId, position) {
