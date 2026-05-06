@@ -29,6 +29,11 @@ export default function MapOverlay({
   icons,
   onIconClick,
   fitMode = "width", // "width" | "native"
+
+  // Coordinate system used by icon x/y values.
+  // If omitted, fallback to image natural dimensions.
+  coordinateWidth,
+  coordinateHeight,
 }) {
   mapImageSrc =
     mapImageSrc || "/images/clubcar/TuggerRoutes_ForkZones_low_res.png";
@@ -70,10 +75,15 @@ export default function MapOverlay({
     };
   }, []);
 
-  const toRenderedXY = (xNat, yNat) => ({
-    x: (xNat / natural.w) * rendered.w,
-    y: (yNat / natural.h) * rendered.h,
-  });
+  const toRenderedXY = (xNat, yNat) => {
+    const coordW = Number(coordinateWidth) || natural.w || 1;
+    const coordH = Number(coordinateHeight) || natural.h || 1;
+
+    return {
+      x: (xNat / coordW) * rendered.w,
+      y: (yNat / coordH) * rendered.h,
+    };
+  };
 
   const normalizedIcons = useMemo(() => {
     const toNum = (v) => {
@@ -118,7 +128,7 @@ export default function MapOverlay({
               }
             : {};
 
-        const cls = normalizeClassTokens(i.iconClass);
+        const cls = normalizeClassTokens(i.iconClass || i.className);
         // Always include base .mi once
         const className = cls.includes("mi") ? cls : `mi ${cls}`.trim();
 

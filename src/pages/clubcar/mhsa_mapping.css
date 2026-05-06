@@ -162,6 +162,37 @@
   height: 36px;
 }
 
+.mi-container--dryvan {
+  width: 58px;
+  height: 24px;
+  border-radius: 5px;
+}
+
+.mi-container--dryvan::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+}
+
+.mi-container--dryvan::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 5px;
+  width: 7px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-left: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.mi-container--dryvan .mi-label,
+.mi-container--dryvan .mi-qty {
+  transform: translateY(-22px);
+}
+
 /* =========================================================
    SHAPE SYSTEM (accessibility)
    Shape = "noun" (what it is). Color/animation = state.

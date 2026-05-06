@@ -11,17 +11,25 @@ import { buildIconsFromPartSearch } from "/src/components/map/search_map_icons";
 
 const DEFAULT_MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans for now
 
-function qtyToIntLabel(qtyText, qtyNum) {
-  // prefer qtyText if present (e.g., "12.0000"), else fall back to numeric qty
-  const raw =
-    qtyText != null && String(qtyText).trim() !== "" ? String(qtyText) : qtyNum;
+function buildSearchIconsForLayer(resultsModel, layerId) {
+  if (!resultsModel?.data || !layerId) return [];
 
-  const n =
-    typeof raw === "number"
-      ? raw
-      : Number(String(raw).replace(/,/g, "").trim());
-  if (!Number.isFinite(n)) return ""; // nothing displayed if bad/empty
-  return String(Math.trunc(n)); // truncate toward zero (12.9 -> 12)
+  const icons = buildIconsFromPartSearch(resultsModel.data, layerId);
+
+  return (icons || []).map((ic) => {
+    const sym = ic?.symbology || ic?.sym || null;
+    const extra = symbologyToClasses(sym);
+
+    const base = (ic?.iconClass || ic?.className || "").trim();
+    const merged = [
+      ...new Set([...(base ? base.split(/\s+/) : []), ...extra]),
+    ].join(" ");
+
+    return {
+      ...ic,
+      iconClass: merged || ic.iconClass || ic.className || "mi mi-container",
+    };
+  });
 }
 
 function symbologyToClasses(sym) {
@@ -272,7 +280,10 @@ function SearchResults({
   if (!resultsModel) return null;
 
   const { title, type, tables, data, error } = resultsModel;
-  const hasMap = (resultsModel?.icons?.length || 0) > 0;
+  const hasMap =
+    (resultsModel?.icons?.length || 0) > 0 ||
+    !!resultsModel?.map_layer_id ||
+    (resultsModel?.map_context?.by_layer?.length || 0) > 0;
 
   const parentLayerId =
     maplayer?.parent_id ||
@@ -284,15 +295,20 @@ function SearchResults({
   const handleZoomOut = () => {
     if (!parentLayerId) return;
 
+    const parentIcons = buildSearchIconsForLayer(resultsModel, parentLayerId);
+
     onPatchResults?.({
       map_layer_id: parentLayerId,
-      icons: [],
+      icons: parentIcons,
     });
+
     console.log("[ZoomOut click]", {
       parentLayerId,
       before_layer: resultsModel?.map_layer_id,
+      iconCount: parentIcons.length,
+      icons: parentIcons,
     });
-    console.log("Zoom out ->", parentLayerId);
+
     setView("map");
   };
 
@@ -339,6 +355,8 @@ function SearchResults({
               key={mapImageSrc || "no-map"}
               mapImageSrc={mapImageSrc}
               icons={resultsModel?.icons || []}
+              coordinateWidth={maplayer?.pixel_width}
+              coordinateHeight={maplayer?.pixel_height}
             />
 
             <div className="mhsa-map-legend">
@@ -526,56 +544,117 @@ function PartIdPanel({ backendBase, onBack, onResults }) {
     const data = await res.json();
     const item = data.item;
 
-    const containersRows = (data.containers || []).map((c) => ({
-      container_uid: c.container_uid,
-      qty: c.qty,
-      status: c.status,
-      placement:
-        c.placement === "location"
-          ? `Location: ${c.location_name || ""}`
-          : c.placement === "cartpod"
-            ? `Cart: ${c.cart_name || ""} • Pod: ${c.pod_position_num ?? ""}`
-            : "Unplaced",
-      detail:
-        c.placement === "cartpod"
-          ? `${c.cart_location_name ? `@ ${c.cart_location_name}` : ""}${
-              c.cart_asset_name ? ` • Asset ${c.cart_asset_name}` : ""
-            }`
-          : "",
-    }));
-
-    const looseRows = (data.loose_pods || []).map((p) => ({
-      cart: p.cart_name,
-      pod: p.pod_position_num,
-      label: p.pod_label || "",
-      qty: p.qty,
-      where: p.cart_location_name || "",
-    }));
-
-    const map_layer_id = DEFAULT_MAP_LAYER_ID;
     const normalized = applySymbologyToPartSearchPayload(data);
-    const icons = buildIconsFromPartSearch(normalized, map_layer_id);
-    const upgradedIcons = (icons || []).map((ic) => {
-      // If buildIconsFromPartSearch already set className, preserve it.
-      // If backend provided symbology tokens, append the new cascade.
-      const sym = ic?.symbology || ic?.sym || null;
 
-      const extra = symbologyToClasses(sym);
+    // UX rule:
+    // Start from the user's/default preferred map layer, not necessarily
+    // the first result's layer. For now, DEFAULT_MAP_LAYER_ID is Evans-Consumer.
+    const activeMapLayerId =
+      data?.preferred_map_layer_id ||
+      data?.default_map_layer_id ||
+      DEFAULT_MAP_LAYER_ID;
 
-      const base = (ic?.className || "").trim();
-      const merged = [
-        ...new Set([...(base ? base.split(/\s+/) : []), ...extra]),
-      ].join(" ");
+    const containersRows = (normalized.containers || []).map((c) => {
+      const containerType = String(c.container_type || "").replace(/_/g, " ");
+      const containerLabel = containerType ? `${containerType} ` : "";
 
-      return { ...ic, className: merged };
+      const loc = c.location || {};
+      const locName = c.location_name || loc.name || "";
+      const locLayer =
+        loc.map_layer_id || c.map_layer_id || c.location_map_layer_id;
+
+      return {
+        container_uid: c.container_uid,
+        qty: c.qty,
+        status: c.status,
+        placement:
+          c.placement === "location"
+            ? `${containerLabel}Location: ${locName}`
+            : c.placement === "cartpod"
+              ? `Cart: ${c.cart_name || ""} • Pod: ${c.pod_position_num ?? ""}`
+              : "Unplaced",
+        detail:
+          c.placement === "location"
+            ? `${
+                locLayer && String(locLayer) !== String(activeMapLayerId)
+                  ? `@ outside active map`
+                  : ""
+              }${
+                loc.location_type || c.location_type
+                  ? `${locLayer && String(locLayer) !== String(activeMapLayerId) ? " • " : ""}Type: ${
+                      loc.location_type || c.location_type
+                    }`
+                  : ""
+              }`
+            : c.placement === "cartpod"
+              ? `${c.cart_location_name ? `@ ${c.cart_location_name}` : ""}${
+                  c.cart_asset_name ? ` • Asset ${c.cart_asset_name}` : ""
+                }${
+                  locLayer && String(locLayer) !== String(activeMapLayerId)
+                    ? ` • outside active map`
+                    : ""
+                }`
+              : "",
+      };
     });
-    console.log("built icons:", icons.length, icons);
 
-    onResults({
+    const looseRows = (normalized.loose_pods || []).map((p) => {
+      const loc = p.location || p.cart?.location || {};
+      const locLayer =
+        loc.map_layer_id || p.map_layer_id || p.cart_map_layer_id;
+
+      return {
+        cart: p.cart_name,
+        pod: p.pod_position_num,
+        label: p.pod_label || "",
+        qty: p.qty,
+        where: `${p.cart_location_name || loc.name || ""}${
+          locLayer && String(locLayer) !== String(activeMapLayerId)
+            ? " @ outside active map"
+            : ""
+        }`,
+      };
+    });
+
+    const draftModel = {
       type: "partid",
       title: `PartID: ${item.part_number}`,
-      map_layer_id,
+      map_layer_id: activeMapLayerId,
+      preferred_map_layer_id: activeMapLayerId,
       data: normalized,
+      map_context: normalized?.map_context || data?.map_context || null,
+    };
+
+    const upgradedIcons = buildSearchIconsForLayer(
+      draftModel,
+      activeMapLayerId,
+    );
+
+    console.log("[Part Search]", {
+      activeMapLayerId,
+      containers: normalized?.containers?.map((c) => ({
+        uid: c.container_uid,
+        placement: c.placement,
+        location_layer: c.location?.map_layer_id,
+        location_x: c.location?.map_x,
+        location_y: c.location?.map_y,
+        top_layer: c.map_layer_id,
+        top_x: c.x_px ?? c.x,
+        top_y: c.y_px ?? c.y,
+      })),
+      loosePods: normalized?.loose_pods?.map((p) => ({
+        cart: p.cart_name,
+        location_layer:
+          p.location?.map_layer_id || p.cart?.location?.map_layer_id,
+        location_x: p.location?.map_x || p.cart?.location?.map_x,
+        location_y: p.location?.map_y || p.cart?.location?.map_y,
+      })),
+      iconsBuilt: upgradedIcons.length,
+      icons: upgradedIcons,
+    });
+
+    onResults({
+      ...draftModel,
       icons: upgradedIcons,
       tables: [
         {
