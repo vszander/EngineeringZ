@@ -19,6 +19,8 @@ function loadDefaults() {
   }
 }
 
+const backendBase = import.meta.env.VITE_BACKEND_URL;
+
 function playBeep(ok = true) {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -54,8 +56,39 @@ function getCsrfToken() {
   return "";
 }
 
+async function publishDemoImage(
+  panelId = "panel-01",
+  imageKey = "welcome-demo",
+) {
+  const formData = new FormData();
+  formData.append("image_key", imageKey);
+
+  const response = await fetch(
+    `${backendBase}/mhsa/api/epaper/panel/${encodeURIComponent(panelId)}/publish-demo-image/`,
+    {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+        Accept: "application/json",
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok || !data.ok) {
+    console.error("Failed to publish demo image:", data);
+    window.alert("Failed to publish demo image.");
+    return;
+  }
+
+  console.log("Published demo image:", data);
+}
+
 export default function Maintenance() {
-  const backendBase = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
   const { tool: routeTool } = useParams();
 
@@ -243,6 +276,13 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
       </div>
 
       <div className="mhsa-menu">
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => publishDemoImage("panel-01", "welcome-demo")}
+        >
+          Publish Welcome Placard
+        </button>
         <button
           className={`mhsa-menu-btn ${
             activeTool === "create-cart" ? "is-active" : ""

@@ -548,41 +548,90 @@ function AssignmentChip({ assignment, onDragStart }) {
 
   const note = assignment.note ?? assignment.meta_json?.note ?? "";
 
+  const resolvedCart = assignment.cart || assignment.meta_json?.cart || null;
+
+  const isSmallPartsCart =
+    Number(
+      resolvedCart?.cart_category ??
+        assignment.cart_category ??
+        assignment.meta_json?.cart_category ??
+        0,
+    ) === 7;
+
+  const podsUsed = Number(
+    resolvedCart?.pods_used ?? assignment.meta_json?.pods_used ?? 0,
+  );
+
+  const podCapacity = Number(
+    resolvedCart?.pod_capacity ?? assignment.meta_json?.pod_capacity ?? 0,
+  );
+
   const workstation =
-    assignment.workstation_future_csmr ??
-    assignment.meta_json?.workstation_future_csmr ??
+    assignment.default_POU ||
+    assignment.default_pou ||
+    assignment.workstation_future_csmr ||
+    assignment.POU_container ||
+    assignment.pou_container ||
+    assignment.meta_json?.default_POU ||
+    assignment.meta_json?.default_pou ||
+    assignment.meta_json?.workstation_future_csmr ||
+    assignment.meta_json?.POU_container ||
+    assignment.meta_json?.pou_container ||
+    assignment.meta_json?.pou ||
     "";
 
-  const displayPartName =
-    assignment.part_name ||
-    assignment.meta_json?.part_name ||
-    assignment.meta_json?.description ||
-    "Part";
+  const displayPartName = isSmallPartsCart
+    ? "Small Part Cart"
+    : assignment.part_name ||
+      assignment.description ||
+      assignment.part_description ||
+      assignment.meta_json?.part_name ||
+      assignment.meta_json?.description ||
+      assignment.meta_json?.part_description ||
+      "Part";
+
+  const displayPartNumber = isSmallPartsCart
+    ? [
+        resolvedCart?.name ||
+          assignment.meta_json?.cart_name ||
+          "Prepared cart",
+        podCapacity > 0 ? `${podsUsed}/${podCapacity} pods` : "",
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : assignment.part_number;
 
   return (
     <div
       className="qm-assignment-chip qm-assignment-chip--compact"
       draggable
       onDragStart={(e) => onDragStart(e, assignment)}
-      title={`${assignment.part_number}${displayPartName ? ` • ${displayPartName}` : ""}`}
+      title={
+        isSmallPartsCart
+          ? `${displayPartName} • ${displayPartNumber}`
+          : `${assignment.part_number}${displayPartName ? ` • ${displayPartName}` : ""}`
+      }
     >
       <div className="qm-chip-main">
         <div className="qm-chip-row-top">
           <div className="qm-chip-title-wrap">
             <div className="qm-chip-title-line">
-              <div className="qm-part-name qm-part-name--primary">
+              <div
+                className="qm-part-name qm-part-name--primary"
+                title={displayPartName}
+              >
                 {displayPartName}
               </div>
+            </div>
 
-              <div className="qm-part-number qm-part-number--secondary">
-                {assignment.part_number}
-              </div>
+            <div className="qm-part-number qm-part-number--secondary">
+              {displayPartNumber}
             </div>
 
             <div className="qm-chip-detail-row">
               <span className="qm-chip-label">POU</span>
               <span className="qm-chip-value">
-                {workstation || "Not assigned"}
+                {isSmallPartsCart ? "See pods" : workstation || "Not assigned"}
               </span>
             </div>
           </div>
@@ -1411,76 +1460,6 @@ export default function QueueManager() {
       `&panel_id=${encodeURIComponent(panelId)}`;
 
     window.open(previewUrl, "_blank", "noopener,noreferrer");
-  }
-
-  async function onOpenManifest_old(flight) {
-    if (!flight?.id) {
-      window.alert("Flight id is missing.");
-      return;
-    }
-
-    const panelId = "panel-01";
-
-    // Open the React preview tab immediately so the browser does not block it.
-    const previewUrl =
-      `/clubcar/flight-manifest-preview` +
-      `?flight_id=${encodeURIComponent(flight.id)}` +
-      `&publish_epaper=0` +
-      `&panel_id=${encodeURIComponent(panelId)}`;
-
-    const previewWindow = window.open(
-      previewUrl,
-      "_blank",
-      "noopener,noreferrer",
-    );
-
-    // This is the Django endpoint that actually generates the .bin and publishes
-    // the command to MhsaPreferences group_id=14.
-    const publishUrl =
-      `${backendBase}/mhsa/api/queue-manager/flight-manifest/` +
-      `?flight_id=${encodeURIComponent(flight.id)}` +
-      `&publish_epaper=1` +
-      `&panel_id=${encodeURIComponent(panelId)}`;
-
-    try {
-      console.log("[QueueManager] publishing ePaper manifest", {
-        flightId: flight.id,
-        panelId,
-        publishUrl,
-      });
-
-      const res = await fetch(publishUrl, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      const json = await res.json();
-
-      console.log("[QueueManager] ePaper publish response", json);
-
-      if (!res.ok || !json.ok) {
-        throw new Error(json.error || `ePaper publish failed (${res.status})`);
-      }
-
-      if (!json.epaper_publish?.ok) {
-        throw new Error(
-          json.epaper_publish?.detail ||
-            json.epaper_publish?.error ||
-            "Manifest loaded, but ePaper publish did not complete.",
-        );
-      }
-    } catch (err) {
-      console.error("[QueueManager] ePaper publish failed", err);
-
-      // Keep the preview window open; just alert the user that the physical panel
-      // publish did not happen.
-      window.alert(
-        err.message || "Unable to publish manifest to ePaper panel.",
-      );
-    }
   }
 
   async function onDropToFlight(e, flightId, position) {
