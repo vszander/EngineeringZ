@@ -88,7 +88,7 @@ function buildFlightBarcodeValue(flightName) {
   return String(flightName || "").replace(/\s+/g, "");
 }
 
-function drawFlightBarcode(ctx, value, x, y, maxWidth = 132, height = 42) {
+function drawFlightBarcode(ctx, value, x, y, maxWidth = 340, height = 42) {
   if (!value) return;
 
   const barcodeCanvas = document.createElement("canvas");
@@ -99,7 +99,9 @@ function drawFlightBarcode(ctx, value, x, y, maxWidth = 132, height = 42) {
     margin: 0,
     background: "#ffffff",
     lineColor: "#111111",
-    width: 1.4,
+
+    // Wider source bars. Whole-ish values are better for ePaper.
+    width: 2,
     height,
   });
 
@@ -108,13 +110,15 @@ function drawFlightBarcode(ctx, value, x, y, maxWidth = 132, height = 42) {
 
   if (!sourceWidth || !sourceHeight) return;
 
-  const scale = Math.min(maxWidth / sourceWidth, 1);
-  const drawWidth = sourceWidth * scale;
+  // Target about 40% wider, but do not exceed maxWidth.
+  const desiredWidth = sourceWidth * 1.4;
+  const drawWidth = Math.min(desiredWidth, maxWidth);
+  const scale = drawWidth / sourceWidth;
   const drawHeight = sourceHeight * scale;
 
   // white backing so it stays crisp on the e-paper preview
   ctx.fillStyle = COLORS.white;
-  ctx.fillRect(x - 4, y - 4, drawWidth + 8, drawHeight + 22);
+  ctx.fillRect(x - 6, y - 4, drawWidth + 12, drawHeight + 22);
 
   ctx.drawImage(barcodeCanvas, x, y, drawWidth, drawHeight);
 
@@ -172,7 +176,7 @@ function drawManifestToCanvas(canvas, manifest, options = {}) {
   });
 
   // top-right barcode for tugger driver scan
-  drawFlightBarcode(ctx, barcodeValue, 320, 16, 142, 40);
+  drawFlightBarcode(ctx, barcodeValue, 200, 16, 242, 60);
 
   drawText(ctx, `Queue: ${queue.name || ""}`, 18, 76, {
     font: "14px Arial",
