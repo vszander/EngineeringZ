@@ -170,36 +170,38 @@ function drawManifestToCanvas(canvas, manifest, options = {}) {
     color: COLORS.red,
   });
 
-  drawText(ctx, flightName, 18, 36, {
+  drawText(ctx, `Route: ${routeLabel}`, 18, 32, {
+    font: "bold 14px Arial",
+    color: COLORS.red,
+  });
+
+  // top-right barcode for tugger driver scan
+  // Keep this in the upper-right where it has clean white space.
+  drawFlightBarcode(ctx, barcodeValue, 190, 14, 270, 58);
+
+  // Large flight name moves below the barcode/header band.
+  drawText(ctx, flightName, 18, 72, {
     font: "bold 28px Arial",
     color: COLORS.black,
   });
 
-  // top-right barcode for tugger driver scan
-  drawFlightBarcode(ctx, barcodeValue, 200, 16, 242, 60);
-
-  drawText(ctx, `Queue: ${queue.name || ""}`, 18, 76, {
+  drawText(ctx, `Queue: ${queue.name || ""}`, 18, 50, {
     font: "14px Arial",
     color: COLORS.black,
-  });
-
-  drawText(ctx, `Route: ${routeLabel}`, 330, 76, {
-    font: "bold 14px Arial",
-    color: COLORS.red,
   });
 
   drawText(
     ctx,
     `Departure: ${formatTimeOnly(flight.planned_departure_time)} • Status: ${flight.status_label || ""}`,
     18,
-    96,
+    99,
     { font: "14px Arial", color: COLORS.black },
   );
 
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0, 116);
-  ctx.lineTo(EPAPER_WIDTH, 116);
+  ctx.moveTo(0, 132);
+  ctx.lineTo(EPAPER_WIDTH, 132);
   ctx.stroke();
 
   ctx.fillStyle = COLORS.mid;
