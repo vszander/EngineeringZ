@@ -1,7 +1,7 @@
 // src/components/auth/RequireSession.jsx
 
 import { useEffect, useState } from "react";
-import { fetchSessionStatus } from "../../api/authSession";
+import { fetchSessionStatus } from "../api/authSession";
 
 export default function RequireSession({ children, staffOnly = false }) {
   const [state, setState] = useState({
