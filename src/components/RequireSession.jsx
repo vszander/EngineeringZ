@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { fetchSessionStatus } from "../api/authSession";
+// top level of RequireSession.jsx
+console.log("[RequireSession module] loaded");
 
 export default function RequireSession({ children, staffOnly = false }) {
   const [state, setState] = useState({
@@ -9,6 +11,9 @@ export default function RequireSession({ children, staffOnly = false }) {
     authenticated: false,
     user: null,
   });
+
+  // inside component body
+  console.log("[RequireSession] mounted");
 
   useEffect(() => {
     let alive = true;
