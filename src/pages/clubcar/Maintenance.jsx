@@ -8,6 +8,8 @@ import "./mhsa_home.css";
 import MoveCarts from "./MoveCarts";
 
 import Swal from "sweetalert2";
+import RequireSession from "../../components/RequireSession";
+
 const LS_KEY = "mhsa.maintenance.createCart.defaults";
 const DEFAULT_ICON_URI = "/images/cbcar/Tugger.png";
 
