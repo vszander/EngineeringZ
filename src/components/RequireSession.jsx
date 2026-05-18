@@ -5,36 +5,56 @@ import { fetchSessionStatus } from "../api/authSession";
 // top level of RequireSession.jsx
 console.log("[RequireSession module] loaded");
 
+const backendBase = import.meta.env.VITE_BACKEND_URL || "";
+
 export default function RequireSession({ children, staffOnly = false }) {
   const [state, setState] = useState({
     loading: true,
-    authenticated: false,
-    user: null,
+    isAuthenticated: false,
+    isStaff: false,
+    username: "",
   });
-
-  // inside component body
-  console.log("[RequireSession] mounted");
 
   useEffect(() => {
     let alive = true;
 
-    fetchSessionStatus()
-      .then((data) => {
+    console.log("[RequireSession] checking backend session");
+
+    fetch(`${backendBase}/backend/auth/status`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+
+        console.log("[RequireSession] response", {
+          status: res.status,
+          data,
+        });
+
         if (!alive) return;
 
         setState({
           loading: false,
-          authenticated: !!data.authenticated,
-          user: data.user || null,
+          isAuthenticated: !!data.isAuthenticated,
+          isStaff: !!data.isStaff,
+          username: data.username || "",
         });
       })
-      .catch(() => {
+      .catch((err) => {
+        console.warn("[RequireSession] failed", err);
+
         if (!alive) return;
 
         setState({
           loading: false,
-          authenticated: false,
-          user: null,
+          isAuthenticated: false,
+          isStaff: false,
+          username: "",
         });
       });
 
@@ -46,25 +66,35 @@ export default function RequireSession({ children, staffOnly = false }) {
   if (state.loading) {
     return (
       <div className="container py-4">
-        <div className="alert alert-secondary mb-0">Checking session...</div>
+        <div className="alert alert-secondary mb-0">
+          Checking MHSA session...
+        </div>
       </div>
     );
   }
 
-  if (!state.authenticated) {
+  if (!state.isAuthenticated) {
+    const next = encodeURIComponent(
+      window.location.pathname + window.location.search,
+    );
+
     return (
       <div className="container py-4">
         <div className="alert alert-warning">
           <strong>Login required.</strong> Please sign in to access MHSA.
         </div>
-        <a className="btn btn-primary" href="/accounts/login/">
+
+        <a
+          className="btn btn-primary"
+          href={`${backendBase}/accounts/login/?next=${next}`}
+        >
           Sign in
         </a>
       </div>
     );
   }
 
-  if (staffOnly && !state.user?.is_staff) {
+  if (staffOnly && !state.isStaff) {
     return (
       <div className="container py-4">
         <div className="alert alert-danger mb-0">
