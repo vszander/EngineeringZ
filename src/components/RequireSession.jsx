@@ -95,7 +95,7 @@ export default function RequireSession({ children, staffOnly = false }) {
 
         <a
           className="btn btn-primary"
-          href={`${backendBase}/accounts/login/?next=${next}`}
+          href={`${backendBase}/auth?mode=login&next=${next}`}
         >
           Sign in
         </a>

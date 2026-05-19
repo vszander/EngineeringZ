@@ -28,8 +28,12 @@ import "./mhsa_home.css"; // or mhsa.base.css when you rename it
 // import RelationshipsERD from "./RelationshipsERD";
 
 export default function ClubcarRouter() {
+  console.log("[ClubCarRouter] production guard build active");
   return (
     <div className="mhsa-home mhsa-dark">
+      <div style={{ padding: 30, color: "red", fontSize: 28 }}>
+        ROUTER TEST — NEW BUILD IS ACTIVE
+      </div>
       <RequireSession>
         <Routes>
           {/* default /clubcar */}
