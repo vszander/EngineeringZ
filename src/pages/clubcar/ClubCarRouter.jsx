@@ -32,10 +32,6 @@ export default function ClubcarRouter() {
   console.log("[ClubCarRouter] production guard build active");
   return (
     <div className="mhsa-home mhsa-dark">
-      <div style={{ padding: 30, color: "red", fontSize: 28 }}>
-        ROUTER TEST — NEW BUILD IS ACTIVE
-      </div>
-
       <Routes>
         {/* default /clubcar */}
         <Route index element={<MhsaHome />} />
