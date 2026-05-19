@@ -78,7 +78,7 @@ export default function ProtectedMhsaPage({
     );
 
     if (redirectToLogin) {
-      window.location.href = `${backendBase}/accounts/login/?next=${next}`;
+      window.location.href = `${backendBase}/accounts/cover-login/?next=${next}`;
       return null;
     }
 
