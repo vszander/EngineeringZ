@@ -1,11 +1,13 @@
 // src/components/auth/RequireSession.jsx
 
 import { useEffect, useState } from "react";
-import { fetchSessionStatus } from "../api/authSession";
-// top level of RequireSession.jsx
-console.log("[RequireSession module] loaded");
 
-const backendBase = import.meta.env.VITE_BACKEND_URL || "";
+import { useEffect, useState } from "react";
+
+const backendBase =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.engineering-z.com";
+
+console.log("[RequireSession module] loaded");
 
 export default function RequireSession({ children, staffOnly = false }) {
   const [state, setState] = useState({
@@ -13,14 +15,19 @@ export default function RequireSession({ children, staffOnly = false }) {
     isAuthenticated: false,
     isStaff: false,
     username: "",
+    checked: false,
   });
+
+  console.log("[RequireSession] render", state);
 
   useEffect(() => {
     let alive = true;
 
-    console.log("[RequireSession] checking backend session");
+    const url = `${backendBase}/auth/status/`;
 
-    fetch(`${backendBase}/backend/auth/status`, {
+    console.log("[RequireSession] checking", url);
+
+    fetch(url, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -31,7 +38,7 @@ export default function RequireSession({ children, staffOnly = false }) {
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
 
-        console.log("[RequireSession] response", {
+        console.log("[RequireSession] backend response", {
           status: res.status,
           data,
         });
@@ -40,18 +47,20 @@ export default function RequireSession({ children, staffOnly = false }) {
 
         setState({
           loading: false,
-          isAuthenticated: !!data.isAuthenticated,
-          isStaff: !!data.isStaff,
+          checked: true,
+          isAuthenticated: data.isAuthenticated === true,
+          isStaff: data.isStaff === true,
           username: data.username || "",
         });
       })
       .catch((err) => {
-        console.warn("[RequireSession] failed", err);
+        console.warn("[RequireSession] session check failed", err);
 
         if (!alive) return;
 
         setState({
           loading: false,
+          checked: true,
           isAuthenticated: false,
           isStaff: false,
           username: "",
@@ -90,6 +99,10 @@ export default function RequireSession({ children, staffOnly = false }) {
         >
           Sign in
         </a>
+
+        <div className="text-muted small mt-3">
+          Session check completed. User is not authenticated.
+        </div>
       </div>
     );
   }
