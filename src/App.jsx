@@ -1,4 +1,5 @@
 import "./assets/css/customStyles.css";
+import Authentication from "./pages/Authentication";
 import Home from "./pages/Home";
 import Lights from "./pages/Lights";
 import SmartHome from "./pages/SmartHome";
@@ -26,6 +27,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route index element={<Home />} />
+            <Route path="/auth" element={<Authentication />} />
             <Route path="/home" element={<Home />} />
             <Route path="/smarthome" element={<SmartHome />} />
             <Route path="/lights" element={<Lights />} />

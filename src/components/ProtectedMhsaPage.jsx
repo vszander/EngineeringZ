@@ -1,69 +1,61 @@
-// src/components/auth/RequireSession.jsx
+// src/components/ProtectedMhsaPage.jsx
 
 import { useEffect, useState } from "react";
 
 const backendBase =
   import.meta.env.VITE_BACKEND_URL || "https://backend.engineering-z.com";
 
-console.log("[RequireSession module] loaded");
-
-export default function RequireSession({ children, staffOnly = false }) {
+export default function ProtectedMhsaPage({
+  children,
+  staffOnly = false,
+  redirectToLogin = true,
+}) {
   const [state, setState] = useState({
     loading: true,
     isAuthenticated: false,
     isStaff: false,
     username: "",
-    checked: false,
   });
-
-  console.log("[RequireSession] render", state);
 
   useEffect(() => {
     let alive = true;
 
-    const url = `${backendBase}/auth/status/`;
-
-    console.log("[RequireSession] checking", url);
-
-    fetch(url, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    })
-      .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
-
-        console.log("[RequireSession] backend response", {
-          status: res.status,
-          data,
+    async function checkSession() {
+      try {
+        const res = await fetch(`${backendBase}/auth/status/`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
         });
+
+        const data = await res.json().catch(() => ({}));
 
         if (!alive) return;
 
         setState({
           loading: false,
-          checked: true,
           isAuthenticated: data.isAuthenticated === true,
           isStaff: data.isStaff === true,
           username: data.username || "",
         });
-      })
-      .catch((err) => {
-        console.warn("[RequireSession] session check failed", err);
+      } catch (err) {
+        console.warn("[ProtectedMhsaPage] auth check failed", err);
 
         if (!alive) return;
 
         setState({
           loading: false,
-          checked: true,
           isAuthenticated: false,
           isStaff: false,
           username: "",
         });
-      });
+      }
+    }
+
+    checkSession();
 
     return () => {
       alive = false;
@@ -85,7 +77,10 @@ export default function RequireSession({ children, staffOnly = false }) {
       window.location.pathname + window.location.search,
     );
 
-    window.location.href = `${backendBase}/auth?next=${next}`;
+    if (redirectToLogin) {
+      window.location.href = `${backendBase}/accounts/login/?next=${next}`;
+      return null;
+    }
 
     return (
       <div className="container py-4">
@@ -95,14 +90,10 @@ export default function RequireSession({ children, staffOnly = false }) {
 
         <a
           className="btn btn-primary"
-          href={`${backendBase}/auth?mode=login&next=${next}`}
+          href={`${backendBase}/auth?next=${next}`}
         >
           Sign in
         </a>
-
-        <div className="text-muted small mt-3">
-          Session check completed. User is not authenticated.
-        </div>
       </div>
     );
   }
@@ -111,7 +102,7 @@ export default function RequireSession({ children, staffOnly = false }) {
     return (
       <div className="container py-4">
         <div className="alert alert-danger mb-0">
-          Staff access is required for this page.
+          Staff access is required for this MHSA page.
         </div>
       </div>
     );

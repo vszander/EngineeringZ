@@ -17,7 +17,8 @@ import QueueManager from "./QueueManager";
 import FlightManifestPreview from "./Flight_Manifest_preview";
 import AnticipationPage from "./Anticipation";
 
-import RequireSession from "../../components/RequireSession"; //  this queries the backend for session status
+//import RequireSession from "../../components/RequireSession"; //  this queries the backend for session status
+import ProtectedMhsaPage from "../../components/ProtectedMhsaPage";
 
 //import "./mhsa.theme.clubcar.css";
 import "../../components/mhsa.theme.clubcar.css";
@@ -34,41 +35,47 @@ export default function ClubcarRouter() {
       <div style={{ padding: 30, color: "red", fontSize: 28 }}>
         ROUTER TEST — NEW BUILD IS ACTIVE
       </div>
-      <RequireSession>
-        <Routes>
-          {/* default /clubcar */}
-          <Route index element={<MhsaHome />} />
-          {/* key demo pages */}
-          <Route path="mhsa" element={<MhsaHome />} />
-          <Route path="scoreboard" element={<Scoreboard />} />
-          <Route path="tugger-map" element={<TuggerMap />} />
-          <Route path="cockpit" element={<CockpitPage />} />
-          <Route path="relationships" element={<RelationshipsERD />} />
-          {/* NEW: Search */}
-          <Route path="search" element={<Search />} />
-          <Route path="search/:mode" element={<Search />} />
-          {/* NEW: Scan Events (live feed) */}
-          <Route path="scan-events" element={<ScanEvents />} />
 
-          <Route path="maintenance" element={<Maintenance />} />
-          <Route path="CostTable" element={<MaterialHandlingCostTable />} />
-          <Route path="maintenance/:tool" element={<Maintenance />} />
-          <Route path="cart-move" element={<CartMoveMenu />} />
-          <Route path="carts" element={<Carts />} />
-          <Route path="workflows" element={<MhsaWorkflowMenu />} />
-          <Route path="signals" element={<SignalsDashboard />} />
-          <Route path="queue-manager" element={<QueueManager />} />
-          <Route path="anticipation" element={<AnticipationPage />} />
-          <Route
-            path="flight-manifest-preview"
-            element={<FlightManifestPreview />}
-          />
+      <Routes>
+        {/* default /clubcar */}
+        <Route index element={<MhsaHome />} />
+        {/* key demo pages */}
+        <Route
+          path="mhsa"
+          element={
+            <ProtectedMhsaPage>
+              <MhsaHome />
+            </ProtectedMhsaPage>
+          }
+        />
+        <Route path="scoreboard" element={<Scoreboard />} />
+        <Route path="tugger-map" element={<TuggerMap />} />
+        <Route path="cockpit" element={<CockpitPage />} />
+        <Route path="relationships" element={<RelationshipsERD />} />
+        {/* NEW: Search */}
+        <Route path="search" element={<Search />} />
+        <Route path="search/:mode" element={<Search />} />
+        {/* NEW: Scan Events (live feed) */}
+        <Route path="scan-events" element={<ScanEvents />} />
 
-          {/* <Route path="/mhsa/maintenance" element={<Maintenance />} /> */}
-          {/* fallback */}
-          <Route path="*" element={<Navigate to="/clubcar" replace />} />
-        </Routes>
-      </RequireSession>
+        <Route path="maintenance" element={<Maintenance />} />
+        <Route path="CostTable" element={<MaterialHandlingCostTable />} />
+        <Route path="maintenance/:tool" element={<Maintenance />} />
+        <Route path="cart-move" element={<CartMoveMenu />} />
+        <Route path="carts" element={<Carts />} />
+        <Route path="workflows" element={<MhsaWorkflowMenu />} />
+        <Route path="signals" element={<SignalsDashboard />} />
+        <Route path="queue-manager" element={<QueueManager />} />
+        <Route path="anticipation" element={<AnticipationPage />} />
+        <Route
+          path="flight-manifest-preview"
+          element={<FlightManifestPreview />}
+        />
+
+        {/* <Route path="/mhsa/maintenance" element={<Maintenance />} /> */}
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/clubcar" replace />} />
+      </Routes>
     </div>
   );
 }
