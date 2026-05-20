@@ -36,17 +36,17 @@ export default function ClubcarRouter() {
         {/* default /clubcar */}
         <Route index element={<MhsaHome />} />
         {/* key demo pages */}
+        <Route path="mhsa" element={<MhsaHome />} />
+        <Route path="scoreboard" element={<Scoreboard />} />
+        <Route path="tugger-map" element={<TuggerMap />} />
         <Route
-          path="mhsa"
+          path="cockpit"
           element={
             <ProtectedMhsaPage>
-              <MhsaHome />
+              <CockpitPage />
             </ProtectedMhsaPage>
           }
         />
-        <Route path="scoreboard" element={<Scoreboard />} />
-        <Route path="tugger-map" element={<TuggerMap />} />
-        <Route path="cockpit" element={<CockpitPage />} />
         <Route path="relationships" element={<RelationshipsERD />} />
         {/* NEW: Search */}
         <Route path="search" element={<Search />} />
