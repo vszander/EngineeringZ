@@ -34,9 +34,23 @@ export default function ClubcarRouter() {
     <div className="mhsa-home mhsa-dark">
       <Routes>
         {/* default /clubcar */}
-        <Route index element={<MhsaHome />} />
+        <Route
+          index
+          element={
+            <ProtectedMhsaPage>
+              <MhsaHome />
+            </ProtectedMhsaPage>
+          }
+        />
         {/* key demo pages */}
-        <Route path="mhsa" element={<MhsaHome />} />
+        <Route
+          path="mhsa"
+          element={
+            <ProtectedMhsaPage>
+              <MhsaHome />
+            </ProtectedMhsaPage>
+          }
+        />
         <Route path="scoreboard" element={<Scoreboard />} />
         <Route path="tugger-map" element={<TuggerMap />} />
         <Route
@@ -49,25 +63,58 @@ export default function ClubcarRouter() {
         />
         <Route path="relationships" element={<RelationshipsERD />} />
         {/* NEW: Search */}
-        <Route path="search" element={<Search />} />
-        <Route path="search/:mode" element={<Search />} />
+        <Route
+          path="search"
+          element={
+            <ProtectedMhsaPage>
+              <Search />
+            </ProtectedMhsaPage>
+          }
+        />
+        <Route
+          path="search/:mode"
+          element={
+            <ProtectedMhsaPage>
+              <Search />
+            </ProtectedMhsaPage>
+          }
+        />
         {/* NEW: Scan Events (live feed) */}
         <Route path="scan-events" element={<ScanEvents />} />
-
-        <Route path="maintenance" element={<Maintenance />} />
         <Route path="CostTable" element={<MaterialHandlingCostTable />} />
-        <Route path="maintenance/:tool" element={<Maintenance />} />
+        <Route
+          path="maintenance"
+          element={
+            <ProtectedMhsaPage staffOnly>
+              <Maintenance />
+            </ProtectedMhsaPage>
+          }
+        />
+        <Route
+          path="maintenance/:tool"
+          element={
+            <ProtectedMhsaPage staffOnly>
+              <Maintenance />
+            </ProtectedMhsaPage>
+          }
+        />{" "}
         <Route path="cart-move" element={<CartMoveMenu />} />
         <Route path="carts" element={<Carts />} />
         <Route path="workflows" element={<MhsaWorkflowMenu />} />
         <Route path="signals" element={<SignalsDashboard />} />
         <Route path="queue-manager" element={<QueueManager />} />
-        <Route path="anticipation" element={<AnticipationPage />} />
+        <Route
+          path="anticipation"
+          element={
+            <ProtectedMhsaPage>
+              <AnticipationPage />
+            </ProtectedMhsaPage>
+          }
+        />
         <Route
           path="flight-manifest-preview"
           element={<FlightManifestPreview />}
         />
-
         {/* <Route path="/mhsa/maintenance" element={<Maintenance />} /> */}
         {/* fallback */}
         <Route path="*" element={<Navigate to="/clubcar" replace />} />

@@ -5,6 +5,35 @@ import { useEffect, useState } from "react";
 const backendBase =
   import.meta.env.VITE_BACKEND_URL || "https://backend.engineering-z.com";
 
+function normalizeAuthStatus(auth) {
+  if (!auth) {
+    return {
+      isAuthenticated: false,
+      isStaff: false,
+      username: "",
+      loginUrl: "/auth",
+    };
+  }
+
+  // New /auth/status/ shape
+  if ("authenticated" in auth || "user" in auth) {
+    return {
+      isAuthenticated: auth.authenticated === true,
+      isStaff: auth.user?.is_staff === true || auth.user?.is_superuser === true,
+      username: auth.user?.username || "",
+      loginUrl: auth.user?.login_url || "/auth",
+    };
+  }
+
+  // Legacy shape
+  return {
+    isAuthenticated: auth.isAuthenticated === true,
+    isStaff: auth.isStaff === true,
+    username: auth.username || "",
+    loginUrl: auth.loginUrl || "/auth",
+  };
+}
+
 export default function ProtectedMhsaPage({
   children,
   staffOnly = false,
@@ -15,34 +44,43 @@ export default function ProtectedMhsaPage({
     isAuthenticated: false,
     isStaff: false,
     username: "",
+    error: "",
   });
 
   useEffect(() => {
     let alive = true;
 
-    async function checkSession() {
-      try {
-        const res = await fetch(`${backendBase}/auth/status/`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-        });
+    const url = `${backendBase}/auth/status/`;
 
+    console.log("[ProtectedMhsaPage] checking", url);
+
+    fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then(async (res) => {
         const data = await res.json().catch(() => ({}));
+        const normalized = normalizeAuthStatus(data);
+
+        console.log("[ProtectedMhsaPage] raw auth", data);
+        console.log("[ProtectedMhsaPage] normalized auth", normalized);
 
         if (!alive) return;
 
         setState({
           loading: false,
-          isAuthenticated: data.isAuthenticated === true,
-          isStaff: data.isStaff === true,
-          username: data.username || "",
+          isAuthenticated: normalized.isAuthenticated,
+          isStaff: normalized.isStaff,
+          username: normalized.username,
+          error: "",
         });
-      } catch (err) {
-        console.warn("[ProtectedMhsaPage] auth check failed", err);
+      })
+      .catch((err) => {
+        console.warn("[ProtectedMhsaPage] auth/status failed", err);
 
         if (!alive) return;
 
@@ -51,11 +89,9 @@ export default function ProtectedMhsaPage({
           isAuthenticated: false,
           isStaff: false,
           username: "",
+          error: "Unable to verify authentication.",
         });
-      }
-    }
-
-    checkSession();
+      });
 
     return () => {
       alive = false;
@@ -78,7 +114,7 @@ export default function ProtectedMhsaPage({
     );
 
     if (redirectToLogin) {
-      window.location.href = `${backendBase}/accounts/cover-login/?next=${next}`;
+      window.location.href = `/auth?next=${next}`;
       return null;
     }
 
@@ -88,10 +124,7 @@ export default function ProtectedMhsaPage({
           <strong>Login required.</strong> Please sign in to access MHSA.
         </div>
 
-        <a
-          className="btn btn-primary"
-          href={`${backendBase}/auth?next=${next}`}
-        >
+        <a className="btn btn-primary" href={`/auth?next=${next}`}>
           Sign in
         </a>
       </div>

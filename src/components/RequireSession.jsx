@@ -93,10 +93,7 @@ export default function RequireSession({ children, staffOnly = false }) {
           <strong>Login required.</strong> Please sign in to access MHSA.
         </div>
 
-        <a
-          className="btn btn-primary"
-          href={`${backendBase}/auth?mode=login&next=${next}`}
-        >
+        <a className="btn btn-primary" href={`/auth?next=${next}`}>
           Sign in
         </a>
 

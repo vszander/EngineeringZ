@@ -4,6 +4,48 @@ import "../assets/css/customStyles.css";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL;
 
+function normalizeAuthStatus(auth) {
+  if (!auth) {
+    return {
+      isAuthenticated: false,
+      isStaff: false,
+      username: null,
+      email: "",
+      loginUrl: "/auth",
+    };
+  }
+
+  // New global /auth/status/ shape:
+  // {
+  //   ok: true,
+  //   authenticated: true,
+  //   user: { username, email, is_staff, is_superuser, login_url }
+  // }
+  if ("authenticated" in auth || "user" in auth) {
+    return {
+      isAuthenticated: auth.authenticated === true,
+      isStaff: auth.user?.is_staff === true || auth.user?.is_superuser === true,
+      username: auth.user?.username || null,
+      email: auth.user?.email || "",
+      loginUrl: auth.user?.login_url || "/auth",
+    };
+  }
+
+  // Legacy AppSeed/postMessage shape:
+  // {
+  //   isAuthenticated: true,
+  //   isStaff: true,
+  //   username: "..."
+  // }
+  return {
+    isAuthenticated: auth.isAuthenticated === true,
+    isStaff: auth.isStaff === true,
+    username: auth.username || null,
+    email: auth.email || "",
+    loginUrl: auth.loginUrl || "/auth",
+  };
+}
+
 export default function Navbar() {
   // State variables for cart icon and quantity
   const [cartQuantity, setCartQuantity] = useState(0);
@@ -13,7 +55,7 @@ export default function Navbar() {
   const [fallingProduct, setFallingProduct] = useState(null);
   const cartIconRef = useRef(null);
   const location = useLocation();
-  const inMhsa = location.pathname.startsWith("/clubcar/mhsa");
+  const inMhsa = location.pathname.startsWith("/clubcar");
 
   // 🔁 Central state for auth
 
@@ -21,20 +63,28 @@ export default function Navbar() {
     isAuthenticated: false,
     isStaff: false,
     username: null,
+    email: "",
+    loginUrl: "/auth",
   });
 
   // const isDev = window.location.hostname === "localhost";
 
   const handleAuthClick = () => {
-    let mode = "login";
+    const next = encodeURIComponent(
+      window.location.pathname + window.location.search,
+    );
 
-    if (authStatus.isAuthenticated) {
-      mode = authStatus.isStaff ? "admin" : "logout";
+    if (!authStatus.isAuthenticated) {
+      window.location.href = `/auth?mode=login&next=${next}`;
+      return;
     }
 
-    // Always go to the /auth page so it renders Admin.jsx and iframe
-    const target = `/auth?mode=${mode}`;
-    window.location.href = target;
+    if (authStatus.isStaff) {
+      window.location.href = `${backendBase}/admin/`;
+      return;
+    }
+
+    window.location.href = `/auth?mode=logout&next=${next}`;
   };
 
   // 🛒 Cart icon click handler
@@ -92,13 +142,9 @@ export default function Navbar() {
 
     // ✅ Handle auth update
     if (event.data && event.data.auth) {
-      const auth = event.data.auth;
-      console.log("🔐 Auth data received:", auth);
-      setAuthStatus({
-        isAuthenticated: auth.isAuthenticated,
-        isStaff: auth.isStaff,
-        username: auth.username,
-      });
+      const auth = normalizeAuthStatus(event.data.auth);
+      setAuthStatus(auth);
+      messageReceivedRef.current = true;
     }
   };
 
@@ -126,12 +172,9 @@ export default function Navbar() {
       }
 
       if (event.data && event.data.auth) {
-        const auth = event.data.auth;
-        setAuthStatus({
-          isAuthenticated: auth.isAuthenticated,
-          isStaff: auth.isStaff,
-          username: auth.username,
-        });
+        const auth = normalizeAuthStatus(event.data.auth);
+        console.log("🔐 Auth data received:", auth);
+        setAuthStatus(auth);
         messageReceivedRef.current = true;
       }
 
@@ -171,17 +214,18 @@ export default function Navbar() {
     const timer = setTimeout(() => {
       if (!messageReceivedRef.current) {
         fetch(`${backendBase}/auth/status/`, {
-          // will adapt to prod vs dev
           method: "GET",
           credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
         })
           .then((res) => res.json())
           .then((auth) => {
-            setAuthStatus({
-              isAuthenticated: auth.isAuthenticated,
-              isStaff: auth.isStaff,
-              username: auth.username,
-            });
+            const normalized = normalizeAuthStatus(auth);
+            console.log("🔐 Auth status fetched:", normalized);
+            setAuthStatus(normalized);
           })
           .catch((err) => {
             console.warn("Auth status fetch failed:", err);
@@ -236,10 +280,7 @@ export default function Navbar() {
 
                       {/* Only show while *in* MHSA, and only for staff */}
                       {inMhsa && authStatus.isStaff && (
-                        <Link
-                          className="nav-link"
-                          to="/clubcar/mhsa/maintenance"
-                        >
+                        <Link className="nav-link" to="/clubcar/maintenance">
                           Maintenance
                         </Link>
                       )}

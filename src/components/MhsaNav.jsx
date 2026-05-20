@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 //import "../components/mhsa.theme.clubcar.css";
+
+const backendBase =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.engineering-z.com";
 
 /**
  * MHSA top bar navigation.
@@ -11,30 +14,148 @@ import { Link, useLocation } from "react-router-dom";
  * Usage:
  * <MhsaNav authStatus={authStatus} />
  */
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop().split(";").shift();
+  }
+  return "";
+}
+
+function normalizeAuthStatus(authStatus) {
+  if (!authStatus) {
+    return {
+      isAuthenticated: false,
+      isStaff: false,
+      username: "",
+    };
+  }
+
+  // New /auth/status/ shape:
+  // {
+  //   ok: true,
+  //   authenticated: true,
+  //   user: {
+  //     username: "...",
+  //     is_staff: true,
+  //     is_superuser: true
+  //   }
+  // }
+  if ("authenticated" in authStatus || "user" in authStatus) {
+    return {
+      isAuthenticated: authStatus.authenticated === true,
+      isStaff:
+        authStatus.user?.is_staff === true ||
+        authStatus.user?.is_superuser === true,
+      username: authStatus.user?.username || "",
+    };
+  }
+
+  // Legacy shape:
+  // {
+  //   isAuthenticated: true,
+  //   isStaff: true,
+  //   username: "..."
+  // }
+  return {
+    isAuthenticated: authStatus.isAuthenticated === true,
+    isStaff: authStatus.isStaff === true,
+    username: authStatus.username || "",
+  };
+}
+
 export default function MhsaNav({ authStatus }) {
   const location = useLocation();
 
-  const isAuthed = !!authStatus?.isAuthenticated;
-  const isStaff = !!authStatus?.isStaff;
+  const [localAuthStatus, setLocalAuthStatus] = useState(
+    authStatus || {
+      isAuthenticated: false,
+      isStaff: false,
+      username: null,
+    },
+  );
+
+  useEffect(() => {
+    let alive = true;
+
+    fetch(`${backendBase}/auth/status/`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!alive) return;
+        console.log("[MhsaNav] fetched auth/status", data);
+        setLocalAuthStatus(data);
+      })
+      .catch((err) => {
+        console.warn("[MhsaNav] auth/status failed", err);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [location.pathname]);
+
+  const normalizedAuth = normalizeAuthStatus(localAuthStatus);
+
+  const isAuthed = normalizedAuth.isAuthenticated;
+  const isStaff = normalizedAuth.isStaff;
 
   const items = [
-    { label: "MHSA Home", to: "/clubcar/mhsa", show: true },
-    { label: "HUD", to: "/clubcar/hud", show: true },
-    { label: "ERD (login)", to: "/clubcar/relationships", show: true },
-
-    // New page you’re about to build
+    { label: "MHSA Home", to: "/clubcar/mhsa", show: isAuthed },
+    { label: "Engineering-Z", to: "/", show: true },
+    { label: "HUD", to: "/clubcar/hud", show: isAuthed },
+    { label: "ERD", to: "/clubcar/relationships", show: isAuthed },
     { label: "Cockpit", to: "/clubcar/cockpit", show: isAuthed },
-
-    // Future: scanner workflows (keep hidden until ready if you want)
     { label: "Scan", to: "/clubcar/scan", show: isAuthed },
 
-    // Staff-only
     {
       label: "Maintenance",
       to: "/clubcar/maintenance",
       show: isAuthed && isStaff,
     },
   ].filter((x) => x.show);
+
+  async function handleLogout(event) {
+    event.preventDefault();
+
+    try {
+      // Ensure CSRF cookie exists.
+      await fetch(`${backendBase}/auth/csrf/`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+
+      const csrfToken = getCookie("csrftoken");
+
+      await fetch(`${backendBase}/auth/logout-json/`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({}),
+      });
+    } catch (err) {
+      console.warn("[MhsaNav] logout failed or incomplete", err);
+    } finally {
+      window.location.href = "/";
+    }
+  }
 
   return (
     <>
@@ -93,6 +214,11 @@ export default function MhsaNav({ authStatus }) {
               </Link>
             );
           })}
+          {isAuthed && (
+            <a href="/" className="mhsa-link" onClick={handleLogout}>
+              Log Out
+            </a>
+          )}
         </nav>
       </header>
     </>
