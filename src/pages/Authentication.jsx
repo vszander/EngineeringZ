@@ -1,11 +1,13 @@
 // src/pages/Authentication.jsx
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const backendBase =
   import.meta.env.VITE_BACKEND_URL || "https://backend.engineering-z.com";
+
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -27,9 +29,41 @@ function normalizeNextPath(nextValue) {
   return nextValue;
 }
 
+function loadTurnstileScript() {
+  return new Promise((resolve, reject) => {
+    if (window.turnstile) {
+      resolve(window.turnstile);
+      return;
+    }
+
+    const existing = document.querySelector(
+      'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
+    );
+
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.turnstile));
+      existing.addEventListener("error", reject);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(window.turnstile);
+    script.onerror = reject;
+
+    document.head.appendChild(script);
+  });
+}
+
 export default function Authentication() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const turnstileContainerRef = useRef(null);
+  const turnstileWidgetIdRef = useRef(null);
 
   const params = useMemo(
     () => new URLSearchParams(location.search),
@@ -46,10 +80,13 @@ export default function Authentication() {
     password: "",
   });
 
+  const [turnstileToken, setTurnstileToken] = useState("");
+
   const [status, setStatus] = useState({
     checking: true,
     submitting: false,
     message: "",
+    turnstileReady: false,
   });
 
   useEffect(() => {
@@ -100,6 +137,108 @@ export default function Authentication() {
     };
   }, [navigate, nextPath]);
 
+  useEffect(() => {
+    let alive = true;
+
+    async function renderTurnstile() {
+      if (status.checking) return;
+      if (!turnstileSiteKey) {
+        console.warn("[Authentication] VITE_TURNSTILE_SITE_KEY is not set.");
+        setStatus((prev) => ({
+          ...prev,
+          turnstileReady: false,
+          message:
+            "Cloudflare verification is not configured. Please contact the administrator.",
+        }));
+        return;
+      }
+
+      if (!turnstileContainerRef.current) return;
+      if (turnstileWidgetIdRef.current) return;
+
+      try {
+        const turnstile = await loadTurnstileScript();
+
+        if (!alive || !turnstileContainerRef.current) return;
+
+        turnstileWidgetIdRef.current = turnstile.render(
+          turnstileContainerRef.current,
+          {
+            sitekey: turnstileSiteKey,
+            theme: "dark",
+            callback: (token) => {
+              setTurnstileToken(token || "");
+              setStatus((prev) => ({
+                ...prev,
+                turnstileReady: true,
+                message: "",
+              }));
+            },
+            "expired-callback": () => {
+              setTurnstileToken("");
+              setStatus((prev) => ({
+                ...prev,
+                turnstileReady: false,
+                message: "Cloudflare verification expired. Please try again.",
+              }));
+            },
+            "error-callback": () => {
+              setTurnstileToken("");
+              setStatus((prev) => ({
+                ...prev,
+                turnstileReady: false,
+                message:
+                  "Cloudflare verification failed to load. Please refresh and try again.",
+              }));
+            },
+          },
+        );
+      } catch (err) {
+        console.warn("[Authentication] Turnstile script failed", err);
+
+        if (!alive) return;
+
+        setStatus((prev) => ({
+          ...prev,
+          turnstileReady: false,
+          message:
+            "Cloudflare verification could not be loaded. Please refresh and try again.",
+        }));
+      }
+    }
+
+    renderTurnstile();
+
+    return () => {
+      alive = false;
+
+      try {
+        if (window.turnstile && turnstileWidgetIdRef.current) {
+          window.turnstile.remove(turnstileWidgetIdRef.current);
+          turnstileWidgetIdRef.current = null;
+        }
+      } catch (err) {
+        console.warn("[Authentication] Turnstile cleanup failed", err);
+      }
+    };
+  }, [status.checking]);
+
+  function resetTurnstile() {
+    try {
+      if (window.turnstile && turnstileWidgetIdRef.current) {
+        window.turnstile.reset(turnstileWidgetIdRef.current);
+      }
+    } catch (err) {
+      console.warn("[Authentication] Turnstile reset failed", err);
+    }
+
+    setTurnstileToken("");
+    setStatus((prev) => ({
+      ...prev,
+      turnstileReady: false,
+    }));
+  }
+
   function handleChange(event) {
     const { name, value } = event.target;
 
@@ -141,6 +280,15 @@ export default function Authentication() {
       return;
     }
 
+    if (!turnstileToken) {
+      Swal.fire({
+        icon: "warning",
+        title: "Verification required",
+        text: "Please complete the Cloudflare verification before signing in.",
+      });
+      return;
+    }
+
     setStatus((prev) => ({
       ...prev,
       submitting: true,
@@ -162,8 +310,7 @@ export default function Authentication() {
         body: JSON.stringify({
           username,
           password,
-          // future:
-          // turnstileToken,
+          turnstileToken,
         }),
       });
 
@@ -188,6 +335,8 @@ export default function Authentication() {
       }, 900);
     } catch (err) {
       console.warn("[Authentication] login failed", err);
+
+      resetTurnstile();
 
       setStatus((prev) => ({
         ...prev,
@@ -261,9 +410,8 @@ export default function Authentication() {
             style={styles.input}
           />
 
-          {/* Future Cloudflare Turnstile placement */}
-          <div style={styles.turnstilePlaceholder}>
-            Cloudflare verification placeholder
+          <div style={styles.turnstileBox}>
+            <div ref={turnstileContainerRef} />
           </div>
 
           {status.message ? (
@@ -272,11 +420,19 @@ export default function Authentication() {
 
           <button
             type="submit"
-            disabled={status.submitting}
+            disabled={
+              status.submitting || !turnstileToken || !status.turnstileReady
+            }
             style={{
               ...styles.button,
-              opacity: status.submitting ? 0.7 : 1,
-              cursor: status.submitting ? "progress" : "pointer",
+              opacity:
+                status.submitting || !turnstileToken || !status.turnstileReady
+                  ? 0.7
+                  : 1,
+              cursor:
+                status.submitting || !turnstileToken || !status.turnstileReady
+                  ? "not-allowed"
+                  : "pointer",
             }}
           >
             {status.submitting ? "Signing in..." : "Sign in"}
@@ -368,14 +524,16 @@ const styles = {
     outline: "none",
     fontSize: "1rem",
   },
-  turnstilePlaceholder: {
+  turnstileBox: {
     marginTop: "10px",
-    padding: "10px 12px",
+    minHeight: "70px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: "12px",
-    background: "rgba(255, 255, 255, 0.06)",
-    border: "1px dashed rgba(255, 255, 255, 0.18)",
-    color: "rgba(255, 255, 255, 0.56)",
-    fontSize: "0.82rem",
+    background: "rgba(255, 255, 255, 0.04)",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+    padding: "8px",
   },
   errorBox: {
     marginTop: "8px",
