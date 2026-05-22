@@ -372,14 +372,9 @@ export default function Authentication() {
       <div style={styles.overlay} />
 
       <section style={styles.card} aria-label="Authentication form">
-        <div style={styles.brandKicker}>Engineering Z</div>
+        <div style={styles.brandKicker}>Engineering-Z</div>
 
         <h1 style={styles.title}>Sign in</h1>
-
-        <p style={styles.copy}>
-          Access protected Engineering Z and MHSA tools with your authorized
-          account.
-        </p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label} htmlFor="username">
@@ -439,10 +434,7 @@ export default function Authentication() {
           </button>
         </form>
 
-        <div style={styles.footerNote}>
-          Successful authentication establishes a secure Django session. No
-          session token is stored in React.
-        </div>
+        <div style={styles.footerNote}>Successful authentication required</div>
       </section>
     </main>
   );
