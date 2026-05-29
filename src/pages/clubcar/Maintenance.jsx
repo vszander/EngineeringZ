@@ -172,10 +172,10 @@ export default function Maintenance() {
   }, []);
 
   return (
-    <div className="mhsa-page mhsa-home">
-      <main className="mhsa-main">
-        {/* LEFT: work/results pane */}
-        <section className="mhsa-left">
+    <div className="mhsa-page mhsa-home mhsa-maintenance-page">
+      <main className="mhsa-main mhsa-maintenance-main">
+        {/* LEFT: reserved work/results/map pane */}
+        <section className="mhsa-left mhsa-maintenance-left">
           {tool === "menu" && hero}
 
           {tool === "create-cart" && (
@@ -186,6 +186,7 @@ export default function Maintenance() {
               onResultJson={(obj) => setResultJson(obj || null)}
             />
           )}
+
           {tool === "move-cart" && <MoveCarts />}
 
           {tool !== "menu" &&
@@ -207,7 +208,6 @@ export default function Maintenance() {
               </div>
             )}
 
-          {/* Optional: a shared status/result viewer under tools */}
           {(statusHtml || resultJson) && (
             <div className="mhsa-panel" style={{ marginTop: 12 }}>
               <div className="mhsa-panelhdr">
@@ -239,21 +239,27 @@ export default function Maintenance() {
           )}
         </section>
 
-        {/* RIGHT: menu pane */}
-        <aside className="mhsa-aside">
-          <MaintenanceMenu
-            activeTool={tool}
-            onPick={(picked) => navigate(`/clubcar/maintenance/${picked}`)}
-            onGoHome={() => navigate("/clubcar/mhsa")}
-          />
+        {/* RIGHT: organized maintenance cards */}
+        <aside className="mhsa-aside mhsa-maintenance-aside">
+          <div className="mhsa-maintenance-card-grid">
+            <MaintenanceMenu
+              activeTool={tool}
+              onPick={(picked) => navigate(`/clubcar/maintenance/${picked}`)}
+              onGoHome={() => navigate("/clubcar/mhsa")}
+            />
 
-          <SimulationCard
-            preset={preset}
-            setPreset={setPreset}
-            simBusy={simBusy}
-            simMsg={simMsg}
-            onStart={startSimulation}
-          />
+            <MappingMaintenanceCard
+              onLaunch={() => navigate("/clubcar/mapping")}
+            />
+
+            <SimulationCard
+              preset={preset}
+              setPreset={setPreset}
+              simBusy={simBusy}
+              simMsg={simMsg}
+              onStart={startSimulation}
+            />
+          </div>
         </aside>
       </main>
     </div>
@@ -346,6 +352,32 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
         >
           Preferences Helper
         </button>
+      </div>
+    </div>
+  );
+}
+
+function MappingMaintenanceCard({ onLaunch }) {
+  return (
+    <div className="mhsa-panel mhsa-maint-card">
+      <div className="mhsa-panelhdr">
+        <h3>Mapping</h3>
+      </div>
+
+      <div className="mhsa-dim">
+        Inspect MapLayers, Locations, edge points, routes, route edges, and
+        future BLE beacon anchors.
+      </div>
+
+      <div className="mhsa-menu" style={{ marginTop: 12 }}>
+        <button className="mhsa-menu-btn" onClick={onLaunch}>
+          Location / Route / Mapping Workbench
+        </button>
+      </div>
+
+      <div className="mhsa-dim" style={{ marginTop: 10 }}>
+        First increment: render existing map data and prepare route-local
+        package selection for the XIAO / ESP32 localization sprint.
       </div>
     </div>
   );

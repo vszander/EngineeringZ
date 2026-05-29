@@ -193,6 +193,291 @@
   transform: translateY(-22px);
 }
 
+/* -------------------------------------------------------
+   Mapping Maintenance Workbench
+   includes     Location, Edges, Routes, Zones  definitions
+------------------------------------------------------- */
+
+.mhsa-mapping-page .mhsa-results-body {
+  position: relative;
+}
+
+.mhsa-mapping-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mhsa-field-label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.mhsa-select {
+  min-width: 220px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 7px 10px;
+}
+
+.mhsa-toggle-group,
+.mhsa-location-type-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.mhsa-location-type-bar {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mhsa-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  opacity: 0.88;
+  user-select: none;
+}
+
+.mhsa-check--compact {
+  font-size: 11px;
+}
+
+.mhsa-type-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.mhsa-mapping-stage {
+  position: relative;
+  overflow: auto;
+  min-height: 520px;
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.mhsa-mapping-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.mhsa-mapping-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.mhsa-zone-layer,
+.mhsa-edge-layer,
+.mhsa-location-layer {
+  pointer-events: auto;
+}
+
+/* Notices */
+
+.mhsa-map-notice {
+  position: absolute;
+  z-index: 10;
+  top: 12px;
+  left: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.72);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 12px;
+}
+
+.mhsa-map-notice--error {
+  color: salmon;
+}
+
+/* Zones */
+
+.mhsa-zone-poly {
+  fill: rgba(93, 201, 165, 0.12);
+  stroke: rgba(93, 201, 165, 0.55);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.mhsa-zone-poly:hover {
+  fill: rgba(93, 201, 165, 0.22);
+  stroke: rgba(93, 201, 165, 0.95);
+}
+
+/* Edges / Routes */
+
+.mhsa-route-edge-line {
+  fill: none;
+  stroke: rgba(242, 132, 78, 0.68);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.mhsa-route-edge-line:hover {
+  stroke: rgba(242, 132, 78, 1);
+  stroke-width: 4;
+}
+
+.mhsa-route-edge-line--route {
+  stroke: rgba(20, 141, 151, 0.9);
+  stroke-width: 3;
+}
+
+.mhsa-route-edge-line--route:hover {
+  stroke: rgba(93, 201, 165, 1);
+  stroke-width: 5;
+}
+
+/* Location marks */
+
+.mhsa-loc-point {
+  cursor: pointer;
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+}
+
+.mhsa-loc-point:hover {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+/* Required: edge_point = 3px neon-green square */
+.mhsa-loc--edge_point {
+  fill: #39ff14;
+  stroke: rgba(57, 255, 20, 0.65);
+}
+
+/* Current / likely location types from your sample data */
+
+.mhsa-loc--nav {
+  fill: #5dc9a5;
+}
+
+.mhsa-loc--queue {
+  fill: #f2844e;
+}
+
+.mhsa-loc--staging {
+  fill: #d7d8c6;
+}
+
+.mhsa-loc--dock,
+.mhsa-loc--receiving_trailer,
+.mhsa-loc--shipping_trailer {
+  fill: #148d97;
+}
+
+.mhsa-loc--rack,
+.mhsa-loc--point {
+  fill: #ffffff;
+}
+
+.mhsa-loc--beacon {
+  fill: #00e5ff;
+  stroke: rgba(0, 229, 255, 0.75);
+}
+
+.mhsa-loc--outside_index {
+  fill: #ffd166;
+}
+
+/* Aside helpers */
+
+.mhsa-aside-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.mhsa-aside-link {
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.mhsa-aside-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.mhsa-aside-subtitle {
+  opacity: 0.7;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+.mhsa-mapping-aside {
+  display: grid;
+  gap: 12px;
+}
+
+.mhsa-mini-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mhsa-mini-panel__title {
+  font-weight: 700;
+}
+
+.mhsa-mini-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.mhsa-mini-row span {
+  opacity: 0.72;
+}
+
+.mhsa-mini-row b {
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.mhsa-json-preview {
+  margin: 0;
+  padding: 10px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
 /* =========================================================
    SHAPE SYSTEM (accessibility)
    Shape = "noun" (what it is). Color/animation = state.

@@ -16,6 +16,7 @@ import MaterialHandlingCostTable from "./MaterialHandlingCostTable";
 import QueueManager from "./QueueManager";
 import FlightManifestPreview from "./Flight_Manifest_preview";
 import AnticipationPage from "./Anticipation";
+import MappingPage from "./Mapping";
 
 //import RequireSession from "../../components/RequireSession"; //  this queries the backend for session status
 import ProtectedMhsaPage from "../../components/ProtectedMhsaPage";
@@ -99,6 +100,7 @@ export default function ClubcarRouter() {
           }
         />{" "}
         <Route path="cart-move" element={<CartMoveMenu />} />
+        <Route path="mapping" element={<MappingPage />} />
         <Route path="carts" element={<Carts />} />
         <Route path="workflows" element={<MhsaWorkflowMenu />} />
         <Route path="signals" element={<SignalsDashboard />} />
