@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./mhsa_home.css";
 import "./mhsa_mapping.css";
@@ -7,6 +7,19 @@ import "./mhsa_mapping.css";
 const backendBase = import.meta.env.VITE_BACKEND_URL;
 
 const DEFAULT_MAP_LAYER_ID = "87403789-d602-4382-8ba1-130efb74dbd2"; // Evans Consumer
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return "";
+}
+
+function getCsrfToken() {
+  return getCookie("csrftoken");
+}
 
 function normalizeGeometryPoints(geometryJson) {
   if (!geometryJson) return [];
@@ -53,6 +66,11 @@ export default function MappingPage() {
   const [showRoutes, setShowRoutes] = useState(false);
 
   const [selection, setSelection] = useState(null);
+  const [routeCsvFile, setRouteCsvFile] = useState(null);
+  const [routeCsvName, setRouteCsvName] = useState("");
+  const [routeCsvBusy, setRouteCsvBusy] = useState(false);
+  const [routeCsvResult, setRouteCsvResult] = useState(null);
+  const [routeCsvError, setRouteCsvError] = useState(null);
 
   // Optional endpoint. If you do not have this yet, hard-code the dropdown
   // to Evans for now and remove this effect.
@@ -90,69 +108,59 @@ export default function MappingPage() {
     };
   }, []);
 
-  useEffect(() => {
+  const loadMappingData = useCallback(async () => {
     if (!mapLayerId) return;
 
-    let cancelled = false;
+    try {
+      setLoading(true);
+      setError(null);
+      setSelection(null);
 
-    async function loadMappingData() {
-      try {
-        setLoading(true);
-        setError(null);
-        setSelection(null);
+      const url =
+        `${backendBase}/mhsa/api/mapping/workbench/` +
+        `?map_layer_id=${encodeURIComponent(mapLayerId)}`;
 
-        const url =
-          `${backendBase}/mhsa/api/mapping/workbench/` +
-          `?map_layer_id=${encodeURIComponent(mapLayerId)}`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
 
-        const res = await fetch(url, {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
+      if (!res.ok) throw new Error(`Mapping HTTP ${res.status}`);
 
-        if (!res.ok) throw new Error(`Mapping HTTP ${res.status}`);
+      const data = await res.json();
 
-        const data = await res.json();
-        if (cancelled) return;
-
-        if (!data?.ok) {
-          throw new Error(data?.error || "Mapping payload failed.");
-        }
-
-        setModel(data);
-
-        const layer = data.map_layer || data.maplayer || {};
-        if (layer.image_uri) {
-          setMapImageSrc(`${layer.image_uri}?layer=${layer.id || mapLayerId}`);
-        }
-
-        // Requirement: default all type checkboxes OFF.
-        // We still compute the unique types, but set them false.
-        const nextTypes = {};
-        for (const t of collectLocationTypes(data.locations || [])) {
-          nextTypes[t] = false;
-        }
-        setEnabledTypes(nextTypes);
-
-        setShowZones(false);
-        setShowEdges(false);
-        setShowRoutes(false);
-      } catch (e) {
-        if (cancelled) return;
-        setError(String(e?.message || e));
-        setModel(null);
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (!data?.ok) {
+        throw new Error(data?.error || "Mapping payload failed.");
       }
+
+      setModel(data);
+
+      const layer = data.map_layer || data.maplayer || {};
+      if (layer.image_uri) {
+        setMapImageSrc(`${layer.image_uri}?layer=${layer.id || mapLayerId}`);
+      }
+
+      const nextTypes = {};
+      for (const t of collectLocationTypes(data.locations || [])) {
+        nextTypes[t] = false;
+      }
+      setEnabledTypes(nextTypes);
+
+      setShowZones(false);
+      setShowEdges(false);
+      setShowRoutes(false);
+    } catch (e) {
+      setError(String(e?.message || e));
+      setModel(null);
+    } finally {
+      setLoading(false);
     }
-
-    loadMappingData();
-
-    return () => {
-      cancelled = true;
-    };
   }, [mapLayerId]);
+
+  useEffect(() => {
+    loadMappingData();
+  }, [loadMappingData]);
 
   const mapLayer = model?.map_layer || model?.maplayer || null;
   const locations = Array.isArray(model?.locations) ? model.locations : [];
@@ -221,6 +229,79 @@ export default function MappingPage() {
     }
     return out;
   }, [locations]);
+
+  async function submitRouteCsvUpload({ commit = false } = {}) {
+    if (!routeCsvFile) {
+      setRouteCsvError("Choose a CSV file first.");
+      return;
+    }
+
+    if (!mapLayerId) {
+      setRouteCsvError("MapLayer is required before uploading a route CSV.");
+      return;
+    }
+
+    try {
+      setRouteCsvBusy(true);
+      setRouteCsvError(null);
+      setRouteCsvResult(null);
+
+      const form = new FormData();
+      form.append("file", routeCsvFile);
+      form.append("map_layer_id", mapLayerId);
+
+      const finalRouteName =
+        routeCsvName.trim() || routeCsvFile.name.replace(/\.[^.]+$/, "");
+
+      form.append("route_name", finalRouteName);
+
+      const endpoint = commit
+        ? "/mhsa/api/mapping/routes/upload-commit/"
+        : "/mhsa/api/mapping/routes/upload-preview/";
+
+      const csrfToken = getCsrfToken();
+
+      const res = await fetch(`${backendBase}${endpoint}`, {
+        method: "POST",
+        body: form,
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+      });
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Route CSV upload returned HTTP ${res.status}.`);
+      }
+
+      setRouteCsvResult(data);
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+      }
+
+      if (commit && data?.ok && data?.committed) {
+        setShowEdges(true);
+        setShowRoutes(true);
+        await loadMappingData();
+      }
+    } catch (e) {
+      setRouteCsvError(String(e?.message || e));
+    } finally {
+      setRouteCsvBusy(false);
+    }
+  }
+
+  function clearRouteCsvUpload() {
+    setRouteCsvFile(null);
+    setRouteCsvName("");
+    setRouteCsvResult(null);
+    setRouteCsvError(null);
+  }
 
   return (
     <div className="mhsa-page mhsa-home mhsa-mapping-page">
@@ -366,6 +447,18 @@ export default function MappingPage() {
                 showZones={showZones}
                 showEdges={showEdges}
                 showRoutes={showRoutes}
+                routeCsvFile={routeCsvFile}
+                routeCsvName={routeCsvName}
+                routeCsvBusy={routeCsvBusy}
+                routeCsvResult={routeCsvResult}
+                routeCsvError={routeCsvError}
+                onRouteCsvFileChange={setRouteCsvFile}
+                onRouteCsvNameChange={setRouteCsvName}
+                onRouteCsvPreview={() =>
+                  submitRouteCsvUpload({ commit: false })
+                }
+                onRouteCsvCommit={() => submitRouteCsvUpload({ commit: true })}
+                onRouteCsvClear={clearRouteCsvUpload}
               />
             </div>
           </div>
@@ -578,6 +671,16 @@ function MappingAside({
   showZones,
   showEdges,
   showRoutes,
+  routeCsvFile,
+  routeCsvName,
+  routeCsvBusy,
+  routeCsvResult,
+  routeCsvError,
+  onRouteCsvFileChange,
+  onRouteCsvNameChange,
+  onRouteCsvPreview,
+  onRouteCsvCommit,
+  onRouteCsvClear,
 }) {
   const locations = Array.isArray(model?.locations) ? model.locations : [];
   const edges = Array.isArray(model?.edges) ? model.edges : [];
@@ -609,7 +712,92 @@ function MappingAside({
           <b>{showRoutes ? routes.length : 0}</b>
         </div>
       </div>
+      <div className="mhsa-mini-panel">
+        <div className="mhsa-mini-panel__title">Route CSV Ingest</div>
 
+        <label className="mhsa-field-label">
+          CSV file
+          <input
+            className="mhsa-file-input"
+            type="file"
+            accept=".csv,text/csv"
+            disabled={routeCsvBusy}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              onRouteCsvFileChange?.(file);
+
+              if (file && !routeCsvName) {
+                onRouteCsvNameChange?.(file.name.replace(/\.[^.]+$/, ""));
+              }
+            }}
+          />
+        </label>
+
+        <label className="mhsa-field-label">
+          Route name
+          <input
+            className="mhsa-text-input"
+            type="text"
+            value={routeCsvName}
+            disabled={routeCsvBusy}
+            placeholder="Defaults to CSV filename"
+            onChange={(e) => onRouteCsvNameChange?.(e.target.value)}
+          />
+        </label>
+
+        {routeCsvFile && (
+          <div className="mhsa-dim">
+            Selected: <b>{routeCsvFile.name}</b>
+          </div>
+        )}
+
+        <div className="mhsa-button-row">
+          <button
+            type="button"
+            className="mhsa-action-btn"
+            disabled={!routeCsvFile || routeCsvBusy}
+            onClick={onRouteCsvPreview}
+          >
+            {routeCsvBusy ? "Checking…" : "Preview"}
+          </button>
+
+          <button
+            type="button"
+            className="mhsa-action-btn mhsa-action-btn--primary"
+            disabled={
+              !routeCsvFile ||
+              routeCsvBusy ||
+              !routeCsvResult?.can_commit ||
+              (routeCsvResult?.summary?.blocking_errors || 0) > 0
+            }
+            onClick={onRouteCsvCommit}
+            title={
+              routeCsvResult?.can_commit
+                ? "Commit this route import"
+                : "Preview must pass before commit"
+            }
+          >
+            Commit
+          </button>
+
+          <button
+            type="button"
+            className="mhsa-action-btn mhsa-action-btn--ghost"
+            disabled={routeCsvBusy}
+            onClick={onRouteCsvClear}
+          >
+            Clear
+          </button>
+        </div>
+
+        {routeCsvError && (
+          <div className="mhsa-map-notice mhsa-map-notice--error">
+            {routeCsvError}
+          </div>
+        )}
+
+        {routeCsvResult && <RouteCsvResult result={routeCsvResult} />}
+      </div>
       <div className="mhsa-mini-panel">
         <div className="mhsa-mini-panel__title">Selection</div>
 
@@ -659,6 +847,125 @@ function MappingAside({
           locations / edges / routes as the XIAO route-local payload.
         </div>
       </div>
+    </div>
+  );
+}
+
+function RouteCsvResult({ result }) {
+  const summary = result?.summary || {};
+  const errors = Array.isArray(result?.blocking_errors)
+    ? result.blocking_errors
+    : Array.isArray(result?.errors)
+      ? result.errors
+      : [];
+
+  const warnings = Array.isArray(result?.warnings) ? result.warnings : [];
+  const conflicts = Array.isArray(result?.conflicts) ? result.conflicts : [];
+
+  const created = result?.created || {};
+  const reused = result?.reused || {};
+
+  return (
+    <div className="mhsa-import-result">
+      <div className="mhsa-mini-row">
+        <span>Status</span>
+        <b>
+          {result?.committed
+            ? "Committed"
+            : result?.can_commit
+              ? "Ready"
+              : "Blocked"}
+        </b>
+      </div>
+
+      <div className="mhsa-mini-row">
+        <span>Rows</span>
+        <b>
+          {summary.rows_valid ?? 0}/{summary.rows_seen ?? 0}
+        </b>
+      </div>
+
+      <div className="mhsa-mini-row">
+        <span>Errors</span>
+        <b>{summary.blocking_errors ?? errors.length}</b>
+      </div>
+
+      <div className="mhsa-mini-row">
+        <span>Warnings</span>
+        <b>{summary.warnings ?? warnings.length}</b>
+      </div>
+
+      <div className="mhsa-mini-row">
+        <span>Conflicts</span>
+        <b>{summary.conflicts ?? conflicts.length}</b>
+      </div>
+
+      {result?.committed && (
+        <div className="mhsa-import-created">
+          <div className="mhsa-mini-row">
+            <span>Locations</span>
+            <b>
+              +{created.locations || 0} / reused {reused.locations || 0}
+            </b>
+          </div>
+          <div className="mhsa-mini-row">
+            <span>Edges</span>
+            <b>+{created.edges || 0}</b>
+          </div>
+          <div className="mhsa-mini-row">
+            <span>RouteEdges</span>
+            <b>+{created.route_edges || 0}</b>
+          </div>
+        </div>
+      )}
+
+      <RouteCsvMessages title="Errors" items={errors} />
+      <RouteCsvMessages title="Warnings" items={warnings} />
+      <RouteCsvMessages title="Conflicts" items={conflicts} />
+
+      <details className="mhsa-import-json">
+        <summary>Raw JSON</summary>
+        <pre className="mhsa-json-preview">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      </details>
+    </div>
+  );
+}
+
+function RouteCsvMessages({ title, items }) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  const preview = items.slice(0, 6);
+  const extra = items.length - preview.length;
+
+  return (
+    <div className="mhsa-import-messages">
+      <div className="mhsa-mini-panel__title">
+        {title} ({items.length})
+      </div>
+
+      {preview.map((item, idx) => (
+        <div
+          key={`${title}-${idx}`}
+          className={`mhsa-import-message mhsa-import-message--${
+            item.severity || "info"
+          }`}
+        >
+          <div>
+            <b>{item.code || "MESSAGE"}</b>
+            {item.row != null && <span> · row {item.row}</span>}
+            {item.field && <span> · {item.field}</span>}
+          </div>
+          <div className="mhsa-dim">{item.message || String(item)}</div>
+        </div>
+      ))}
+
+      {extra > 0 && (
+        <div className="mhsa-dim">
+          +{extra} more. Open Raw JSON for full details.
+        </div>
+      )}
     </div>
   );
 }

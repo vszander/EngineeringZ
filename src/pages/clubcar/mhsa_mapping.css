@@ -198,6 +198,151 @@
    includes     Location, Edges, Routes, Zones  definitions
 ------------------------------------------------------- */
 
+.mhsa-file-input,
+.mhsa-text-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+}
+
+.mhsa-file-input {
+  font-size: 0.85rem;
+}
+
+.mhsa-button-row {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.mhsa-action-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--mhsa-text, rgba(255, 255, 255, 0.92));
+  cursor: pointer;
+}
+
+.mhsa-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mhsa-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mhsa-action-btn--primary {
+  border-color: rgba(20, 141, 151, 0.7);
+  background: rgba(20, 141, 151, 0.22);
+}
+
+.mhsa-action-btn--ghost {
+  background: transparent;
+}
+
+.mhsa-import-result {
+  margin-top: 0.85rem;
+}
+
+.mhsa-import-created {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mhsa-import-messages {
+  margin-top: 0.75rem;
+}
+
+.mhsa-import-message {
+  margin-top: 0.45rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid rgba(255, 255, 255, 0.22);
+}
+
+.mhsa-import-message--error {
+  border-left-color: #ff6b6b;
+}
+
+.mhsa-import-message--warning {
+  border-left-color: #f2c94c;
+}
+
+.mhsa-import-message--conflict {
+  border-left-color: #f2844e;
+}
+
+.mhsa-import-json {
+  margin-top: 0.75rem;
+}
+
+.mhsa-import-json summary {
+  cursor: pointer;
+}
+
+.mhsa-mapping-aside .mhsa-json-preview {
+  max-height: 18rem;
+  overflow: auto;
+}
+
+/* Keep the right Mapping aside usable when import feedback is long */
+.mhsa-mapping-page .mhsa-aside {
+  min-height: 0;
+}
+
+.mhsa-mapping-page .mhsa-aside .mhsa-card {
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mhsa-mapping-page .mhsa-aside .mhsa-card__body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+/* Keep the CSV ingest result from stretching the card too far */
+.mhsa-import-result {
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+/* Message lists can scroll independently if many warnings/conflicts return */
+.mhsa-import-messages {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Raw JSON should scroll both directions */
+.mhsa-import-json .mhsa-json-preview {
+  max-height: 22rem;
+  overflow: auto;
+  white-space: pre;
+}
+
+/* Optional: make long messages wrap cleanly */
+.mhsa-import-message {
+  overflow-wrap: anywhere;
+}
+
+.mhsa-import-message .mhsa-dim {
+  overflow-wrap: anywhere;
+}
+
 .mhsa-mapping-page .mhsa-results-body {
   position: relative;
 }

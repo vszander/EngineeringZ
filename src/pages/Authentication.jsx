@@ -9,6 +9,11 @@ const backendBase =
 
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 
+const isDev = import.meta.env.DEV;
+
+const turnstileEnabled =
+  !isDev && import.meta.env.VITE_ENABLE_TURNSTILE !== "0";
+
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -142,14 +147,32 @@ export default function Authentication() {
 
     async function renderTurnstile() {
       if (status.checking) return;
+
+      // DEV bypass:
+      // In Vite dev mode, do not load Cloudflare, do not require a site key,
+      // and mark Turnstile as ready so the form can submit.
+      if (!turnstileEnabled) {
+        setTurnstileToken("dev-bypass");
+
+        setStatus((prev) => ({
+          ...prev,
+          turnstileReady: true,
+          message: "",
+        }));
+
+        return;
+      }
+
       if (!turnstileSiteKey) {
         console.warn("[Authentication] VITE_TURNSTILE_SITE_KEY is not set.");
+
         setStatus((prev) => ({
           ...prev,
           turnstileReady: false,
           message:
             "Cloudflare verification is not configured. Please contact the administrator.",
         }));
+
         return;
       }
 
@@ -168,6 +191,7 @@ export default function Authentication() {
             theme: "dark",
             callback: (token) => {
               setTurnstileToken(token || "");
+
               setStatus((prev) => ({
                 ...prev,
                 turnstileReady: true,
@@ -176,6 +200,7 @@ export default function Authentication() {
             },
             "expired-callback": () => {
               setTurnstileToken("");
+
               setStatus((prev) => ({
                 ...prev,
                 turnstileReady: false,
@@ -184,6 +209,7 @@ export default function Authentication() {
             },
             "error-callback": () => {
               setTurnstileToken("");
+
               setStatus((prev) => ({
                 ...prev,
                 turnstileReady: false,
@@ -221,7 +247,7 @@ export default function Authentication() {
         console.warn("[Authentication] Turnstile cleanup failed", err);
       }
     };
-  }, [status.checking]);
+  }, [status.checking, turnstileEnabled]);
 
   function resetTurnstile() {
     try {

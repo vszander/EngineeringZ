@@ -13,55 +13,9 @@ import { initAiAsidePanel } from "../../components/map/mhsa_hud_ai_panel";
 
 const backendBase = import.meta.env.VITE_BACKEND_URL; // import.meta.env.VITE_BACKEND_URL
 
-
-function getAssetProfile(asset) {
-  return String(
-    asset?.asset_profile ||
-      asset?.assetProfile ||
-      asset?.profile ||
-      asset?.meta_json?.asset_profile ||
-      asset?.meta?.asset_profile ||
-      "",
-  )
-    .trim()
-    .toLowerCase();
-}
-
-function isValetVest(asset) {
-  const profile = getAssetProfile(asset);
-  const type = String(asset?.asset_type || asset?.assetType || "").toLowerCase();
-  const name = String(asset?.name || "").toLowerCase();
-
-  return (
-    profile === "valet_vest" ||
-    profile === "valetvest" ||
-    type === "valet_vest" ||
-    type === "valetvest" ||
-    name.includes("vest")
-  );
-}
-
-function getAssetLabel(asset) {
-  return asset?.name || asset?.display_name || asset?.id || "Asset";
-}
-
-function deriveHeadingFromMotion(prevPose, pose, fallbackHeading = 0) {
-  const dx = Number(pose?.x ?? 0) - Number(prevPose?.x ?? pose?.x ?? 0);
-  const dy = Number(pose?.y ?? 0) - Number(prevPose?.y ?? pose?.y ?? 0);
-
-  // Screen coordinates: +Y is down. atan2(dx, -dy) gives 0° = north/up.
-  if (Math.hypot(dx, dy) >= 1.0) {
-    return (Math.atan2(dx, -dy) * 180) / Math.PI;
-  }
-
-  return Number(fallbackHeading ?? 0);
-}
-
-
 export default function MhsaHud() {
   // Step 2 bootstrap state
   const [mapLayer, setMapLayer] = useState(null);
-  const [requestedMapLayerId, setRequestedMapLayerId] = useState(null);
   const [assetsById, setAssetsById] = useState({}); // static-ish asset dataset by UUID
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   const [infoPanelHtml, setInfoPanelHtml] = useState(
@@ -313,15 +267,7 @@ export default function MhsaHud() {
         setLoading(true);
         setBootError(null);
 
-        const bootUrl = new URL(`${backendBase}/mhsa/bootstrap`);
-        if (requestedMapLayerId) {
-          bootUrl.searchParams.set("map_layer_id", requestedMapLayerId);
-        }
-
-        const res = await fetch(bootUrl.toString(), {
-          headers: { Accept: "application/json" },
-          credentials: "include",
-        });
+        const res = await fetch(`${backendBase}/mhsa/bootstrap`);
         if (!res.ok) throw new Error(`bootstrap HTTP ${res.status}`);
         const data = await res.json();
 
@@ -329,22 +275,6 @@ export default function MhsaHud() {
 
         // MapLayer
         const ml = data.map_layer;
-        const parentId =
-          ml.parent_id ??
-          ml.parentId ??
-          ml.parent_map_layer_id ??
-          ml.parent?.id ??
-          ml.parent_map_layer?.id ??
-          ml.meta_json?.parent_id ??
-          null;
-
-        const parentName =
-          ml.parent_name ??
-          ml.parentName ??
-          ml.parent?.name ??
-          ml.parent_map_layer?.name ??
-          null;
-
         setMapLayer({
           id: ml.id,
           name: ml.name,
@@ -353,8 +283,6 @@ export default function MhsaHud() {
           heightPx: ml.pixel_height,
           rotationDeg: ml.rotation_deg ?? 0,
           meta: ml.meta_json ?? {},
-          parentId,
-          parentName,
         });
 
         // Assets dataset
@@ -402,7 +330,7 @@ export default function MhsaHud() {
     return () => {
       cancelled = true;
     };
-  }, [backendBase, requestedMapLayerId]);
+  }, [backendBase]);
 
   // --- 2b  make sure map is stretchable  horizontally  ---
   useEffect(() => {
@@ -451,69 +379,12 @@ export default function MhsaHud() {
         setPrevPoseById(lastPoseRef.current);
 
         const updates = bundle.positions ?? [];
-
-        // Update/merge asset metadata if the positions endpoint includes it.
-        // This lets newly-added valetVest assets appear without requiring a full reload.
-        setAssetsById((prev) => {
-          let changed = false;
-          const next = { ...prev };
-
-          for (const p of updates) {
-            const id = String(p.id ?? p.asset_id ?? "");
-            if (!id) continue;
-
-            if (!next[id]) {
-              next[id] = {
-                id,
-                name: p.name ?? p.asset_name ?? p.device_id ?? "Asset",
-                asset_type: p.asset_type ?? p.assetType ?? "custom",
-                asset_profile: p.asset_profile ?? p.assetProfile ?? p.profile,
-                meta_json: p.meta_json ?? p.meta ?? {},
-              };
-              changed = true;
-            } else if (p.asset_profile || p.name || p.asset_type) {
-              next[id] = {
-                ...next[id],
-                name: p.name ?? p.asset_name ?? next[id].name,
-                asset_type: p.asset_type ?? p.assetType ?? next[id].asset_type,
-                asset_profile:
-                  p.asset_profile ?? p.assetProfile ?? next[id].asset_profile,
-                meta_json: p.meta_json ?? p.meta ?? next[id].meta_json,
-              };
-              changed = true;
-            }
-          }
-
-          return changed ? next : prev;
-        });
-
-        setPoseById((prev) => {
-          let changed = false;
-          const next = { ...prev };
-
-          for (const p of updates) {
-            const id = String(p.id ?? p.asset_id ?? "");
-            if (!id || next[id]) continue;
-            next[id] = {
-              x: p.x_px ?? 0,
-              y: p.y_px ?? 0,
-              heading: p.heading_deg ?? 0,
-            };
-            changed = true;
-          }
-
-          return changed ? next : prev;
-        });
-
-        // Update targets only; animation loop will smoothly move rendered pose toward targets.
+        // Update targets only; animation loop will smoothly move rendered pose toward targets
         for (const p of updates) {
-          const id = String(p.id ?? p.asset_id ?? "");
-          if (!id) continue;
-
-          targetPoseRef.current[id] = {
+          targetPoseRef.current[p.id] = {
             x: p.x_px ?? 0,
             y: p.y_px ?? 0,
-            heading: p.heading_deg ?? p.heading ?? targetPoseRef.current[id]?.heading ?? 0,
+            heading: p.heading_deg ?? 0,
           };
         }
       } catch (err) {
@@ -1046,29 +917,6 @@ export default function MhsaHud() {
     return { x, y, heading };
   };
 
-  const visibleAssets = Object.values(assetsById).filter((asset) => {
-    const pose = poseById[asset.id];
-    if (!pose) return false;
-
-    // Hide uninitialized bootstrap placeholders until the first real position arrives.
-    if (Number(pose.x ?? 0) === 0 && Number(pose.y ?? 0) === 0) return false;
-
-    return true;
-  });
-
-  const goUpDisabled = !mapLayer.parentId;
-
-  function handleGoUpMapLayer() {
-    if (!mapLayer.parentId) return;
-    setRequestedMapLayerId(mapLayer.parentId);
-    setSelectedAssetId(null);
-    setInfoPanelHtml("<div style='opacity:0.7'>Click an asset to view details.</div>");
-    setHudEvents([]);
-    seenHudEventIdsRef.current = new Set();
-    targetPoseRef.current = {};
-    lastPoseRef.current = {};
-  }
-
   return (
     <>
       {/* <Navbar /> */}
@@ -1081,22 +929,6 @@ export default function MhsaHud() {
             <span style={styles.meta}>
               MapLayer: <strong>{mapLayer.name}</strong>
             </span>
-            <button
-              type="button"
-              onClick={handleGoUpMapLayer}
-              disabled={goUpDisabled}
-              style={{
-                ...styles.headerBtn,
-                ...(goUpDisabled ? styles.headerBtnDisabled : null),
-              }}
-              title={
-                mapLayer.parentName
-                  ? `Go up to ${mapLayer.parentName}`
-                  : "This MapLayer has no parent available"
-              }
-            >
-              Go Up one MapLayer
-            </button>
           </div>
 
           <div style={styles.headerRight}>
@@ -1450,156 +1282,99 @@ export default function MhsaHud() {
                     );
                   })}
 
+                  {/* ... your hudEvents + assets overlays stay EXACTLY as-is ... */}
                   {/* Render all assets as overlays */}
-                  {visibleAssets.map((a) => {
-                    const id = String(a.id);
-                    const pose = clampPose(poseById[id]);
-                    const prevPose = clampPose(prevPoseById[id] ?? poseById[id]);
+                  {Object.keys(assetsById).map((id) => {
+                    const a = assetsById[id];
+                    const prevPose = clampPose(
+                      prevPoseById[id] ?? poseById[id],
+                    );
                     const isSelected = id === selectedAssetId;
-                    const label = getAssetLabel(a);
 
-                    if (isValetVest(a)) {
-                      const heading = deriveHeadingFromMotion(
-                        prevPose,
-                        pose,
-                        pose.heading,
-                      );
+                    if (a.asset_type !== "tugger") return null;
 
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          title={`${label} @ (${Math.round(pose.x)}, ${Math.round(pose.y)})`}
+                    const pose = clampPose(poseById[id]);
+
+                    const cartW = 62;
+                    const cartH = 42;
+                    const cartRadius = 12;
+
+                    return (
+                      <div key={id}>
+                        {/* CART (trail) */}
+                        <div
+                          title={`${a.name} cart`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedAssetId(id);
-                            setInfoPanelHtml(
-                              `<div><h3 style="margin:0 0 8px 0">${label}</h3><div style="opacity:0.8">Valet vest GPS position</div><div style="margin-top:8px">x=${Math.round(pose.x)}, y=${Math.round(pose.y)}</div></div>`,
-                            );
+                            setInfoPanelHtml("");
+
+                            fetch(
+                              `${backendBase}/mhsa/cart/9c5d1788-e15e-42dd-97ad-01317bd42dc8/panel`,
+                            )
+                              .then((r) => {
+                                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                                return r.text();
+                              })
+                              .then((html) => setInfoPanelHtml(html))
+                              .catch((err) => {
+                                console.error("Cart panel fetch failed:", err);
+                                alert(
+                                  "Failed to load cart panel (see console)",
+                                );
+                              });
                           }}
                           style={{
-                            ...styles.valetVestBtn,
-                            left: pose.x,
-                            top: pose.y,
-                            outline: isSelected
-                              ? "2px solid rgba(20,141,151,0.9)"
-                              : "none",
-                            transform: `translate(-50%, -50%) rotate(${heading}deg)`,
+                            position: "absolute",
+                            left: prevPose.x,
+                            top: prevPose.y,
+                            width: cartW,
+                            height: cartH,
+                            transform: "translate(-50%, -50%)",
+                            borderRadius: cartRadius,
+                            background: "rgba(255,255,255,0.92)",
+                            border: "2px solid rgba(0,0,0,0.35)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                            zIndex: 4,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 11,
+                            opacity: 0.95,
+                            cursor: "pointer",
+                            userSelect: "none",
                           }}
                         >
-                          <span style={styles.valetVestArrow}>▲</span>
-                        </button>
-                      );
-                    }
-
-                    if (a.asset_type === "tugger") {
-                      const cartW = 62;
-                      const cartH = 42;
-                      const cartRadius = 12;
-
-                      return (
-                        <div key={id}>
-                          {/* CART (trail) */}
-                          <div
-                            title={`${label} cart`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setInfoPanelHtml("");
-
-                              fetch(
-                                `${backendBase}/mhsa/cart/9c5d1788-e15e-42dd-97ad-01317bd42dc8/panel`,
-                              )
-                                .then((r) => {
-                                  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                                  return r.text();
-                                })
-                                .then((html) => setInfoPanelHtml(html))
-                                .catch((err) => {
-                                  console.error("Cart panel fetch failed:", err);
-                                  alert(
-                                    "Failed to load cart panel (see console)",
-                                  );
-                                });
-                            }}
-                            style={{
-                              position: "absolute",
-                              left: prevPose.x,
-                              top: prevPose.y,
-                              width: cartW,
-                              height: cartH,
-                              transform: "translate(-50%, -50%)",
-                              borderRadius: cartRadius,
-                              background: "rgba(255,255,255,0.92)",
-                              border: "2px solid rgba(0,0,0,0.35)",
-                              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                              zIndex: 4,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 11,
-                              opacity: 0.95,
-                              cursor: "pointer",
-                              userSelect: "none",
-                            }}
-                          >
-                            CART-01
-                          </div>
-
-                          {/* TUGGER */}
-                          <button
-                            type="button"
-                            title={`${label} @ (${Math.round(pose.x)}, ${Math.round(pose.y)})`}
-                            onClick={() => {
-                              setSelectedAssetId(id);
-                              setInfoPanelHtml("");
-                            }}
-                            style={{
-                              ...styles.markerBtn,
-                              left: pose.x,
-                              top: pose.y,
-                              transform: `translate(-50%, -50%) rotate(${pose.heading}deg)`,
-                              outline: isSelected
-                                ? "2px solid rgba(20,141,151,0.7)"
-                                : "none",
-                              borderRadius: 10,
-                              zIndex: 6,
-                            }}
-                          >
-                            <img
-                              src="/images/clubcar/Tugger.png"
-                              alt={label}
-                              draggable={false}
-                              style={styles.markerImg}
-                            />
-                          </button>
+                          CART-01
                         </div>
-                      );
-                    }
 
-                    // Generic fallback so additional asset profiles are not invisible.
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        title={`${label} @ (${Math.round(pose.x)}, ${Math.round(pose.y)})`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedAssetId(id);
-                          setInfoPanelHtml(
-                            `<div><h3 style="margin:0 0 8px 0">${label}</h3><div style="opacity:0.8">Asset position</div><div style="margin-top:8px">x=${Math.round(pose.x)}, y=${Math.round(pose.y)}</div></div>`,
-                          );
-                        }}
-                        style={{
-                          ...styles.genericAssetBtn,
-                          left: pose.x,
-                          top: pose.y,
-                          outline: isSelected
-                            ? "2px solid rgba(20,141,151,0.9)"
-                            : "none",
-                        }}
-                      >
-                        ●
-                      </button>
+                        {/* TUGGER */}
+                        <button
+                          type="button"
+                          title={`${a.name} @ (${Math.round(pose.x)}, ${Math.round(pose.y)})`}
+                          onClick={() => {
+                            setSelectedAssetId(id);
+                            setInfoPanelHtml("");
+                          }}
+                          style={{
+                            ...styles.markerBtn,
+                            left: pose.x,
+                            top: pose.y,
+                            transform: `translate(-50%, -50%) rotate(${pose.heading}deg)`,
+                            outline: isSelected
+                              ? "2px solid rgba(20,141,151,0.7)"
+                              : "none",
+                            borderRadius: 10,
+                            zIndex: 6,
+                          }}
+                        >
+                          <img
+                            src="/images/clubcar/Tugger.png"
+                            alt={a.name}
+                            draggable={false}
+                            style={styles.markerImg}
+                          />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -1666,20 +1441,6 @@ const styles = {
   meta: { opacity: 0.85, fontSize: 14 },
   link: { textDecoration: "none", fontSize: 14 },
 
-  headerBtn: {
-    border: "1px solid rgba(183,154,93,0.45)",
-    background: "rgba(183,154,93,0.12)",
-    color: "var(--mhsa-text, rgba(255,255,255,0.92))",
-    borderRadius: 999,
-    padding: "6px 10px",
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  headerBtnDisabled: {
-    opacity: 0.45,
-    cursor: "not-allowed",
-  },
-
   grid: {
     display: "grid",
     gridTemplateColumns: "minmax(520px, 1fr) 360px",
@@ -1710,45 +1471,6 @@ const styles = {
     height: "100%",
     userSelect: "none",
     pointerEvents: "none",
-  },
-
-
-  valetVestBtn: {
-    position: "absolute",
-    width: 34,
-    height: 34,
-    padding: 0,
-    border: "1px solid rgba(20,141,151,0.85)",
-    background: "rgba(20,141,151,0.92)",
-    color: "white",
-    borderRadius: 999,
-    boxShadow: "0 0 0 3px rgba(20,141,151,0.22), 0 8px 18px rgba(0,0,0,0.36)",
-    cursor: "pointer",
-    zIndex: 9,
-    display: "grid",
-    placeItems: "center",
-    transformOrigin: "center",
-  },
-  valetVestArrow: {
-    display: "block",
-    fontSize: 22,
-    lineHeight: 1,
-    transform: "translateY(-1px)",
-    pointerEvents: "none",
-  },
-  genericAssetBtn: {
-    position: "absolute",
-    width: 26,
-    height: 26,
-    padding: 0,
-    border: "1px solid rgba(255,255,255,0.55)",
-    background: "rgba(142,95,56,0.88)",
-    color: "white",
-    borderRadius: 999,
-    boxShadow: "0 8px 18px rgba(0,0,0,0.34)",
-    cursor: "pointer",
-    zIndex: 7,
-    transform: "translate(-50%, -50%)",
   },
 
   markerBtn: {
