@@ -2246,7 +2246,9 @@ function TwinSummary({ deviceTwin }) {
 function normalizeMapIconClass(icon, fallbackClass = "") {
   const raw = String(icon?.iconClass || fallbackClass || "").trim();
 
-  // Backend older shape accidentally produced:
+  if (!raw) return "mi";
+
+  // Backend older malformed shape:
   //   mi-mi-cart-mi-cart-02
   //   mi-mi-container-mi-container-gaylord
   if (raw.startsWith("mi-mi-cart-mi-cart-")) {
@@ -2259,20 +2261,38 @@ function normalizeMapIconClass(icon, fallbackClass = "") {
     return `mi mi-container mi-container--${code}`;
   }
 
-  // Convert old single-dash suffixes to current BEM style.
-  //   mi mi-cart mi-cart-02 -> mi mi-cart mi-cart--02
-  //   mi mi-container mi-container-gaylord -> mi mi-container mi-container--gaylord
-  let next = raw
-    .replace(/\bmi-cart-([a-zA-Z0-9_-]+)\b/g, "mi-cart--$1")
-    .replace(/\bmi-container-([a-zA-Z0-9_-]+)\b/g, "mi-container--$1");
+  const parts = raw.split(/\s+/).filter(Boolean);
 
-  // Ensure the base .mi class is always present.
-  // Without this, the icon can render as a normal button/div and stretch badly.
-  if (!next.split(/\s+/).includes("mi")) {
-    next = `mi ${next}`.trim();
+  const normalized = parts.map((cls) => {
+    // Already-good BEM classes: leave untouched.
+    if (cls.startsWith("mi-cart--")) return cls;
+    if (cls.startsWith("mi-container--")) return cls;
+    if (cls.startsWith("mi-cart-role--")) return cls;
+    if (cls.startsWith("mi-state--")) return cls;
+    if (cls.startsWith("mi-outline--")) return cls;
+    if (cls.startsWith("mi-shape--")) return cls;
+    if (cls.startsWith("mi-size--")) return cls;
+    if (cls.startsWith("mi-anchor--")) return cls;
+
+    // Old single-dash classes only:
+    //   mi-cart-02 -> mi-cart--02
+    //   mi-container-gaylord -> mi-container--gaylord
+    if (/^mi-cart-[^-]/.test(cls)) {
+      return cls.replace(/^mi-cart-/, "mi-cart--");
+    }
+
+    if (/^mi-container-[^-]/.test(cls)) {
+      return cls.replace(/^mi-container-/, "mi-container--");
+    }
+
+    return cls;
+  });
+
+  if (!normalized.includes("mi")) {
+    normalized.unshift("mi");
   }
 
-  return next;
+  return Array.from(new Set(normalized)).join(" ");
 }
 
 function normalizeAssetIcon(icon) {
