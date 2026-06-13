@@ -15,6 +15,10 @@ const TOPIC_ASSETS = "assets";
 
 const DEFAULT_ASSET_FILTERS = {
   valet_vest: true,
+  tugger: true,
+  otr: true,
+  yardtruck: true,
+  reachtruck: true,
   transporter: true,
   forklift: true,
   agv: true,
@@ -1188,9 +1192,24 @@ function AssetFilterBar({ filters, setFilters, assetCount, visibleCount }) {
           onChange={() => toggle("agv")}
         />
         <FilterCheck
-          label="Trailer"
-          checked={filters.trailer}
-          onChange={() => toggle("trailer")}
+          label="Tugger"
+          checked={filters.tugger}
+          onChange={() => toggle("tugger")}
+        />
+        <FilterCheck
+          label="OTR"
+          checked={filters.otr}
+          onChange={() => toggle("otr")}
+        />
+        <FilterCheck
+          label="Yard Truck"
+          checked={filters.yardtruck}
+          onChange={() => toggle("yardtruck")}
+        />
+        <FilterCheck
+          label="Reach Truck"
+          checked={filters.reachtruck}
+          onChange={() => toggle("reachtruck")}
         />
         <FilterCheck
           label="Custom"
@@ -2362,26 +2381,116 @@ function isOffMapAsset(icon) {
 
 function assetPassesFilters(icon, filters, opts = {}) {
   const asset = icon?.summary || {};
-  const profile = String(assetProfile(asset) || "").toLowerCase();
-  const type = String(asset?.asset_type || "").toLowerCase();
+
+  const norm = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/-/g, "_");
+
+  const profile = norm(assetProfile(asset));
+  const type = norm(asset?.asset_type || asset?.assetType);
+  const name = norm(asset?.name || asset?.title || asset?.device_id);
+
   const online = assetOnline(asset);
   const offMap = isOffMapAsset(icon);
 
-  if (offMap && !opts.includeOffMap && !filters.off_map) return false;
-  if (offMap && opts.includeOffMap && !filters.off_map) return false;
+  // Off-map handling.
+  // The opts.includeOffMap flag is retained for compatibility with your current calls,
+  // but the checkbox is still the source of truth.
+  if (offMap && !filters.off_map) return false;
 
+  // Online / offline handling.
   if (online && !filters.online) return false;
   if (!online && !filters.offline) return false;
 
-  if (profile === "valet_vest" || type === "valet_vest")
+  // ValetVest
+  if (
+    profile === "valet_vest" ||
+    profile === "valetvest" ||
+    type === "valet_vest" ||
+    type === "valetvest" ||
+    name.includes("valet_vest") ||
+    name.includes("valetvest") ||
+    name.includes("vest")
+  ) {
     return Boolean(filters.valet_vest);
-  if (type === "transporter") return Boolean(filters.transporter);
-  if (type === "forklift") return Boolean(filters.forklift);
-  if (type === "agv") return Boolean(filters.agv);
-  if (type === "trailer") return Boolean(filters.trailer);
-  if (type === "custom" || !type) return Boolean(filters.custom);
+  }
 
-  return true;
+  // Tugger
+  if (profile === "tugger" || type === "tugger" || name.includes("tugger")) {
+    return Boolean(filters.tugger);
+  }
+
+  // OTR
+  if (
+    profile === "otr" ||
+    type === "otr" ||
+    profile === "over_the_road" ||
+    type === "over_the_road" ||
+    name.includes("otr") ||
+    name.includes("over_the_road")
+  ) {
+    return Boolean(filters.otr);
+  }
+
+  // Yard Truck
+  if (
+    profile === "yardtruck" ||
+    type === "yardtruck" ||
+    profile === "yard_truck" ||
+    type === "yard_truck" ||
+    name.includes("yardtruck") ||
+    name.includes("yard_truck")
+  ) {
+    return Boolean(filters.yardtruck);
+  }
+
+  // Reach Truck
+  if (
+    profile === "reachtruck" ||
+    type === "reachtruck" ||
+    profile === "reach_truck" ||
+    type === "reach_truck" ||
+    name.includes("reachtruck") ||
+    name.includes("reach_truck")
+  ) {
+    return Boolean(filters.reachtruck);
+  }
+
+  // Existing categories
+  if (type === "transporter" || profile === "transporter") {
+    return Boolean(filters.transporter);
+  }
+
+  if (type === "forklift" || profile === "forklift") {
+    return Boolean(filters.forklift);
+  }
+
+  if (
+    type === "agv" ||
+    profile === "agv" ||
+    type === "amr" ||
+    profile === "amr"
+  ) {
+    return Boolean(filters.agv);
+  }
+
+  // Keep trailer support if the backend ever returns it, even if you removed the checkbox.
+  // If filters.trailer is undefined, this falls through to custom instead of breaking.
+  if (type === "trailer" || profile === "trailer") {
+    return filters.trailer === undefined
+      ? Boolean(filters.custom)
+      : Boolean(filters.trailer);
+  }
+
+  // Unknown / future asset types land in Custom.
+  if (type === "custom" || profile === "custom" || (!type && !profile)) {
+    return Boolean(filters.custom);
+  }
+
+  return Boolean(filters.custom);
 }
 
 function selectionTitle(selection) {
