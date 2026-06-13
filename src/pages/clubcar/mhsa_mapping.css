@@ -1044,6 +1044,93 @@
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
+/* =========================================================
+   Cart semantic roles
+   These override raw cart type code when backend provides role classes.
+   ========================================================= */
+
+/* Small-parts / bin carts: hex cue */
+.mi.mi-cart-role--small-parts,
+.mi.mi-cart-role--smallparts,
+.mi.mi-cart-role--bin,
+.mi.mi-cart-role--bins {
+  background: #0c9c89;
+  border-radius: 0;
+  width: 22px;
+  height: 20px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Line / presentation carts: elongated diamond */
+.mi.mi-cart-role--line,
+.mi.mi-cart-role--presentation {
+  background: #f2844e;
+  width: 12px;
+  height: 22px;
+  border-radius: 4px;
+  transform: translate(-50%, -100%) rotate(45deg);
+}
+
+.mi:hover.mi-cart-role--line,
+.mi:hover.mi-cart-role--presentation {
+  transform: translate(-50%, -100%) rotate(45deg) scale(1.08);
+}
+
+/* Supermarket / market carts: honeycomb-ish cue */
+.mi.mi-cart-role--supermarket,
+.mi.mi-cart-role--market {
+  background: #155157;
+  border-radius: 0;
+  width: 26px;
+  height: 22px;
+  clip-path: polygon(
+    8% 25%,
+    25% 8%,
+    50% 8%,
+    67% 25%,
+    50% 42%,
+    25% 42%,
+    33% 58%,
+    50% 42%,
+    67% 58%,
+    50% 75%,
+    25% 75%
+  );
+}
+
+/* Bulk / large handling carts: square/grounded cue */
+.mi.mi-cart-role--bulk {
+  background: #148d97;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+/* Standard carts: visible but not all brown fallback */
+.mi.mi-cart-role--standard {
+  background: #f2844e;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+}
+
+/* Production cart type fallbacks */
+.mi.mi-cart--12 {
+  background: #0c9c89;
+  border-radius: 0;
+  width: 22px;
+  height: 20px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.mi.mi-cart--14,
+.mi.mi-cart--15 {
+  background: #148d97;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
 /* ===== MHSA Dark Popover (Bootstrap 5) ===== */
 
 .mhsa-popover {
