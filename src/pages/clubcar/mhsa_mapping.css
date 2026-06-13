@@ -1531,6 +1531,63 @@
   margin-bottom: 6px;
 }
 
+.mhsa-cockpit-resizable {
+  display: grid !important;
+  flex: 1 1 auto;
+}
+
+.mhsa-cockpit-resizable > .mhsa-left,
+.mhsa-cockpit-resizable > .mhsa-aside {
+  min-width: 0;
+  max-width: none;
+}
+
+/* Cockpit scroll containment */
+.mhsa-cockpit-resizable {
+  height: calc(100vh - 90px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mhsa-cockpit-resizable > .mhsa-left,
+.mhsa-cockpit-resizable > .mhsa-aside {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mhsa-cockpit-resizable .mhsa-results,
+.mhsa-cockpit-resizable .mhsa-card {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mhsa-cockpit-resizable .mhsa-results-body,
+.mhsa-cockpit-resizable .mhsa-card__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.mhsa-cockpit-resizable .mhsa-map-stage {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Floating card internal scroll */
+.mhsa-floating-asset-list__body {
+  height: 252px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 /* HUD Aside cards (server-rendered fragments) */
 .mhsa-hud-aside-card {
   background: var(--mhsa-panel, #171a1f);
@@ -2030,4 +2087,29 @@
     max-width: 320px;
     height: 220px;
   }
+}
+
+/* Reusable scrollable map viewport.
+   Use when a map should be inspectable rather than only fit-to-width. */
+.mhsa-map-viewport {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+}
+
+.mhsa-map-scroll-content {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.mhsa-map-stage--native {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  min-width: 100%;
+  min-height: 100%;
 }
