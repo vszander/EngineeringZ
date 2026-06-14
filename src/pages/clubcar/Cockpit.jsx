@@ -1937,17 +1937,24 @@ function DeviceCommandsPanel({
               style={inputStyle()}
             >
               <option value="heartbeat_ms">Set heartbeat_ms</option>
-              <option value="oled_event_latch_ms">
-                Set oled_event_latch_ms
-              </option>
               <option value="gps_report_period_ms">
                 Set gps_report_period_ms
               </option>
+              <option value="oled_event_latch_ms">
+                Set oled_event_latch_ms
+              </option>
+              <option value="bump_accel_mag_threshold">
+                Set bump_accel_mag_threshold
+              </option>
+              <option value="bump_cooldown_ms">Set bump_cooldown_ms</option>
+              <option value="get_status">Get status</option>
+              <option value="get_config">Get config</option>
+              <option value="send_battery_level">Request battery level</option>
               <option value="clear_logs">Clear device logs</option>
             </select>
           </label>
 
-          {commandKey !== "clear_logs" && (
+          {!isDirectCommand(commandKey) && (
             <label style={labelStyle()}>
               Value
               <input
@@ -1958,6 +1965,12 @@ function DeviceCommandsPanel({
                 placeholder="9000"
               />
             </label>
+          )}
+
+          {isDirectCommand(commandKey) && (
+            <div style={{ opacity: 0.72, fontSize: 12 }}>
+              This command does not require a value.
+            </div>
           )}
 
           <button
@@ -2578,11 +2591,28 @@ function formatTwinValue(row) {
   }
 }
 
+function isDirectCommand(commandKey) {
+  return [
+    "get_status",
+    "get_config",
+    "send_battery_level",
+    "clear_logs",
+  ].includes(String(commandKey || ""));
+}
+
+function isDirectCommand(commandKey) {
+  return [
+    "get_status",
+    "get_config",
+    "send_battery_level",
+    "clear_logs",
+  ].includes(String(commandKey || ""));
+}
+
 function buildCommandPayload(commandKey, value) {
-  if (commandKey === "clear_logs") {
+  if (isDirectCommand(commandKey)) {
     return {
-      command_key: "clear_logs",
-      command_code: 12,
+      command_key: commandKey,
       payload_json: {},
     };
   }
