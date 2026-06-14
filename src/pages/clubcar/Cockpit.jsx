@@ -36,19 +36,39 @@ const EMPTY_SELECTION = {
   details: null,
 };
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length !== 2) return "";
-  return parts.pop().split(";").shift() || "";
+let csrfTokenCache = "";
+
+async function getCsrfToken() {
+  if (csrfTokenCache) return csrfTokenCache;
+
+  const res = await fetch(`${backendBase}/mhsa/csrf/`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`CSRF token HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  csrfTokenCache = data?.csrfToken || "";
+
+  if (!csrfTokenCache) {
+    throw new Error("CSRF token was not returned by backend.");
+  }
+
+  return csrfTokenCache;
 }
 
-function csrfHeaders(extra = {}) {
-  const token = getCookie("csrftoken");
+async function csrfHeaders(extra = {}) {
+  const token = await getCsrfToken();
 
   return {
     ...extra,
-    ...(token ? { "X-CSRFToken": token } : {}),
+    "X-CSRFToken": token,
   };
 }
 
@@ -91,6 +111,9 @@ function CockpitInner() {
   const [deviceCommands, setDeviceCommands] = useState(null);
   const [loadingDeviceCommands, setLoadingDeviceCommands] = useState(false);
   const [deviceCommandsError, setDeviceCommandsError] = useState(null);
+
+  const [csrfToken, setCsrfToken] = useState("");
+  const [csrfError, setCsrfError] = useState(null);
 
   const [maplayer, setMaplayer] = useState(null);
   const [mapImageSrc, setMapImageSrc] = useState(
@@ -146,6 +169,43 @@ function CockpitInner() {
     setDeviceCommands(null);
     setDeviceCommandsError(null);
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // CSRF bootstrap
+  // ---------------------------------------------------------------------------
+  const loadCsrfToken = useCallback(async () => {
+    try {
+      setCsrfError(null);
+
+      const res = await fetch(`${backendBase}/csrf/`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!res.ok) throw new Error(`CSRF HTTP ${res.status}`);
+
+      const data = await res.json();
+      const token = data?.csrfToken || data?.csrf_token || "";
+
+      if (!token) throw new Error("CSRF token missing from response.");
+
+      setCsrfToken(token);
+      return token;
+    } catch (e) {
+      const msg = String(e?.message || e);
+      setCsrfError(msg);
+      throw e;
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCsrfToken().catch((e) => {
+      console.warn("CSRF bootstrap failed:", e);
+    });
+  }, [loadCsrfToken]);
 
   // ---------------------------------------------------------------------------
   // MapLayer
@@ -1014,9 +1074,12 @@ function CockpitInner() {
                     commandsModel={deviceCommands}
                     loading={loadingDeviceCommands}
                     error={deviceCommandsError}
+                    csrfToken={csrfToken}
+                    csrfError={csrfError}
+                    loadCsrfToken={loadCsrfToken}
                     onCommandCreated={() => {
                       setDeviceCommands(null);
-                      setTab("commands");
+                      setDeviceCommandsError(null);
                     }}
                   />
                 )}
@@ -1883,6 +1946,9 @@ function DeviceCommandsPanel({
   commandsModel,
   loading,
   error,
+  csrfToken,
+  csrfError,
+  loadCsrfToken,
   onCommandCreated,
 }) {
   const [commandKey, setCommandKey] = useState("heartbeat_ms");
@@ -1905,15 +1971,41 @@ function DeviceCommandsPanel({
         selectedDeviceId,
       )}/commands/`;
 
-      const res = await fetch(url, {
+      let token = csrfToken;
+
+      if (!token) {
+        if (typeof loadCsrfToken !== "function") {
+          throw new Error("CSRF token loader is not available.");
+        }
+
+        token = await loadCsrfToken();
+      }
+
+      let res = await fetch(url, {
         method: "POST",
-        headers: csrfHeaders({
+        headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-        }),
+          "X-CSRFToken": token,
+        },
         credentials: "include",
         body: JSON.stringify(payload),
       });
+
+      if (res.status === 403 && typeof loadCsrfToken === "function") {
+        token = await loadCsrfToken();
+
+        res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "X-CSRFToken": token,
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!res.ok) throw new Error(`Create command HTTP ${res.status}`);
       const data = await res.json();
@@ -1987,6 +2079,10 @@ function DeviceCommandsPanel({
             <div style={{ opacity: 0.72, fontSize: 12 }}>
               This command does not require a value.
             </div>
+          )}
+
+          {csrfError && (
+            <SoftWarning title="CSRF token warning" message={csrfError} />
           )}
 
           <button
