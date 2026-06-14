@@ -36,15 +36,6 @@ const EMPTY_SELECTION = {
   details: null,
 };
 
-async function csrfHeaders(extra = {}) {
-  const token = await getCsrfToken();
-
-  return {
-    ...extra,
-    "X-CSRFToken": token,
-  };
-}
-
 export default function CockpitPage() {
   return (
     <MapNavProvider initialLayerId={DEFAULT_MAP_LAYER_ID}>
@@ -147,21 +138,17 @@ function CockpitInner() {
   // CSRF bootstrap
   // ---------------------------------------------------------------------------
   const loadCsrfToken = useCallback(async () => {
+    const csrfUrl = `${backendBase}/csrf/`;
+
     try {
       setCsrfError(null);
 
-      const res = await fetch(`${backendBase}/csrf/`, {
+      const res = await fetch(csrfUrl, {
         method: "GET",
         credentials: "include",
         headers: {
           Accept: "application/json",
         },
-      });
-
-      console.log("MHSA command FETCH CSRF debug", {
-        url,
-        tokenPresent: Boolean(token),
-        tokenPrefix: token ? token.slice(0, 6) : "",
       });
 
       if (!res.ok) throw new Error(`CSRF HTTP ${res.status}`);
@@ -170,6 +157,12 @@ function CockpitInner() {
       const token = data?.csrfToken || data?.csrf_token || "";
 
       if (!token) throw new Error("CSRF token missing from response.");
+
+      console.log("MHSA CSRF bootstrap debug", {
+        url: csrfUrl,
+        tokenPresent: true,
+        tokenPrefix: token.slice(0, 6),
+      });
 
       setCsrfToken(token);
       return token;
@@ -973,8 +966,6 @@ function CockpitInner() {
                 <AssetLandingPanel
                   assets={visibleAssetList}
                   onSelect={(icon) => onIconClick(icon)}
-                  filters={assetFilters}
-                  setFilters={setAssetFilters}
                 />
               )}
 
@@ -1959,11 +1950,7 @@ function DeviceCommandsPanel({
 
         token = await loadCsrfToken();
       }
-      console.log("MHSA command POST CSRF debug", {
-        url,
-        tokenPresent: Boolean(token),
-        tokenPrefix: token ? token.slice(0, 6) : "",
-      });
+      console.log("MHSA command POST CSRF debug - fetching  now");
       let res = await fetch(url, {
         method: "POST",
         headers: {
@@ -2684,15 +2671,6 @@ function formatTwinValue(row) {
     default:
       return row.value_text ?? "";
   }
-}
-
-function isDirectCommand(commandKey) {
-  return [
-    "get_status",
-    "get_config",
-    "send_battery_level",
-    "clear_logs",
-  ].includes(String(commandKey || ""));
 }
 
 function isDirectCommand(commandKey) {
