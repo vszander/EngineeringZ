@@ -36,33 +36,6 @@ const EMPTY_SELECTION = {
   details: null,
 };
 
-let csrfTokenCache = "";
-
-async function getCsrfToken() {
-  if (csrfTokenCache) return csrfTokenCache;
-
-  const res = await fetch(`${backendBase}/mhsa/csrf/`, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      Accept: "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`CSRF token HTTP ${res.status}`);
-  }
-
-  const data = await res.json();
-  csrfTokenCache = data?.csrfToken || "";
-
-  if (!csrfTokenCache) {
-    throw new Error("CSRF token was not returned by backend.");
-  }
-
-  return csrfTokenCache;
-}
-
 async function csrfHeaders(extra = {}) {
   const token = await getCsrfToken();
 
@@ -1980,7 +1953,11 @@ function DeviceCommandsPanel({
 
         token = await loadCsrfToken();
       }
-
+      console.log("MHSA command POST CSRF debug", {
+        url,
+        tokenPresent: Boolean(token),
+        tokenPrefix: token ? token.slice(0, 6) : "",
+      });
       let res = await fetch(url, {
         method: "POST",
         headers: {
