@@ -2027,6 +2027,9 @@ function DeviceCommandsPanel({
               <option value="bump_cooldown_ms">Set bump_cooldown_ms</option>
               <option value="get_status">Get status</option>
               <option value="get_config">Get config</option>
+              <option value="get_log_status">Get BNO log status</option>
+              <option value="upload_bno_log">Upload BNO log</option>
+              <option value="offload_data">Offload data</option>
               <option value="send_battery_level">Request battery level</option>
               <option value="clear_logs">Clear device logs</option>
             </select>
@@ -2677,15 +2680,33 @@ function isDirectCommand(commandKey) {
   return [
     "get_status",
     "get_config",
+    "get_log_status",
+    "upload_events",
+    "upload_bno_log",
+    "offload_data",
+    "offload_bno_log",
     "send_battery_level",
     "clear_logs",
-  ].includes(String(commandKey || ""));
+  ].includes(commandKey);
 }
 
 function buildCommandPayload(commandKey, value) {
-  if (isDirectCommand(commandKey)) {
+  const directCommandCodes = {
+    get_status: 5,
+    get_config: 6,
+    get_log_status: 9,
+    upload_events: 10,
+    upload_bno_log: 10,
+    offload_data: 11,
+    offload_bno_log: 11,
+    clear_logs: 12,
+    send_battery_level: 20,
+  };
+
+  if (Object.prototype.hasOwnProperty.call(directCommandCodes, commandKey)) {
     return {
       command_key: commandKey,
+      command_code: directCommandCodes[commandKey],
       payload_json: {},
     };
   }
