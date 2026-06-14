@@ -158,6 +158,12 @@ function CockpitInner() {
         },
       });
 
+      console.log("MHSA command FETCH CSRF debug", {
+        url,
+        tokenPresent: Boolean(token),
+        tokenPrefix: token ? token.slice(0, 6) : "",
+      });
+
       if (!res.ok) throw new Error(`CSRF HTTP ${res.status}`);
 
       const data = await res.json();
