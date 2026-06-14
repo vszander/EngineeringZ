@@ -36,6 +36,22 @@ const EMPTY_SELECTION = {
   details: null,
 };
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length !== 2) return "";
+  return parts.pop().split(";").shift() || "";
+}
+
+function csrfHeaders(extra = {}) {
+  const token = getCookie("csrftoken");
+
+  return {
+    ...extra,
+    ...(token ? { "X-CSRFToken": token } : {}),
+  };
+}
+
 export default function CockpitPage() {
   return (
     <MapNavProvider initialLayerId={DEFAULT_MAP_LAYER_ID}>
@@ -1891,10 +1907,10 @@ function DeviceCommandsPanel({
 
       const res = await fetch(url, {
         method: "POST",
-        headers: {
+        headers: csrfHeaders({
           Accept: "application/json",
           "Content-Type": "application/json",
-        },
+        }),
         credentials: "include",
         body: JSON.stringify(payload),
       });
