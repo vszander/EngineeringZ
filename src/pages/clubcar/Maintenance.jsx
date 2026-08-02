@@ -289,7 +289,14 @@ function MaintenanceMenu({ activeTool, onPick, onGoHome }) {
           className="btn btn-sm btn-outline-primary"
           onClick={() => publishDemoImage("panel-01", "welcome-demo")}
         >
-          Publish Welcome Placard
+          Publish MHSA Demo Placard
+        </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => publishDemoImage("panel-01", "jeff-diamond")}
+        >
+          Diamond J
         </button>
         <button
           className={`mhsa-menu-btn ${
