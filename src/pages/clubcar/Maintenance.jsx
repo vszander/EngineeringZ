@@ -72,7 +72,6 @@ async function publishDemoImage(
       body: formData,
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
         "X-CSRFToken": getCsrfToken(),
         Accept: "application/json",
       },
