@@ -59,7 +59,8 @@ function getCsrfToken() {
 
 async function publishDemoImage(
   panelId = "panel-01",
-  imageKey = "welcome-demo",
+  // imageKey = "welcome-demo",
+  imageKey = "jeff-diamond",
 ) {
   const formData = new FormData();
   formData.append("image_key", imageKey);
